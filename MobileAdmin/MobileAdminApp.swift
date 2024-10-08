@@ -10,8 +10,12 @@ import SwiftUI
 @main
 struct MobileAdminApp: App {
     var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+        #if os(iOS)
+        MyScene()
+        #elseif os(macOS)
+        MyAlternativeScene()
+        #endif
+        
     }
 }
+ 
