@@ -7,15 +7,27 @@
 
 import SwiftUI
 
+
 struct ContentView: View {
+    @StateObject var viewModel = ToastViewModel()
+    @State private var toast:Toast?
     var body: some View {
-        VStack {
+        VStack(spacing: 3.0) {
+             
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+          
+            Text("\(toast?.noticeCn ?? "Hello, world!")")
+            
+        }.padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/).onTapGesture {
+            toast = Toast()
+            viewModel.fetchToasts{ result in
+               
+                toast = result
+            }
         }
-        .padding()
+        
     }
 }
 
