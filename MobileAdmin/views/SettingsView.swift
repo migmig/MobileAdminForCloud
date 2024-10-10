@@ -1,10 +1,4 @@
-//
-//  ContentView.swift
-//  MobileAdmin
-//
-//  Created by mig_mac_air_m2 on 10/8/24.
-//
-
+ 
 import SwiftUI
 
 
@@ -17,16 +11,75 @@ struct SettingsView: View {
         #endif
     }
     
-    private func SettingsInTabView() -> some View {
-        TabView {
-             
+    private enum Settings:String,CaseIterable{
+        case account = "Account"
+        case sync = "Sync"
+        case general = "General"
+        case appIcon = "App Icon"
+        
+        var image: String{
+            switch self{
+            case .account:
+                return "person.crop.circle"
+            case .sync:
+                return "cloud"
+            case .general:
+                return "gear"
+            case .appIcon:
+                return "app"
+            }
         }
     }
     
+    //macos
+    private func SettingsInTabView() -> some View {
+        TabView{
+            ForEach(Settings.allCases, id: \.self){ item in
+                SettingsDetailsView(title:item.rawValue)
+                    .tabItem{
+                        Label(item.rawValue, systemImage:item.image)
+                    }
+                    .tag(item)
+            }
+        }
+        .frame(width:375,height:150)
+    }
+    
+    //ios
     private func SettingsInNavigationStack() -> some View {
-        NavigationView {
-            Text("dd")
+        NavigationStack{
+            List{
+                NavigationLink{
+                    SettingsDetailsView(title:Settings.account.rawValue)
+                }label:{
+                    Label(Settings.account.rawValue, systemImage:Settings.account.image)
+                }
+                NavigationLink{
+                    SettingsDetailsView(title:Settings.sync.rawValue)
+                }label:{
+                    Label(Settings.sync.rawValue, systemImage:Settings.sync.image)
+                }
+                
+                Section{
+                    NavigationLink{
+                        SettingsDetailsView(title:Settings.general.rawValue)
+                    }label:{
+                        Label(Settings.general.rawValue, systemImage:Settings.general.image)
+                    }
+                    NavigationLink{
+                        SettingsDetailsView(title:Settings.appIcon.rawValue)
+                    }label:{
+                        Label(Settings.appIcon.rawValue, systemImage:Settings.appIcon.image)
+                    }
+                }
+                
+            }
+            .navigationTitle("Settings")
         }
     }
 }
  
+#Preview
+{
+    SettingsView()
+}

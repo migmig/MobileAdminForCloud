@@ -11,8 +11,11 @@ struct ErrorCloudListItem: View {
     let errorCloudItem: ErrorCloudItem
     
     var body: some View {
+        
         VStack {
-             Text(errorCloudItem.msg!)
+            Text(errorCloudItem.description!)
+                .lineLimit(3)
+                .truncationMode(.tail)
             
         }
     }

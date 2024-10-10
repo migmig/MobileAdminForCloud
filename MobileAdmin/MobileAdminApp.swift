@@ -17,5 +17,4 @@ struct MobileAdminApp: App {
         #endif
         
     }
-}
- 
+} 

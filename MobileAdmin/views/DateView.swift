@@ -33,8 +33,4 @@ struct DateView: View {
                 .font(.headline)
         }
     }
-}
-
-#Preview {
-    DateView(date:Date())
-}
+} 

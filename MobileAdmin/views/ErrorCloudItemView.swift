@@ -9,34 +9,53 @@ import SwiftUI
 
 struct ErrorCloudItemView: View {
     let errorCloudItem: ErrorCloudItem
-    
-    
-    private var title: String {
-        Date().formatted(Date.FormatStyle()
-            .weekday(.abbreviated)
-            .month(.abbreviated)
-            .day()
-            .year())
-    }
-    
+     
     var body: some View {
-        ScrollView{
-            HStack{
-                Text("User ID:")
-                Text(errorCloudItem.userId!)
-            }.padding()
-            Text(errorCloudItem.msg!).padding()
-            Text(errorCloudItem.traceCn!).padding()
-            Text(errorCloudItem.restUrl!).padding()
-            Text(errorCloudItem.registerDt!).padding()
-            Text(errorCloudItem.requestInfo!).padding()
-        }.frame(maxWidth:.infinity,alignment: .leading)
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.fixed(100)), GridItem(.flexible())], alignment: .leading) {
+                Group {
+                    Text("User ID:")
+                    Text(errorCloudItem.userId!)
+                    
+                    Text("Code:")
+                    Text(errorCloudItem.code!)
+                    
+                    Text("Description:")
+                    Text(errorCloudItem.description!)
+                    
+                    Text("Msg:")
+                    Text(errorCloudItem.msg!)
+                    
+                    Text("Trace CN:")
+                    ScrollView(.horizontal){
+                        Text(errorCloudItem.traceCn!) 
+                            .truncationMode(.tail)
+                    }
+                    
+                    Text("Rest URL:")
+                    Text(errorCloudItem.restUrl!)
+                    
+                    Text("Register DT:")
+                    Text(Util.formattedDate(from:errorCloudItem.registerDt!))
+                    
+                    Text("Request Info:")
+                    ScrollView(.horizontal){
+                        Text(Util.formatRequestInfo(errorCloudItem.requestInfo!))
+                            .padding(.vertical, 4)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
+        }
         #if os(iOS)
-            .navigationTitle(title)
+        .navigationTitle(Util.formattedDate(from:errorCloudItem.registerDt!))
         #elseif os(macOS)
-            .navigationSubtitle(title)
+        .navigationSubtitle(Util.formattedDate(from:errorCloudItem.registerDt!))
         #endif
     }
 }
+ 
+
  
