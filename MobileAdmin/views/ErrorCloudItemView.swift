@@ -27,9 +27,11 @@ struct ErrorCloudItemView: View {
                     Text(errorCloudItem.msg!)
                     
                     Text("Trace CN:")
-                    ScrollView(.horizontal){
-                        Text(errorCloudItem.traceCn!) 
+                    ScrollView([.vertical,.horizontal]){
+                        Text(errorCloudItem.traceCn!)
                             .truncationMode(.tail)
+                            .multilineTextAlignment(.leading)
+                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                     }
                     
                     Text("Rest URL:")
@@ -39,9 +41,11 @@ struct ErrorCloudItemView: View {
                     Text(Util.formattedDate(from:errorCloudItem.registerDt!))
                     
                     Text("Request Info:")
-                    ScrollView(.horizontal){
+                    ScrollView([.vertical,.horizontal]){
                         Text(Util.formatRequestInfo(errorCloudItem.requestInfo!))
                             .padding(.vertical, 4)
+                            .multilineTextAlignment(.leading)
+                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding(.vertical, 4)

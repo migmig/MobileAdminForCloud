@@ -1,147 +1,96 @@
-
 import SwiftUI
+ 
+ 
 
-struct token: Codable{
-    var ci: String
-}
-
-
-class ViewModel: ObservableObject{
-    @Published var toasts:Toast = Toast()
-    @Published var errorItems:[ErrorCloudItem] = []
-    @AppStorage("baseUrl") var baseUrl = "https://untact.gcgf.or.kr:3002"
-//    @AppStorage("baseUrl") var baseUrl = "http://172.16.111.7:8080"
+class ViewModel: ObservableObject {
+    @Published var toasts: Toast = Toast()
+    @Published var errorItems: [ErrorCloudItem] = []
+    
+    private var baseUrl: String {
+        return EnvironmentConfig.baseUrl
+    }
     
     private static func today(minus days: Int) -> Date {
         let dateComponents = DateComponents(day: -days)
         return Calendar.current.date(byAdding: dateComponents, to: Date()) ?? Date()
     }
-    
-    func getToken(completion:@escaping(String?) -> Void){
+
+    // 토큰을 가져오는 비동기 함수
+    private func fetchToken() async throws -> String {
+        let url = "\(baseUrl)/simpleLoginForAdmin"
+        let tokenRequestData = TokenRequest(ci: "QQi4nORX5GzJXq2YWfre9HpW8UkAd0F4AuxQsd2a/hb1JSRnfzk+b+vqTKjQhcVOZNXCLaIQyNF6yKxihjrQlw==")
         
-        guard let url = URL(string:"\(baseUrl)/simpleLoginForAdmin") else{return}
-        
-        let newToken = token(ci: "QQi4nORX5GzJXq2YWfre9HpW8UkAd0F4AuxQsd2a/hb1JSRnfzk+b+vqTKjQhcVOZNXCLaIQyNF6yKxihjrQlw==")
-        
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
-        
         request.setValue("application/json", forHTTPHeaderField: "Content-type")
-        request.setValue("*/*",forHTTPHeaderField: "Accept")
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
+        request.httpBody = try JSONEncoder().encode(tokenRequestData)
+
+        let (_, response) = try await URLSession.shared.data(for: request) 
         
-        guard let httpBody = try? JSONEncoder().encode(newToken) else{return}
-        request.httpBody = httpBody
-         
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
+        }
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("error: \(error)")
-                    completion(nil)
-                    return
-                }
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    print("fail response")
-                    completion(nil)
-                    return
-                }
-                if let token = httpResponse.value(forHTTPHeaderField: "Authorization") {
-                    completion(token)
-                } else {
-                    print("Authorization header is missing")
-                    completion(nil)
-                }
-            }
-        }.resume()
-        
-        
-    }
-    
-    func fetchToasts(completion:@escaping(Toast?) -> Void){
-        var sTokenString:String?
-        getToken{sToken in
-            if let sToken {
-               // print("getToken: \(sToken)")
-                sTokenString = sToken;
-                
-                guard let url = URL(string:"\(self.baseUrl)/admin/toastNotice") else{return}
-                
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                
-                request.setValue("application/json", forHTTPHeaderField: "Content-type")
-                request.setValue("*/*",forHTTPHeaderField: "Accept")
-                request.setValue("Bearer \(sTokenString!)", forHTTPHeaderField: "Authorization")
-                 
-                 
-                URLSession.shared.dataTask(with: request){data,response,error in
-                    DispatchQueue.main.async{
-                        if let httpResponse = response as? HTTPURLResponse {
-                            print("HTTP 응답 코드: \(httpResponse.statusCode)")
-                        }
-                        guard let data else{return}
-                        
-                        //                    let jsonString = String(data: data, encoding: .utf8)
-                        // print("jsonString: \(jsonString ?? "nil")")
-                        do{
-                            let decoder = JSONDecoder()
-                            let toast = try decoder.decode(Toast.self, from: data)
-                            self.toasts = toast
-                            completion(toast)
-                        }catch{
-                            print("error: \(error)")
-                            completion(nil)
-                        }
-                    }
-                }.resume()
-            }else{
-                print("get Token failed")
-            }
+        if let token = httpResponse.value(forHTTPHeaderField: "Authorization") {
+            return token
+        } else {
+            throw NSError(domain: "Authorization header is missing", code: 0, userInfo: nil)
         }
     }
-    
-    func fetchErrors(completion:@escaping([ErrorCloudItem]?) -> Void
-                     ,startFrom:String
-                     ,endTo:String){
-        var sTokenString:String?
-        getToken{sToken in
-            if let sToken {
-               // print("getToken: \(sToken)")
-                sTokenString = sToken;
-                
-                guard let url = URL(string:"\(self.baseUrl)/admin/findByRegisterDtBetween/\(startFrom)/\(endTo)") else{return}
-                
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                
-                request.setValue("application/json", forHTTPHeaderField: "Content-type")
-                request.setValue("*/*",forHTTPHeaderField: "Accept")
-                request.setValue("Bearer \(sTokenString!)", forHTTPHeaderField: "Authorization")
-                 
-                
-                URLSession.shared.dataTask(with: request){data,response,error in
-                    DispatchQueue.main.async{
-                        if let httpResponse = response as? HTTPURLResponse {
-                            print("HTTP 응답 코드: \(httpResponse.statusCode)")
-                        }
-                        guard let data else{return}
-                        
-                        //                    let jsonString = String(data: data, encoding: .utf8)
-                        // print("jsonString: \(jsonString ?? "nil")")
-                        do{
-                            let decoder = JSONDecoder()
-                            let errorItems = try decoder.decode([ErrorCloudItem].self, from: data)
-                            self.errorItems = errorItems
-                            completion(errorItems)
-                        }catch{
-                            print("error: \(error)")
-                            completion(nil)
-                        }
-                    }
-                }.resume()
-            }else{
-                print("get Token failed")
-            }
+
+    // 모든 요청을 처리하는 비동기 함수
+    private func makeRequest<T: Codable>(
+        url: String,
+        requestData: T? = nil,
+        token : String?
+    ) async throws -> T {
+        var request = URLRequest(url: URL(string: url)!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-type")
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
+        if(token != nil){
+            request.setValue("Bearer \(token!)", forHTTPHeaderField: "Authorization")
         }
+
+        // 요청 데이터가 주어졌다면 JSON 인코딩
+        if let requestData = requestData {
+            request.httpBody = try JSONEncoder().encode(requestData)
+        }
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
+        }
+
+        let decodedData = try JSONDecoder().decode(T.self, from: data)
+        return decodedData
+    }
+
+    // Toast 데이터를 가져오는 비동기 함수
+    func fetchToasts() async  -> Toast?{
+        do {
+            let token = try await fetchToken()
+            let url = "\(baseUrl)/admin/toastNotice"
+            let toast: Toast = try await makeRequest(url: url,token: token)
+            return toast
+        } catch {
+            print("Error fetching toasts: \(error)")
+        }
+        return nil
+    }
+
+    // Error 데이터를 가져오는 비동기 함수
+    func fetchErrors(startFrom: String, endTo: String) async -> [ErrorCloudItem]?{
+        do {
+            let token  = try await fetchToken()
+            let urlPath = "/admin/findByRegisterDtBetween/\(startFrom)/\(endTo)"
+            let errorItems: [ErrorCloudItem] = try await makeRequest(url: "\(baseUrl)\(urlPath)", token:token)
+            return errorItems
+        } catch {
+            print("Error fetching errors: \(error)")
+        }
+        return nil
     }
 }

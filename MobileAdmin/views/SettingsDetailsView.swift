@@ -10,18 +10,43 @@ import SwiftUI
 struct SettingsDetailsView: View {
     let title : String
     
-    @AppStorage("option1") private var option1 = true
-    @AppStorage("option2") private var option2 = false
-    
+    @State private var isProduction: Bool = true
+    @State private var isDevelopment: Bool = false
+    @State private var isLocal: Bool = false
+
     var body: some View {
-        Form{
-            Section{
-                Toggle("Enable option 1", isOn: $option1)
-                    .toggleStyle(.automatic)
-                Toggle("Enable option 2", isOn: $option2)
-                    .toggleStyle(.automatic)
-            }
+        VStack(alignment: .leading) { 
+            Toggle("운영 환경", isOn: $isProduction)
+                .onChange(of: isProduction) { value in
+                    if value {
+                        EnvironmentConfig.current = .production
+                        isDevelopment = false
+                        isLocal = false
+                    }
+                }
+                .padding()
+            
+            Toggle("개발 환경", isOn: $isDevelopment)
+                .onChange(of: isDevelopment) { value in
+                    if value {
+                        EnvironmentConfig.current = .development
+                        isProduction = false
+                        isLocal = false
+                    }
+                }
+                .padding()
+
+            Toggle("로컬 환경", isOn: $isLocal)
+                .onChange(of: isLocal) { value in
+                    if value {
+                        EnvironmentConfig.current = .local
+                        isDevelopment = false
+                        isProduction = false
+                    }
+                }
+                .padding()
         }
+        .padding()
         .navigationTitle(title)
     }
 }

@@ -5,8 +5,7 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @StateObject var viewModel = ViewModel()
-    @State private var toast:Toast?
+    let viewModel:ViewModel
     @State private var errorItems:[ErrorCloudItem] = []
 //    let errorItems:[ErrorCloudItem]
     
@@ -21,7 +20,7 @@ struct ContentView: View {
             List(errorItems){entry in
                 NavigationLink(value:entry){
                     ErrorCloudListItem(errorCloudItem: entry)
-                } 
+                }
                 .navigationTitle("ErrorList")
                 
             }
@@ -30,12 +29,16 @@ struct ContentView: View {
             }
         }
         .onAppear(){
-            print("OnAppear")
-            viewModel.fetchErrors(completion:{result in errorItems = result ?? []}, startFrom: formatDate, endTo:  formatDate)
+            Task{
+                print("OnAppear")
+                await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
+            }
         }
         .refreshable {
-            print("OnRefresh")
-            viewModel.fetchErrors(completion:{result in errorItems = result ?? []}, startFrom: formatDate, endTo:  formatDate)
+            Task{
+                print("OnRefresh")
+                await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
+            }
         }
         
 //        VStack(spacing: 3.0) {

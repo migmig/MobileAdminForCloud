@@ -17,16 +17,7 @@ struct AlternativeContentView: View {
     
     var body: some View {
         NavigationSplitView{
-            Menu("Actions") {
-            Button("Duplicate", action: {})
-                Button("Rename", action: {})
-                Button("Delete…", action: {})
-                Menu("Copy") {
-                    Button("Copy", action: {})
-                    Button("Copy Formatted", action: {})
-                    Button("Copy Library Path", action: {})
-                }
-            }
+            
             List(errorItems,selection:$selectedEntry){entry in
                 NavigationLink(value:entry){
                     ErrorCloudListItem(errorCloudItem: entry)
@@ -39,11 +30,8 @@ struct AlternativeContentView: View {
             .toolbar{
                 ToolbarItem{
                     Button{
-                        viewModel.fetchErrors(completion:{
-                            result in errorItems = result ?? []
-                        }, startFrom: formatDate, endTo:  formatDate)
-                        viewModel.fetchToasts{ result in
-                            toast = result
+                        Task{
+                            await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
                         }
                     }label:{
                         Image(systemName: "person.crop.circle.badge.exclamationmark")
@@ -51,7 +39,8 @@ struct AlternativeContentView: View {
                 }
             }
         }detail:{
-            DetailView(selectedEntry: $selectedEntry)
+//            DetailView(selectedEntry: $selectedEntry)
+            Text("")
         }
     }
 }

@@ -15,7 +15,7 @@ import SwiftUI
 struct MyAlternativeScene: Scene {
     var body: some Scene {
         WindowGroup {
-            AlternativeContentView()
+            ContentViewForMac()
         }
         
         #if os(macOS)

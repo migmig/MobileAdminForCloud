@@ -8,13 +8,18 @@
 import SwiftUI
 
 struct DetailView: View {
+    @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var selectedEntry : ErrorCloudItem?
-    
+    @Binding var toast: Toast?
     var body: some View {
-        if let entry = selectedEntry{
-            ErrorCloudItemView(errorCloudItem: entry)
+        if(selectedSlidebarItem == SlidebarItem.errerlist){
+            if let entry = selectedEntry{
+                ErrorCloudItemView(errorCloudItem: entry)
+            }else{
+                Text("Select a row to view details.")
+            }
         }else{
-            Text("Select a row to view details.")
+            ToastView(toastItem: $toast)
         }
     }
 }
