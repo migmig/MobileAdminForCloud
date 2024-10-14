@@ -31,7 +31,4 @@ struct ContentViewForMac: View {
         
     }
 }
-
-#Preview {
-    ContentViewForMac()
-}
+ 

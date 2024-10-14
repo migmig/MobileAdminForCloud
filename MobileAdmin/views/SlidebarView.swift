@@ -25,8 +25,7 @@ enum SlidebarItem: Hashable {
 
 
 struct SlidebarView: View {
-    @Binding var selection: SlidebarItem?
-    
+    @Binding var selection: SlidebarItem? 
     var body: some View {
         List(selection:$selection){
             Section(header:Text("Slidebar")){

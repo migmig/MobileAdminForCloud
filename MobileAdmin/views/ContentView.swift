@@ -7,6 +7,8 @@ import SwiftUI
 struct ContentView: View {
     let viewModel:ViewModel
     @State private var errorItems:[ErrorCloudItem] = []
+    @State private var searchText = ""
+    @State private var isSearchBarVisible:Bool = true
 //    let errorItems:[ErrorCloudItem]
     
     var formatDate:String {
@@ -15,17 +17,42 @@ struct ContentView: View {
         return formatter.string(from: Date()) // 포맷된 문자열 반환
     }
     
+    var filteredErrorItems: [ErrorCloudItem] {
+        if searchText.isEmpty {
+            return errorItems
+        }else{
+            return errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
+        }
+    }
+    
     var body: some View {
         NavigationStack{
-            List(errorItems){entry in
-                NavigationLink(value:entry){
-                    ErrorCloudListItem(errorCloudItem: entry)
+            VStack{
+                // 검색창 추가
+                if isSearchBarVisible {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray) // 아이콘 색상
+                            .padding(.leading, 10) // 아이콘 왼쪽 패딩
+                        
+                        TextField("검색어 입력...", text: $searchText)
+                            .padding(10)
+//                            .background(Color(UIColor.systemGray6)) // 배경 색상
+                            .cornerRadius(10) // 모서리 둥글게
+                            .font(.system(size: 16)) // 폰트 크기
+                    }
+                    .padding(.horizontal) // 전체 HStack의 패딩
                 }
-                .navigationTitle("ErrorList")
-                
-            }
-            .navigationDestination(for: ErrorCloudItem.self){entry in
-                ErrorCloudItemView(errorCloudItem: entry)
+                List(filteredErrorItems){entry in
+                    NavigationLink(value:entry){
+                        ErrorCloudListItem(errorCloudItem: entry)
+                    }
+                    .navigationTitle("ErrorList")
+                    
+                }
+                .navigationDestination(for: ErrorCloudItem.self){entry in
+                    ErrorCloudItemView(errorCloudItem: entry)
+                }
             }
         }
         .onAppear(){
@@ -40,22 +67,12 @@ struct ContentView: View {
                 await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
             }
         }
-        
-//        VStack(spacing: 3.0) {
-//             
-//            Image(systemName: "globe")
-//                .imageScale(.large)
-//                .foregroundStyle(.tint)
-//          
-//            Text("\(toast?.noticeCn ?? "Hello, world!")")
-//            
-//        }.padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/).onTapGesture {
-//            viewModel.fetchErrors(completion:{result in errorItems = result ?? []}, startFrom: "2024-10-08", endTo:  "2024-10-08")
-//            toast = Toast()
-//            viewModel.fetchToasts{ result in
-//               
-//                toast = result
-//            }
+        .background(GeometryReader{ geometry in
+            Color.clear.onChange(of: geometry.frame(in:.global).minY){minY in
+                isSearchBarVisible  = minY > 0
+            }
+        })
+         
     }
     
 } 
