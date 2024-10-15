@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentListView: View {
-    @ObservedObject var viewModel:ViewModel
+    @ObservedObject var viewModel:ViewModel = ViewModel()
     @Binding var selectedSlidebarItem:SlidebarItem?
     
     var formatDate:String {

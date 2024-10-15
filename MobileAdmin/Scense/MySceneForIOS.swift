@@ -27,7 +27,9 @@ struct MySceneForIOS: Scene {
                            logger.info("ErrorList tapped")
                        }
                    }
-                ToastView(viewModel:viewModel, toastItem: $toast)
+                ToastView(
+                    viewModel:viewModel,
+                          toastItem: $toast)
                     .tabItem{
                         Label("Toast", systemImage: "bell").onTapGesture {
                             logger.info("Toast view tapped")

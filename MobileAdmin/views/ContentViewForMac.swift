@@ -18,17 +18,20 @@ struct ContentViewForMac: View {
         NavigationSplitView{
             SlidebarView(selection: $selectedSidebarItem)
         }content:{
-            ContentListView( viewModel : viewModel
-                           , selectedSlidebarItem: $selectedSidebarItem
-                           , toast: $toast
-                           , errorItems: $errorItems
-                           , selectedEntry: $selectedEntry
+            ContentListView(
+                viewModel : viewModel,
+                            selectedSlidebarItem: $selectedSidebarItem,
+                            toast: $toast,
+                            errorItems: $errorItems,
+                            selectedEntry: $selectedEntry
             )
         }detail:{
-            DetailView( viewModel : viewModel
-                      , selectedSlidebarItem: $selectedSidebarItem
-                      , selectedEntry: $selectedEntry
-                      , toast:$toast)
+            DetailView(
+                viewModel : viewModel,
+                       selectedSlidebarItem: $selectedSidebarItem,
+                       selectedEntry: $selectedEntry,
+                       toast:$toast
+            )
         }
         
     }

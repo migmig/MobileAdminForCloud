@@ -25,8 +25,8 @@ struct EnvironmentConfig {
             return "http://localhost:8080"
         }
     }
-    #if debug  
-    static var current: EnvironmentType = .development
+    #if DEBUG
+    static var current: EnvironmentType = .local
     #else
     static var current: EnvironmentType = .production
     #endif

@@ -20,8 +20,9 @@ struct DetailView: View {
                 Text("Select a row to view details.")
             }
         }else{
-            ToastView(viewModel: viewModel
-                     ,toastItem: $toast)
+            ToastView(
+                viewModel: viewModel,
+                     toastItem: $toast)
         }
     }
 }

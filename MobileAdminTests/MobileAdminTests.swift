@@ -6,10 +6,12 @@
 //
 
 import Testing
+import Logging
 @testable import MobileAdmin
 
 struct MobileAdminTests {
 
+    let logger = Logger(label:"com.migmig.MobileAdmin.MobileAdminTests")
     var viewModel = ViewModel()
     
     @Test func fetchToastsTest() async throws {
@@ -19,7 +21,7 @@ struct MobileAdminTests {
         } else {
             print("Toast 데이터를 가져오는 데 실패했습니다.")
         }
-
+        logger.info("test end")
         #expect(toast != nil)
       //  #expect(toast?.applcBeginDt.contains("T") == false)
     }

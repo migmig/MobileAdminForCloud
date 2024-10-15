@@ -16,7 +16,9 @@ struct MySceneForMacOS: Scene {
     @StateObject private var viewModel = ViewModel()
     var body: some Scene {
         WindowGroup {
-            ContentViewForMac(viewModel:viewModel)
+            ContentViewForMac(
+                viewModel:viewModel
+            )
         }
         
         #if os(macOS)

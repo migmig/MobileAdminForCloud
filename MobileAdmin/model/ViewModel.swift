@@ -1,11 +1,12 @@
 import SwiftUI
- 
+import Logging
  
 
 class ViewModel: ObservableObject {
 //    @Published var toasts: Toast = Toast()
 //    @Published var errorItems: [ErrorCloudItem] = []
     
+    let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
     static var token: String? // 토큰 만료 시간을 저장하는 변수
     
@@ -73,6 +74,7 @@ class ViewModel: ObservableObject {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
         ViewModel.token = httpResponse.value(forHTTPHeaderField: "Authorization")
+        logger.info("get token sucess:\(ViewModel.token!)")
         if ViewModel.token != nil {
             ViewModel.tokenExpirationDate = extractExpiration(from: ViewModel.token!)
         } else {

@@ -2,7 +2,8 @@
 import SwiftUI
 
 struct ToastView: View {
-    @ObservedObject var viewModel : ViewModel 
+    @ObservedObject var viewModel : ViewModel
+    //var viewModel : ViewModel = ViewModel()
     @Binding var toastItem:Toast?
     
     @State private var useYn: Bool = false
