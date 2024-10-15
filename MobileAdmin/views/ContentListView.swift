@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentListView: View {
+    @ObservedObject var viewModel:ViewModel
     @Binding var selectedSlidebarItem:SlidebarItem?
     
     var formatDate:String {
@@ -16,7 +17,6 @@ struct ContentListView: View {
         return formatter.string(from: Date()) // 포맷된 문자열 반환
     }
      
-    @StateObject var viewModel = ViewModel()
     @Binding var toast:Toast?
     @Binding var errorItems:[ErrorCloudItem]
     @Binding var selectedEntry:ErrorCloudItem?
@@ -49,6 +49,7 @@ struct ContentListView: View {
 //                       .background(Color(UIColor.systemGray6)) // 배경 색상
                        .cornerRadius(10) // 모서리 둥글게
                        .font(.system(size: 16)) // 폰트 크기
+                   Text("\(filteredErrorItems.count)개의 오류")
                }
                .padding(.horizontal) // 전체 HStack의 패딩
                 

@@ -6,11 +6,33 @@
 //
 
 import Testing
+@testable import MobileAdmin
 
 struct MobileAdminTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    var viewModel = ViewModel()
+    
+    @Test func fetchToastsTest() async throws {
+        let toast = await viewModel.fetchToasts()
+        if let toast = toast {
+            print("Toast 데이터: \(toast)")
+        } else {
+            print("Toast 데이터를 가져오는 데 실패했습니다.")
+        }
+
+        #expect(toast != nil)
+      //  #expect(toast?.applcBeginDt.contains("T") == false)
     }
 
+    @Test func setToastsTest() async throws {
+        let toast = await viewModel.fetchToasts()
+        if let toast = toast {
+            print("Toast 데이터: \(toast)")
+        } else {
+            print("Toast 데이터를 가져오는 데 실패했습니다.")
+        }
+
+        #expect(toast != nil)
+      //  #expect(toast?.applcBeginDt.contains("T") == false)
+    }
 }

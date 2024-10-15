@@ -11,9 +11,9 @@ import SwiftUI
 struct MobileAdminApp: App {
     var body: some Scene {
         #if os(iOS)
-        MyScene()
+        MySceneForIOS()
         #elseif os(macOS)
-        MyAlternativeScene()
+        MySceneForMacOS()
         #endif
         
     }

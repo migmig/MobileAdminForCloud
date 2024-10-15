@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentViewForMac: View {
-    @StateObject var viewModel = ViewModel()
+    @ObservedObject var viewModel:ViewModel
     @State var errorItems:[ErrorCloudItem] = []
     @State var selectedEntry:ErrorCloudItem? = nil
     @State var toast:Toast?
@@ -18,15 +18,17 @@ struct ContentViewForMac: View {
         NavigationSplitView{
             SlidebarView(selection: $selectedSidebarItem)
         }content:{
-            ContentListView( selectedSlidebarItem: $selectedSidebarItem
+            ContentListView( viewModel : viewModel
+                           , selectedSlidebarItem: $selectedSidebarItem
                            , toast: $toast
                            , errorItems: $errorItems
                            , selectedEntry: $selectedEntry
             )
         }detail:{
-            DetailView( selectedSlidebarItem: $selectedSidebarItem
-                        ,selectedEntry: $selectedEntry
-                        ,toast:$toast)
+            DetailView( viewModel : viewModel
+                      , selectedSlidebarItem: $selectedSidebarItem
+                      , selectedEntry: $selectedEntry
+                      , toast:$toast)
         }
         
     }

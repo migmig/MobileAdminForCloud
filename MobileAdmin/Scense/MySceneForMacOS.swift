@@ -12,10 +12,11 @@ See LICENSE folder for this sample’s licensing information.
 
 import SwiftUI
 
-struct MyAlternativeScene: Scene {
+struct MySceneForMacOS: Scene {
+    @StateObject private var viewModel = ViewModel()
     var body: some Scene {
         WindowGroup {
-            ContentViewForMac()
+            ContentViewForMac(viewModel:viewModel)
         }
         
         #if os(macOS)

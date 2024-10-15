@@ -4,8 +4,8 @@
 import SwiftUI
 
 
-struct ContentView: View {
-    let viewModel:ViewModel
+struct ContentViewForIOS: View {
+    @ObservedObject var viewModel:ViewModel
     @State private var errorItems:[ErrorCloudItem] = []
     @State private var searchText = ""
     @State private var isSearchBarVisible:Bool = true

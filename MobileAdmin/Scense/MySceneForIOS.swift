@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import Logging
 
-struct MyScene: Scene {
-    @StateObject var viewModel = ViewModel()
+struct MySceneForIOS: Scene {
+    let logger = Logger(label:"com.migmig.MobileAdmin.MyScene")
+    @StateObject private var viewModel = ViewModel()
     @State var toast:Toast? = Toast()
     @State private var isLoading: Bool = false
     var body: some Scene {
@@ -19,16 +21,16 @@ struct MyScene: Scene {
             }
             
             TabView {
-                ContentView(viewModel:viewModel)
+                ContentViewForIOS(viewModel:viewModel)
                    .tabItem {
                        Label("ErrorList", systemImage: "person.crop.circle.badge.exclamationmark").onTapGesture {
-                           print("ErrorList tapped")
+                           logger.info("ErrorList tapped")
                        }
                    }
-                ToastView(toastItem: $toast)
+                ToastView(viewModel:viewModel, toastItem: $toast)
                     .tabItem{
                         Label("Toast", systemImage: "bell").onTapGesture {
-                            print("Toast view tapped")
+                            logger.info("Toast view tapped")
                         }
                     }
                     .onAppear()

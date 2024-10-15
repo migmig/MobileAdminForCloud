@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DetailView: View {
+    @ObservedObject var viewModel:ViewModel
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var selectedEntry : ErrorCloudItem?
     @Binding var toast: Toast?
@@ -19,7 +20,8 @@ struct DetailView: View {
                 Text("Select a row to view details.")
             }
         }else{
-            ToastView(toastItem: $toast)
+            ToastView(viewModel: viewModel
+                     ,toastItem: $toast)
         }
     }
 }

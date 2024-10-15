@@ -10,8 +10,8 @@ import SwiftUI
 struct SettingsDetailsView: View {
     let title : String
     
-    @State private var isProduction: Bool = true
-    @State private var isDevelopment: Bool = false
+    @State private var isProduction: Bool = false
+    @State private var isDevelopment: Bool = true
     @State private var isLocal: Bool = false
 
     var body: some View {
