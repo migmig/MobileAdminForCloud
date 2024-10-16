@@ -19,6 +19,7 @@ struct MySceneForIOS: Scene {
                 ProgressView("데이터 조회중")
                     .progressViewStyle(CircularProgressViewStyle())
             }
+             
             
             TabView {
                 ContentViewForIOS(viewModel:viewModel)
@@ -38,6 +39,8 @@ struct MySceneForIOS: Scene {
                     .onAppear()
                     {
                         Task{
+                            logger.info("onAppear called")
+                             
                             isLoading = true;
                             await toast = viewModel.fetchToasts()
                             isLoading = false;

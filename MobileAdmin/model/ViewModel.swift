@@ -59,6 +59,7 @@ class ViewModel: ObservableObject {
 
     // 토큰을 가져오는 비동기 함수
     private func fetchToken() async throws {
+        logger.info("fetchToken called")
         let url = "\(baseUrl)/simpleLoginForAdmin"
         let tokenRequestData = TokenRequest(ci: "QQi4nORX5GzJXq2YWfre9HpW8UkAd0F4AuxQsd2a/hb1JSRnfzk+b+vqTKjQhcVOZNXCLaIQyNF6yKxihjrQlw==")
         
@@ -116,7 +117,7 @@ class ViewModel: ObservableObject {
         url: String,
         requestData: T? = nil
     ) async throws -> T {
-        
+        logger.info("makeRequest called with url: \(url) and token: \(ViewModel.token ?? "none") ")
         if ViewModel.token == nil{
             try await fetchToken()
         }else{
@@ -162,7 +163,8 @@ class ViewModel: ObservableObject {
     // Error 데이터를 가져오는 비동기 함수
     func fetchErrors(startFrom: String, endTo: String) async -> [ErrorCloudItem]?{
         do {
-             let urlPath = "/admin/findByRegisterDtBetween/\(startFrom)/\(endTo)"
+            logger.info("fetchErrors called")
+            let urlPath = "/admin/findByRegisterDtBetween/\(startFrom)/\(endTo)"
             let errorItems: [ErrorCloudItem] = try await makeRequest(url: "\(baseUrl)\(urlPath)")
             return errorItems
         } catch {

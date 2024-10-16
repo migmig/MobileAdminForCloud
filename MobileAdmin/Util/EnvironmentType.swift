@@ -22,11 +22,11 @@ struct EnvironmentConfig {
         case .development:
             return "http://172.16.111.7:8080"
         case .local:
-            return "http://localhost:8080"
+            return "http://192.168.0.2:8080"
         }
     }
     #if DEBUG
-    static var current: EnvironmentType = .local
+    static var current: EnvironmentType = .development
     #else
     static var current: EnvironmentType = .production
     #endif

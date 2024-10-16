@@ -6,14 +6,22 @@
 //
 
 import SwiftUI
+import Logging
 
 struct SettingsDetailsView: View {
     let title : String
+    @AppStorage("serverType") var serverType:String = "dev"
+    @State private var isProduction:   Bool = false
+    @State private var isDevelopment:  Bool = false
+    @State private var isLocal:        Bool = false
+    let logger = Logger(label:"com.migmig.MobileAdmin.SettingsDetailsView")
     
-    @State private var isProduction: Bool = false
-    @State private var isDevelopment: Bool = true
-    @State private var isLocal: Bool = false
-
+    init(title: String) {
+        self.title = title
+        self.isProduction = false
+        self.isDevelopment = false
+        self.isLocal = false
+    }
     var body: some View {
         VStack(alignment: .leading) { 
             Toggle("운영 환경", isOn: $isProduction)
@@ -22,6 +30,8 @@ struct SettingsDetailsView: View {
                         EnvironmentConfig.current = .production
                         isDevelopment = false
                         isLocal = false
+                        ViewModel.token = nil
+                        serverType = "prod"
                     }
                 }
                 .padding()
@@ -32,6 +42,8 @@ struct SettingsDetailsView: View {
                         EnvironmentConfig.current = .development
                         isProduction = false
                         isLocal = false
+                        ViewModel.token = nil
+                        serverType = "dev"
                     }
                 }
                 .padding()
@@ -42,12 +54,36 @@ struct SettingsDetailsView: View {
                         EnvironmentConfig.current = .local
                         isDevelopment = false
                         isProduction = false
+                        ViewModel.token = nil
+                        serverType = "local"
                     }
                 }
                 .padding()
         }
         .padding()
         .navigationTitle(title)
+        .onAppear{
+            logger.info("serverType:\(serverType)")
+            switch(serverType){
+            case "local":
+                isLocal = true
+                EnvironmentConfig.current = .local
+            case "dev":
+                isDevelopment = true
+                EnvironmentConfig.current = .development
+            case "prod":
+                isProduction = true
+                EnvironmentConfig.current = .production
+            default:
+                #if DEBUG
+                isDevelopment = true
+                EnvironmentConfig.current = .development
+                #else
+                isProduction = true
+                EnvironmentConfig.current = .production
+                #endif
+            }
+        }
     }
 }
  
