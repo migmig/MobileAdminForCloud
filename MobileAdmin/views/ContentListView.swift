@@ -40,6 +40,7 @@ struct ContentListView: View {
             VStack{
                 // 검색창 추가
                HStack {
+                    
                    Image(systemName: "magnifyingglass")
                        .foregroundColor(.gray) // 아이콘 색상
                        .padding(.leading, 10) // 아이콘 왼쪽 패딩
@@ -69,7 +70,7 @@ struct ContentListView: View {
                         await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
                         isLoading = false;
                     }
-                }
+                } 
             }
         }else{
             List{

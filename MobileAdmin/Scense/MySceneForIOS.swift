@@ -10,9 +10,12 @@ import Logging
 
 struct MySceneForIOS: Scene {
     let logger = Logger(label:"com.migmig.MobileAdmin.MyScene")
+    @AppStorage("serverType") var serverType:String = "local"
     @StateObject private var viewModel = ViewModel()
     @State var toast:Toast? = Toast()
     @State private var isLoading: Bool = false
+     
+            
     var body: some Scene {
         WindowGroup {
             if isLoading{
@@ -51,6 +54,22 @@ struct MySceneForIOS: Scene {
                        Label("Settings", systemImage: "gear")
                    }
            }
+            .onAppear{
+                switch(serverType){
+                case "local":
+                    EnvironmentConfig.current = .local
+                case "dev":
+                    EnvironmentConfig.current = .development
+                case "prod":
+                    EnvironmentConfig.current = .production
+                default:
+#if DEBUG
+                    EnvironmentConfig.current = .local
+#else
+                    EnvironmentConfig.current = .production
+#endif
+                }
+            }
         }
     }
 }

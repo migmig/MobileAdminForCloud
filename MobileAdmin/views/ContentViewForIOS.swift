@@ -40,6 +40,7 @@ struct ContentViewForIOS: View {
 //                            .background(Color(UIColor.systemGray6)) // 배경 색상
                             .cornerRadius(10) // 모서리 둥글게
                             .font(.system(size: 16)) // 폰트 크기
+                        Text("\(filteredErrorItems.count)개의 오류")
                     }
                     .padding(.horizontal) // 전체 HStack의 패딩
                 }
