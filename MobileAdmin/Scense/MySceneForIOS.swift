@@ -12,7 +12,7 @@ struct MySceneForIOS: Scene {
     let logger = Logger(label:"com.migmig.MobileAdmin.MyScene")
     @AppStorage("serverType") var serverType:String = "local"
     @StateObject private var viewModel = ViewModel()
-    @State var toast:Toast? = Toast()
+    @State var toast:Toast? = Toast(applcBeginDt: "", applcEndDt: "", noticeHder: "", noticeSj: "", noticeCn: "", useYn: "")
     @State private var isLoading: Bool = false
      
             

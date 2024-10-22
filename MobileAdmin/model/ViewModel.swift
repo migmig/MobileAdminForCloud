@@ -69,7 +69,7 @@ class ViewModel: ObservableObject {
         request.setValue("*/*", forHTTPHeaderField: "Accept")
         request.httpBody = try JSONEncoder().encode(tokenRequestData)
 
-        let (_, response) = try await URLSession.shared.data(for: request) 
+        let (_, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
@@ -84,9 +84,9 @@ class ViewModel: ObservableObject {
     }
 
     // 모든 요청을 처리하는 비동기 함수
-    private func makeRequest(
+    private func makeRequestNoReturn<T: Codable>(
         url: String,
-        requestData: Data? = nil
+        requestData: T? = nil
     ) async throws  {
         if ViewModel.token == nil{
             try await fetchToken()
@@ -174,10 +174,20 @@ class ViewModel: ObservableObject {
     }
     
     // Error 데이터를 가져오는 비동기 함수
-    func setNoticeVisible(useYn: String) async {
+    func setNoticeVisible(toastData:Toast) async {
         do {
-            let urlPath = "/admin/toastSetVisible/\(useYn)"
-            try await makeRequest(url: "\(baseUrl)\(urlPath)" )
+            let urlPath = "/admin/toastSetVisible/\(toastData.useYn)"
+            try await makeRequestNoReturn(url: "\(baseUrl)\(urlPath)" , requestData: toastData)
+        } catch {
+            print("Error fetching errors: \(error)")
+        }
+    }
+    
+    // Error 데이터를 가져오는 비동기 함수
+    func setToastData(toastData:Toast) async {
+        do {
+            let urlPath = "/admin/toastSetNotice"
+            try await makeRequestNoReturn(url: "\(baseUrl)\(urlPath)", requestData: toastData)
         } catch {
             print("Error fetching errors: \(error)")
         }

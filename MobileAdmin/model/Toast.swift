@@ -8,5 +8,15 @@ struct Toast:Codable ,Hashable{
     var noticeHder:String=""
     var noticeSj:String=""
     var noticeCn:String=""
-    var useYn:String = "N" 
+    var useYn:String = "N"
+    
+    init(applcBeginDt: String?, applcEndDt: String?, noticeHder: String?, noticeSj: String?, noticeCn: String?, useYn: String?) {
+        self.applcBeginDt = applcBeginDt ?? ""
+        self.applcEndDt = applcEndDt ?? ""
+        self.noticeHder = noticeHder ?? ""
+        self.noticeSj = noticeSj ?? ""
+        self.noticeCn = noticeCn ?? ""
+        self.useYn = useYn ?? ""
+    }
+    
 }
