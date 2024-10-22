@@ -10,12 +10,26 @@ import SwiftUI
 
 struct ErrorCloudItemView: View {
     let errorCloudItem: ErrorCloudItem
+    @ObservedObject var toastManager: ToastManager
      
     var body: some View {
         ScrollView {
             VStack{
                 Section(header: Text("상세 정보").font(.headline)) {
                     InfoRow(title: "User ID:", value: errorCloudItem.userId ?? "")
+                        .contextMenu{
+                            Button("Copy"){
+                                Util.copyToClipboard(errorCloudItem.userId ?? "")
+                                if errorCloudItem.userId != nil {
+                                    toastManager.showToast(message: "copy complete : \(errorCloudItem.userId ?? "")")
+                                }
+                            }
+                            Button("View LogInfo"){
+                                if errorCloudItem.userId != nil {
+                                    toastManager.showToast(message: errorCloudItem.userId ?? "")
+                                }
+                            }
+                        }
                     Divider()
                     InfoRow(title: "Code:", value: errorCloudItem.code ?? "")
                     Divider()
@@ -27,27 +41,27 @@ struct ErrorCloudItemView: View {
                     Divider()
                     InfoRow(title: "Reqest URL", value: errorCloudItem.restUrl ?? "")
                     Divider()
-                    InfoRow(title: "Register DT", value: Util.formattedDate(from:errorCloudItem.registerDt ?? ""))
+                    InfoRow(title: "Register DT", value: Util.formatDateTime(from:errorCloudItem.registerDt))
                     Divider()
                     InfoRow(title: "Request Info", value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
                     Divider()
                 }
             }
-//            
+//
 //            LazyVGrid(columns: [GridItem(.fixed(100)), GridItem(.flexible())], alignment: .leading) {
 //                Group {
 //                    Text("User ID:")
 //                    Text(errorCloudItem.userId ?? "")
-//                    
+//
 //                    Text("Code:")
 //                    Text(errorCloudItem.code ?? "")
-//                    
+//
 //                    Text("Description:")
 //                    Text(errorCloudItem.description  ?? "")
-//                    
+//
 //                    Text("Msg:")
 //                    Text(errorCloudItem.msg  ?? "")
-//                    
+//
 //                    Text("Trace CN:")
 //                    ScrollView([.vertical,.horizontal]){
 //                        Text(errorCloudItem.traceCn  ?? "")
@@ -55,13 +69,13 @@ struct ErrorCloudItemView: View {
 //                            .multilineTextAlignment(.leading)
 //                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 //                    }
-//                    
+//
 //                    Text("Rest URL:")
 //                    Text(errorCloudItem.restUrl ?? "")
-//                    
+//
 //                    Text("Register DT:")
 //                    Text(Util.formattedDate(from:errorCloudItem.registerDt ?? ""))
-//                    
+//
 //                    Text("Request Info:")
 //                    ScrollView([.vertical,.horizontal]){
 //                        Text(Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
@@ -76,14 +90,10 @@ struct ErrorCloudItemView: View {
             .padding()
         }
         #if os(iOS)
-        .navigationTitle(Util.formattedDate(from:errorCloudItem.registerDt ?? ""))
+        .navigationTitle(Util.formatDateTime(from:errorCloudItem.registerDt))
         #elseif os(macOS)
-        .navigationSubtitle(Util.formattedDate(from:errorCloudItem.registerDt ?? ""))
+        .navigationSubtitle(Util.formatDateTime(from:errorCloudItem.registerDt))
         #endif
     }
 }
- 
-#Preview{
-    ErrorCloudItemView(errorCloudItem: .init(description: "Error description", userId: "Error"))
-}
- 
+  

@@ -11,79 +11,69 @@ import Logging
 struct SettingsDetailsView: View {
     let title : String
     @AppStorage("serverType") var serverType:String = "dev"
-    @State private var isProduction:   Bool = false
-    @State private var isDevelopment:  Bool = false
-    @State private var isLocal:        Bool = false
+    @State  private var isProduction:   Bool = false
+    @State  private var isDevelopment:  Bool = false
+    @State  private var isLocal:        Bool = false
     let logger = Logger(label:"com.migmig.MobileAdmin.SettingsDetailsView")
-    
-    init(title: String) {
-        self.title = title
-        self.isProduction = false
-        self.isDevelopment = false
-        self.isLocal = false
-    }
+   
     var body: some View {
-        VStack(alignment: .leading) { 
-            Toggle("운영 환경", isOn: $isProduction)
-                .onChange(of: isProduction) { value in
-                    if value {
-                        EnvironmentConfig.current = .production
-                        isDevelopment = false
-                        isLocal = false
-                        ViewModel.token = nil
-                        serverType = "prod"
+        
+            Section(header: Text("환경 설정").font(.headline)) {
+                Text("현재 설정된 서버 환경 : \(serverType)")
+                    .padding()
+            }
+            Section(header: Text("환경 설정 변경").font(.headline)) {
+                Toggle("운영 환경", isOn: $isProduction)
+                    .onChange(of: isProduction) { value in
+                        if value {
+                            EnvironmentConfig.current = .production
+                            isDevelopment = false
+                            isLocal = false
+                            isProduction = true
+                            ViewModel.token = nil
+                            serverType = "prod"
+                        }
                     }
-                }
-                .padding()
-            
-            Toggle("개발 환경", isOn: $isDevelopment)
-                .onChange(of: isDevelopment) { value in
-                    if value {
-                        EnvironmentConfig.current = .development
-                        isProduction = false
-                        isLocal = false
-                        ViewModel.token = nil
-                        serverType = "dev"
+                    .padding()
+                
+                Divider()
+                
+                Toggle("개발 환경", isOn: $isDevelopment)
+                    .onChange(of: isDevelopment) { value in
+                        if value {
+                            EnvironmentConfig.current = .development
+                            isProduction = false
+                            isLocal = false
+                            isDevelopment = true
+                            ViewModel.token = nil
+                            serverType = "dev"
+                        }
                     }
-                }
-                .padding()
-
-            Toggle("로컬 환경", isOn: $isLocal)
-                .onChange(of: isLocal) { value in
-                    if value {
-                        EnvironmentConfig.current = .local
-                        isDevelopment = false
-                        isProduction = false
-                        ViewModel.token = nil
-                        serverType = "local"
+                    .padding()
+                
+                Divider()
+                
+                Toggle("로컬 환경", isOn: $isLocal)
+                    .onChange(of: isLocal) { value in
+                        if value {
+                            EnvironmentConfig.current = .local
+                            isDevelopment = false
+                            isProduction = false
+                            isLocal = true
+                            ViewModel.token = nil
+                            serverType = "local"
+                        }
                     }
-                }
-                .padding()
-        }
-        .padding()
-        .navigationTitle(title)
-        .onAppear{
-            logger.info("serverType:\(serverType)")
-            switch(serverType){
-            case "local":
-                isLocal = true
-                EnvironmentConfig.current = .local
-            case "dev":
-                isDevelopment = true
-                EnvironmentConfig.current = .development
-            case "prod":
-                isProduction = true
-                EnvironmentConfig.current = .production
-            default:
-                #if DEBUG
-                isDevelopment = true
-                EnvironmentConfig.current = .development
-                #else
-                isProduction = true
-                EnvironmentConfig.current = .production
-                #endif
+                    .padding()
+                    .onAppear(){
+                        isProduction = (serverType == "prod")
+                        isLocal = (serverType == "local")
+                        isDevelopment = (serverType == "dev")
+                        logger.info("---------------------\(title):\(isProduction)")
+                        logger.info("---------------------\(title):\(isDevelopment)")
+                        logger.info("---------------------\(title):\(isLocal)")
+                    }
             }
         }
-    }
 }
  

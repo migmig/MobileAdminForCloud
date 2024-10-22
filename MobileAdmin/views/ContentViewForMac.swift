@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentViewForMac: View {
     @ObservedObject var viewModel:ViewModel
+    @ObservedObject var toastManager: ToastManager
     @State var errorItems:[ErrorCloudItem] = []
     @State var selectedEntry:ErrorCloudItem? = nil
     @State var toast:Toast?
@@ -28,6 +29,7 @@ struct ContentViewForMac: View {
         }detail:{
             DetailView(
                 viewModel : viewModel,
+                toastManager: toastManager,
                        selectedSlidebarItem: $selectedSidebarItem,
                        selectedEntry: $selectedEntry,
                        toast:$toast

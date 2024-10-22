@@ -3,22 +3,19 @@ import SwiftUI
 import Logging
 
 struct ToastView: View {
-   @ObservedObject var viewModel : ViewModel
-   //var viewModel : ViewModel = ViewModel()
-   @Binding var toastItem:Toast?
+    @ObservedObject var viewModel : ViewModel
+    @ObservedObject var toastManager: ToastManager
+    //var viewModel : ViewModel = ViewModel()
+    @Binding var toastItem:Toast?
    
-   @State private var useYn: Bool = false
+    @State private var useYn: Bool = false
    
-   let logger = Logger(label:"com.migmig.MobileAdmin.ToastView")
+    let logger = Logger(label:"com.migmig.MobileAdmin.ToastView")
    
-   var body: some View {
+    var body: some View {
        
        VStack{
            Section(header: Text("상세 정보").font(.headline)) {
-               InfoRow(title: "개시 시작", value: Util.formattedDate(from: toastItem?.applcBeginDt ?? ""))
-               Divider()
-               InfoRow(title: "개시 종료", value: Util.formattedDate(from : toastItem?.applcEndDt ?? ""))
-               Divider()
                HStack {
                    Text("제목").padding()
                    Spacer()
@@ -31,7 +28,7 @@ struct ToastView: View {
                             toastItem?.noticeHder = newValue
                         }
                     }))
-                   .frame(height: 50)
+                   .frame(height: 30 )
                   // .border(Color.gray, width: 1)
                }
                Divider()
@@ -50,12 +47,14 @@ struct ToastView: View {
                    //.border(Color.gray, width: 1)
                }
                Divider()
-               
+               InfoRow(title: "개시 시작", value: Util.formatDateTime(from: toastItem?.applcBeginDt))
+               InfoRow(title: "개시 종료", value: Util.formatDateTime(from: toastItem?.applcEndDt))
+               Divider()
                HStack {
                    Text("표시여부: ")
                        .font(.headline)
                    Spacer()
-                  Toggle(" ", isOn: $useYn)
+                   Toggle(" ", isOn: $useYn)
                       .labelsHidden()
                       .onChange(of: useYn) { newValue in
                           Task{
@@ -133,10 +132,14 @@ struct ToastView: View {
 //                       }
 //                   Text("")
                    Button(action: {
+                       #if os(iOS)
+                       UIImpactFeedbackGenerator(style: .medium).impactOccurred() // 피드백 발생 진동
+                       #endif
                                // 저장 로직
                                  Task{
                                       await viewModel.setToastData(toastData: toastItem!)
                                      logger.info("저장완료")
+                                     toastManager.showToast(message:"저장되었습니다.")
                                  }
                            }) {
                                Label("저장", systemImage: "square.and.arrow.down")
@@ -161,7 +164,12 @@ struct ToastView: View {
                    useYn = (toastItem?.useYn == "Y")
                }
            }
-       }
+           .onTapGesture {
+               #if os(iOS)
+               UIApplication.shared.endEditing()
+               #endif
+           }
+        }
 //       .padding()
 //       .frame(maxWidth: .infinity, alignment: .leading)
 //       #if os(iOS)
@@ -170,18 +178,18 @@ struct ToastView: View {
 //       .navigationSubtitle("Toast")
 //       #endif
 }
-
-struct ToastView_Previews: PreviewProvider {
-    static var previews: some View {
-        // 임시 Toast 데이터를 생성합니다.
-        let exampleToast = Toast(applcBeginDt: "2024-01-01", applcEndDt: "2024-12-31"
-                                 , noticeHder: "공지사항 제목입니다.", noticeSj: "Y"
-                                 , noticeCn: "안녕하세요.\n\n[EasyOne] 긴급 반영 안내10/04\n\n대환 신청 시 일부 상황에서 흰 페이지만 뜨는 현상이 있어 \n프로그램 수정 후 반영 진행합니다. 시스템 안정적인 운영을 위해 지속적으로 개선하도록 하겠습니다.\n\n감사합니다."
-                                 , useYn: "Y")
-        
-        // 임시 ViewModel 객체를 생성하여 프리뷰에 전달합니다.
-        let exampleViewModel = ViewModel()
-        
-        ToastView(viewModel: exampleViewModel, toastItem: .constant(exampleToast))
-    }
-}
+//
+//struct ToastView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        // 임시 Toast 데이터를 생성합니다.
+//        let exampleToast = Toast(applcBeginDt: "2024-01-01", applcEndDt: "2024-12-31"
+//                                 , noticeHder: "공지사항 제목입니다.", noticeSj: "Y"
+//                                 , noticeCn: "안녕하세요.\n\n[EasyOne] 긴급 반영 안내10/04\n\n대환 신청 시 일부 상황에서 흰 페이지만 뜨는 현상이 있어 \n프로그램 수정 후 반영 진행합니다. 시스템 안정적인 운영을 위해 지속적으로 개선하도록 하겠습니다.\n\n감사합니다."
+//                                 , useYn: "Y")
+//
+//        // 임시 ViewModel 객체를 생성하여 프리뷰에 전달합니다.
+//        let exampleViewModel = ViewModel()
+//
+//        ToastView(viewModel: exampleViewModel, toastItem: .constant(exampleToast))
+//    }
+//}

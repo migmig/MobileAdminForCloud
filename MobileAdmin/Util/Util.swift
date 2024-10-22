@@ -6,12 +6,35 @@
 //
 
 import Foundation
+import SwiftUI
 
 class Util{
     
+    static func copyToClipboard(_ text: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #elseif os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        #endif
+    }
     // 날짜 형식 변환 함수
     static func formattedDate(from dateString: String) -> String {
         return  dateString.replacingOccurrences(of: "T", with: " ").replacingOccurrences(of: "Z", with: "")
+    }
+    static func formatDateTime(from dateString: String?) -> String {
+        guard let dateString = dateString else{
+            return ""
+        }
+        let isoformatter = DateFormatter()
+        isoformatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" // ISO8601 형식
+        guard let date = isoformatter.date(from:dateString) else{
+            return ""
+        }
+        let formatter2 = DateFormatter()
+        formatter2.dateFormat = "yyyy-MM-dd HH:mm:ss" // 날짜 형식을 설정
+        return formatter2.string(from: date) // 포맷된 문자열 반환
     }
     
 

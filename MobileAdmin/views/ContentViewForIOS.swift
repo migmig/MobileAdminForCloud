@@ -6,6 +6,7 @@ import SwiftUI
 
 struct ContentViewForIOS: View {
     @ObservedObject var viewModel:ViewModel
+    @ObservedObject var toastManager: ToastManager
     @State private var errorItems:[ErrorCloudItem] = []
     @State private var searchText = ""
     @State private var isSearchBarVisible:Bool = true
@@ -52,7 +53,8 @@ struct ContentViewForIOS: View {
                     
                 }
                 .navigationDestination(for: ErrorCloudItem.self){entry in
-                    ErrorCloudItemView(errorCloudItem: entry)
+                    ErrorCloudItemView(errorCloudItem: entry,
+                                       toastManager: toastManager)
                 }
             }
         }

@@ -1,53 +1,81 @@
- 
+
 import SwiftUI
+import Logging
 
 
 struct SettingsView: View {
-    var body: some View {
-        #if os(macOS)
-        SettingsInTabView()
-        #else
-        SettingsInNavigationStack()
-        #endif
-    }
+   @AppStorage("serverType") var serverType:String = "dev"
+   let logger = Logger(label:"com.migmig.MobileAdmin.SettingsView")
     
-    private enum Settings:String,CaseIterable{
-        case sync = "ServerSetting"
-        
-        var image: String{
-            switch self{
-            case .sync:
-                return "cloud"
-            }
+    init(){
+        logger.info("serverType:\(serverType)")
+        switch(serverType){
+        case "local":
+            EnvironmentConfig.current = .local
+        case "dev":
+            EnvironmentConfig.current = .development
+        case "prod":
+            EnvironmentConfig.current = .production
+        default:
+            #if DEBUG
+            EnvironmentConfig.current = .development
+            #else
+            EnvironmentConfig.current = .production
+            #endif
         }
-    }
-    
-    //macos
-    private func SettingsInTabView() -> some View {
-        TabView{
-            ForEach(Settings.allCases, id: \.self){ item in
-                SettingsDetailsView(title:item.rawValue)
-                    .tabItem{
-                        Label(item.rawValue, systemImage:item.image)
-                    }
-                    .tag(item)
-            }
-        }
-        .frame(width:375,height:150)
-    }
-    
-    //ios
-    private func SettingsInNavigationStack() -> some View {
-        NavigationStack{
-            List{
-                NavigationLink{
-                    SettingsDetailsView(title:Settings.sync.rawValue)
-                }label:{
-                    Label(Settings.sync.rawValue, systemImage:Settings.sync.image)
-                }
-                
-            }
-            .navigationTitle("Settings")
-        }
-    }
-} 
+   }
+   var body: some View {
+       #if os(macOS)
+       SettingsInTabView( )
+       #else
+       SettingsInNavigationStack( )
+       #endif
+       
+   }
+   
+   private enum Settings:String,CaseIterable{
+       case sync = "ServerSetting"
+       
+       var image: String{
+           switch self{
+           case .sync:
+               return "cloud"
+           }
+       }
+   }
+   
+   //macos
+   private func SettingsInTabView() -> some View {
+       TabView{
+           ForEach(Settings.allCases, id: \.self){ item in
+               VStack{
+                   SettingsDetailsView(title:item.rawValue )
+               }
+               .tabItem{
+                   Label(item.rawValue, systemImage:item.image)
+               }
+               .tag(item)
+           }
+       }
+       .frame(width:475,height:350)
+   }
+   
+   //ios
+   private func SettingsInNavigationStack() -> some View {
+//        NavigationStack{
+//            List{
+//                NavigationLink{
+       VStack{
+           SettingsDetailsView(title:Settings.sync.rawValue )
+       }
+       .padding()
+       .navigationTitle(Settings.sync.rawValue)
+//                }label:{
+//                    Label(Settings.sync.rawValue, systemImage:Settings.sync.image)
+//                }
+//
+//            }
+//            .navigationTitle("Settings")
+//        }
+   }
+}

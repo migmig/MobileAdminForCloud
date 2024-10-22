@@ -9,6 +9,7 @@ import SwiftUI
 import Logging
 
 struct MySceneForIOS: Scene {
+    @StateObject private var toastManager: ToastManager = ToastManager()
     let logger = Logger(label:"com.migmig.MobileAdmin.MyScene")
     @AppStorage("serverType") var serverType:String = "local"
     @StateObject private var viewModel = ViewModel()
@@ -19,13 +20,17 @@ struct MySceneForIOS: Scene {
     var body: some Scene {
         WindowGroup {
             if isLoading{
-                ProgressView("데이터 조회중")
-                    .progressViewStyle(CircularProgressViewStyle())
+                ZStack{
+                    ProgressView("데이터 조회중")
+                        .progressViewStyle(CircularProgressViewStyle())
+                }
             }
              
             
             TabView {
-                ContentViewForIOS(viewModel:viewModel)
+                ContentViewForIOS(viewModel:viewModel
+                                  ,toastManager:toastManager)
+                .font(.custom("D2Coding", size: 16))
                    .tabItem {
                        Label("ErrorList", systemImage: "person.crop.circle.badge.exclamationmark").onTapGesture {
                            logger.info("ErrorList tapped")
@@ -33,7 +38,9 @@ struct MySceneForIOS: Scene {
                    }
                 ToastView(
                     viewModel:viewModel,
+                    toastManager: toastManager,
                           toastItem: $toast)
+                .font(.custom("D2Coding", size: 16))
                     .tabItem{
                         Label("Toast", systemImage: "bell").onTapGesture {
                             logger.info("Toast view tapped")
@@ -54,6 +61,7 @@ struct MySceneForIOS: Scene {
                        Label("Settings", systemImage: "gear")
                    }
            }
+            .toastManager(toastManager:toastManager)
             .onAppear{
                 switch(serverType){
                 case "local":
