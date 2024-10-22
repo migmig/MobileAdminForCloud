@@ -1,10 +1,3 @@
-//
-//  DateView.swift
-//  MobileAdmin
-//
-//  Created by mig_mac_air_m2 on 10/8/24.
-//
-
 import SwiftUI
 
 struct DateView: View {
@@ -20,7 +13,7 @@ struct DateView: View {
     private var weekday:String{
         date.formatted(Date.FormatStyle()
             .weekday(.abbreviated))
-            .localizedUppercase
+        .localizedUppercase
     }
     
     private var day:String{

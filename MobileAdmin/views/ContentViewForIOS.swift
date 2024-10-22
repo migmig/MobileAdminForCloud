@@ -1,16 +1,12 @@
 //For iOS
-
-
 import SwiftUI
-
-
 struct ContentViewForIOS: View {
     @ObservedObject var viewModel:ViewModel
     @ObservedObject var toastManager: ToastManager
     @State private var errorItems:[ErrorCloudItem] = []
     @State private var searchText = ""
     @State private var isSearchBarVisible:Bool = true
-//    let errorItems:[ErrorCloudItem]
+    //    let errorItems:[ErrorCloudItem]
     
     var formatDate:String {
         let formatter = DateFormatter()
@@ -37,8 +33,7 @@ struct ContentViewForIOS: View {
                             .padding(.leading, 10) // 아이콘 왼쪽 패딩
                         
                         TextField("검색어 입력...", text: $searchText)
-                            .padding(10)
-//                            .background(Color(UIColor.systemGray6)) // 배경 색상
+                            .padding(10) 
                             .cornerRadius(10) // 모서리 둥글게
                             .font(.system(size: 16)) // 폰트 크기
                         Text("\(filteredErrorItems.count)개의 오류")
@@ -75,7 +70,7 @@ struct ContentViewForIOS: View {
                 isSearchBarVisible  = minY > 0
             }
         })
-         
+        
     }
     
-} 
+}

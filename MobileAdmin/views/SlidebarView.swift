@@ -13,12 +13,12 @@ enum SlidebarItem: Hashable {
     
     var title: String{
         switch self{
-            case .errerlist: 
-                return "Error List"
-            case .toast:
-                return "Toast"
-            case .collection(let title):
-                return title
+        case .errerlist: 
+            return "Error List"
+        case .toast:
+            return "Toast"
+        case .collection(let title):
+            return title
         }
     }
 }
@@ -40,4 +40,4 @@ struct SlidebarView: View {
         }
     }
 }
- 
+

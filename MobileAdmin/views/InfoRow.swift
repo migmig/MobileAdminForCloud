@@ -7,8 +7,7 @@ struct InfoRow: View {
     
     var body: some View {
         HStack {
-            Text(title)
-                //.foregroundColor(.black)
+            Text(title) 
             Spacer()
             Text(value)
                 .foregroundColor(.gray)

@@ -1,10 +1,3 @@
-//
-//  ContentViewForMac.swift
-//  MobileAdmin
-//
-//  Created by mig_mac_air_m2 on 10/11/24.
-//
-
 import SwiftUI
 
 struct ContentViewForMac: View {
@@ -21,21 +14,21 @@ struct ContentViewForMac: View {
         }content:{
             ContentListView(
                 viewModel : viewModel,
-                            selectedSlidebarItem: $selectedSidebarItem,
-                            toast: $toast,
-                            errorItems: $errorItems,
-                            selectedEntry: $selectedEntry
+                selectedSlidebarItem: $selectedSidebarItem,
+                toast: $toast,
+                errorItems: $errorItems,
+                selectedEntry: $selectedEntry
             )
         }detail:{
             DetailView(
                 viewModel : viewModel,
                 toastManager: toastManager,
-                       selectedSlidebarItem: $selectedSidebarItem,
-                       selectedEntry: $selectedEntry,
-                       toast:$toast
+                selectedSlidebarItem: $selectedSidebarItem,
+                selectedEntry: $selectedEntry,
+                toast:$toast
             )
         }
         
     }
 }
- 
+

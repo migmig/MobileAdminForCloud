@@ -30,7 +30,7 @@ struct ContentView: View {
     @State var sliderValue = 0.0
     var body: some View {
         VStack {
-            #if os(iOS)
+#if os(iOS)
             Button("Show Action Sheet", action: {
                 isShowingSheet = true
             })
@@ -45,19 +45,19 @@ struct ContentView: View {
                     ]
                 )}
             Divider()
-            #endif
+#endif
             Button("Show Alert") {
-                       alertDetails = FileInfo(name: "MyImageFile.png",
-                                               fileType: .png)
-                   }
-                   .alert(item: $alertDetails) { details in
-                       Alert(title: Text("Import Complete"),
-                             message: Text("""
+                alertDetails = FileInfo(name: "MyImageFile.png",
+                                        fileType: .png)
+            }
+            .alert(item: $alertDetails) { details in
+                Alert(title: Text("Import Complete"),
+                      message: Text("""
                                Imported \(details.name) \n File
                                type: \(details.fileType.description).
                                """),
-                             dismissButton: .default(Text("Dismiss")))
-                   }
+                      dismissButton: .default(Text("Dismiss")))
+            }
             Divider()
             
             Button("confirm") {
@@ -65,27 +65,27 @@ struct ContentView: View {
             }
             
             .confirmationDialog("", isPresented: $isShowDialog) {
-                 Text("Are you sure?")
+                Text("Are you sure?")
             }
             Divider()
             Button("Show Popover") {
-               self.isShowingPopover = true
+                self.isShowingPopover = true
             }
-           .popover(
-               isPresented: $isShowingPopover, arrowEdge: .bottom
+            .popover(
+                isPresented: $isShowingPopover, arrowEdge: .bottom
             ) {
-               Text("Popover Content")
-                   .padding()
+                Text("Popover Content")
+                    .padding()
             }
             Divider()
             Button("View Settings") {
-                        showSettings = true
-                    }
-                    .sheet(isPresented: $showSettings) {
-                        SettingsView()
-                            .presentationDetents([.medium, .large])
-                            .presentationDragIndicator(.visible)
-                    }
+                showSettings = true
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
             Divider()
             VStack(spacing: 20) {
                 Button(action: {}) {
@@ -102,7 +102,7 @@ struct ContentView: View {
                 }
                 .accentColor(.purple)
             }
-    }
+        }
     }
 }
 
