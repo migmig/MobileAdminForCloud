@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct MobileAdminApp: App {
+    
+    
     var body: some Scene {
         #if os(iOS)
         MySceneForIOS()

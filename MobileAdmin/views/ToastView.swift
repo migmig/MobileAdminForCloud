@@ -56,13 +56,15 @@ struct ToastView: View {
                     Spacer()
                     Toggle(" ", isOn: $useYn)
                         .labelsHidden()
-                        .onChange(of: useYn) { newValue in
+                        .onChange(of: useYn) {
                             Task{
-                                toastItem?.useYn = newValue ? "Y" : "N"
+                                toastItem?.useYn = useYn ? "Y" : "N"
                                 await viewModel.setNoticeVisible(toastData: toastItem!)
                                 if let newToast = await viewModel.fetchToasts() {
-                                    toastItem = newToast
-                                    useYn = (toastItem?.useYn == "Y") // 업데이트된 상태 반영
+                                    DispatchQueue.main.async{
+                                        toastItem = newToast
+                                        useYn = (toastItem?.useYn == "Y") // 업데이트된 상태 반영
+                                    }
                                 }
                             }
                         }
@@ -102,8 +104,8 @@ struct ToastView: View {
         }
         .onTapGesture {
 #if os(iOS)
-            UIApplication.shared.endEditing()
+            UIApplication.shared.endEditing()// 키보드 내리기
 #endif
         }
     }
-} 
+}

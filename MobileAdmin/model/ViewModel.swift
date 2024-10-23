@@ -1,10 +1,10 @@
 import SwiftUI
 import Logging
- 
+
 
 class ViewModel: ObservableObject {
-//    @Published var toasts: Toast = Toast()
-//    @Published var errorItems: [ErrorCloudItem] = []
+    //    @Published var toasts: Toast = Toast()
+    //    @Published var errorItems: [ErrorCloudItem] = []
     
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
@@ -28,7 +28,7 @@ class ViewModel: ObservableObject {
         if paddingLength < 4 {
             base64 += String(repeating: "=", count: paddingLength)
         }
-
+        
         return Data(base64Encoded: base64)
     }
     
@@ -56,33 +56,36 @@ class ViewModel: ObservableObject {
         
         return nil
     }
-
+    
     // 토큰을 가져오는 비동기 함수
     private func fetchToken() async throws {
-//        logger.info("fetchToken called")
+        //        logger.info("fetchToken called")
         let url = "\(baseUrl)/simpleLoginForAdmin"
-        let tokenRequestData = TokenRequest(ci: "QQi4nORX5GzJXq2YWfre9HpW8UkAd0F4AuxQsd2a/hb1JSRnfzk+b+vqTKjQhcVOZNXCLaIQyNF6yKxihjrQlw==")
+        let adminCI:String  = Bundle.main.object(forInfoDictionaryKey: "adminCI") as! String
+         
+         
+        let tokenRequestData = TokenRequest(ci: adminCI)
         
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-type")
         request.setValue("*/*", forHTTPHeaderField: "Accept")
         request.httpBody = try JSONEncoder().encode(tokenRequestData)
-
+        
         let (_, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
         ViewModel.token = httpResponse.value(forHTTPHeaderField: "Authorization")
-//        logger.info("get token sucess:\(ViewModel.token!)")
+        //        logger.info("get token sucess:\(ViewModel.token!)")
         if ViewModel.token != nil {
             ViewModel.tokenExpirationDate = extractExpiration(from: ViewModel.token!)
         } else {
             throw NSError(domain: "Authorization header is missing", code: 0, userInfo: nil)
         }
     }
-
+    
     // 모든 요청을 처리하는 비동기 함수
     private func makeRequestNoReturn<T: Codable>(
         url: String,
@@ -102,14 +105,14 @@ class ViewModel: ObservableObject {
         if(ViewModel.token != nil){
             request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
         }
-
+        
         // 요청 데이터가 주어졌다면 JSON 인코딩
         if let requestData = requestData {
             request.httpBody = try JSONEncoder().encode(requestData)
         }
-
+        
         let (_, _) = try await URLSession.shared.data(for: request)
-         
+        
     }
     
     // 모든 요청을 처리하는 비동기 함수
@@ -117,7 +120,7 @@ class ViewModel: ObservableObject {
         url: String,
         requestData: T? = nil
     ) async throws -> T {
-//        logger.info("makeRequest called with url: \(url) and token: \(ViewModel.token ?? "none") ")
+        //        logger.info("makeRequest called with url: \(url) and token: \(ViewModel.token ?? "none") ")
         if ViewModel.token == nil{
             try await fetchToken()
         }else{
@@ -132,22 +135,22 @@ class ViewModel: ObservableObject {
         if(ViewModel.token != nil){
             request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
         }
-
+        
         // 요청 데이터가 주어졌다면 JSON 인코딩
         if let requestData = requestData {
             request.httpBody = try JSONEncoder().encode(requestData)
         }
-
+        
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
-
+        
         let decodedData = try JSONDecoder().decode(T.self, from: data)
         return decodedData
     }
-
+    
     // Toast 데이터를 가져오는 비동기 함수
     func fetchToasts() async  -> Toast?{
         do {
@@ -159,11 +162,11 @@ class ViewModel: ObservableObject {
         }
         return nil
     }
-
+    
     // Error 데이터를 가져오는 비동기 함수
     func fetchErrors(startFrom: String, endTo: String) async -> [ErrorCloudItem]?{
         do {
-//            logger.info("fetchErrors called")
+            //            logger.info("fetchErrors called")
             let urlPath = "/admin/findByRegisterDtBetween/\(startFrom)/\(endTo)"
             let errorItems: [ErrorCloudItem] = try await makeRequest(url: "\(baseUrl)\(urlPath)")
             return errorItems
