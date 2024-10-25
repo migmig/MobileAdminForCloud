@@ -27,8 +27,8 @@ struct ToastModifier: ViewModifier {
                     .cornerRadius(12)
                     .shadow(radius: 10)
                     .padding(40)
-                } // VStack 
-                .animation(.easeInOut)
+                } // VStack
+               // .animation(.easeInOut)
             }
         }
     }

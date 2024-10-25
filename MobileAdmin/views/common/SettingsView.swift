@@ -4,25 +4,11 @@ import Logging
 
 
 struct SettingsView: View {
-    @AppStorage("serverType") var serverType:String = "dev"
+    @AppStorage("serverType") var serverType:EnvironmentType = .development
     let logger = Logger(label:"com.migmig.MobileAdmin.SettingsView")
     
     init(){
-        logger.info("serverType:\(serverType)")
-        switch(serverType){
-        case "local":
-            EnvironmentConfig.current = .local
-        case "dev":
-            EnvironmentConfig.current = .development
-        case "prod":
-            EnvironmentConfig.current = .production
-        default:
-#if DEBUG
-            EnvironmentConfig.current = .development
-#else
-            EnvironmentConfig.current = .production
-#endif
-        }
+        EnvironmentConfig.current = serverType
     }
     var body: some View {
 #if os(macOS)
@@ -50,6 +36,7 @@ struct SettingsView: View {
             ForEach(Settings.allCases, id: \.self){ item in
                 VStack{
                     SettingsDetailsView(title:item.rawValue )
+                    
                 }
                 .tabItem{
                     Label(item.rawValue, systemImage:item.image)
@@ -57,7 +44,7 @@ struct SettingsView: View {
                 .tag(item)
             }
         }
-        .frame(width:475,height:350)
+       // .frame(width:475,height:350)
     }
     
     //ios
@@ -66,6 +53,10 @@ struct SettingsView: View {
             SettingsDetailsView(title:Settings.sync.rawValue )
         }
         .padding()
-        .navigationTitle(Settings.sync.rawValue) 
+        .navigationTitle(Settings.sync.rawValue)
     }
+}
+
+#Preview {
+    SettingsView()
 }

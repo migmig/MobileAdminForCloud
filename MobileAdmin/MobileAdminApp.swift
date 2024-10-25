@@ -9,15 +9,15 @@ import SwiftUI
 
 @main
 struct MobileAdminApp: App {
-    
-    
+
+
     var body: some Scene {
         #if os(iOS)
         MySceneForIOS()
         #elseif os(macOS)
         MySceneForMacOS()
         #endif
-        
+
     }
 }
 #if os(iOS)

@@ -1,15 +1,17 @@
-//
-//  ContentListView.swift
-//  MobileAdmin
-//
-//  Created by mig_mac_air_m2 on 10/11/24.
-//
-
 import SwiftUI
 
-struct ContentListView: View {
+struct ContentListViewForMac: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
     @Binding var selectedSlidebarItem:SlidebarItem?
+    @Binding var toast:Toast?
+    @Binding var errorItems:[ErrorCloudItem]
+    @Binding var selectedEntry:ErrorCloudItem?
+    @Binding var goodsinfos:[Goodsinfo]
+    @Binding var selectedGoods:Goodsinfo?
+    
+    @State private var isLoading:Bool = false
+    @State private var searchText = ""
+    
     
     var formatDate:String {
         let formatter = DateFormatter()
@@ -17,11 +19,7 @@ struct ContentListView: View {
         return formatter.string(from: Date()) // 포맷된 문자열 반환
     }
      
-    @Binding var toast:Toast?
-    @Binding var errorItems:[ErrorCloudItem]
-    @Binding var selectedEntry:ErrorCloudItem?
-    @State private var isLoading:Bool = false
-    @State private var searchText = ""
+    
     var filteredErrorItems: [ErrorCloudItem] {
         if searchText.isEmpty {
             return errorItems
@@ -70,9 +68,9 @@ struct ContentListView: View {
                         await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
                         isLoading = false;
                     }
-                } 
+                }
             }
-        }else{
+        }else if(selectedSlidebarItem == SlidebarItem.toast){
             List{
                 NavigationLink(value:toast){
                     Text(toast?.noticeHder ?? "")
@@ -82,6 +80,19 @@ struct ContentListView: View {
                 Task{
                     isLoading = true;
                     await toast = viewModel.fetchToasts()
+                    isLoading = false;
+                }
+            }
+        }else if(selectedSlidebarItem == SlidebarItem.goodsInfo){
+            List(goodsinfos,selection:$selectedGoods){ item in
+                NavigationLink(value:item){
+                    GoodsItemListItem(item)
+                }
+            }.onAppear()
+            {
+                Task{
+                    isLoading = true;
+                    await goodsinfos = viewModel.fetchGoods(nil,nil) ?? []
                     isLoading = false;
                 }
             }

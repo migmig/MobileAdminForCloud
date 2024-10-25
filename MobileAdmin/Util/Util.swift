@@ -20,10 +20,10 @@ class Util{
         #endif
     }
     // 날짜 형식 변환 함수
-    static func formattedDate(from dateString: String) -> String {
+    static func formattedDate(_ dateString: String) -> String {
         return  dateString.replacingOccurrences(of: "T", with: " ").replacingOccurrences(of: "Z", with: "")
     }
-    static func formatDateTime(from dateString: String?) -> String {
+    static func formatDateTime(_ dateString: String?) -> String {
         guard let dateString = dateString else{
             return ""
         }
@@ -103,5 +103,10 @@ class Util{
         
        return "{\n\t\(formattedString)\n}"
    }
-
+    
+    static func getCurrentDateString() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd"
+        return dateFormatter.string(from: Date())
+    }
 }

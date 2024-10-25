@@ -1,5 +1,5 @@
 import SwiftUI
-
+ 
 
 struct ErrorCloudItemView: View {
     let errorCloudItem: ErrorCloudItem
@@ -30,11 +30,29 @@ struct ErrorCloudItemView: View {
                     Divider()
                     InfoRow(title: "Msg", value: errorCloudItem.msg ?? "")
                     Divider()
-                    InfoRow(title: "Trace", value: errorCloudItem.traceCn ?? "")
+                    HStack{
+                        Text("Trace")
+                        Spacer()
+                        NavigationLink(value:errorCloudItem.traceCn){
+                            Text(errorCloudItem.traceCn ?? "")
+//                                .foregroundColor(.gray)
+                                .lineLimit(1)
+                        }
+                        .navigationDestination(for: String.self){value in
+                            ScrollView([.horizontal, .vertical]){
+                                VStack(alignment:.leading){
+                                    Text(value)
+                                        .padding()
+                                }
+                            }
+                        }
+                    }
+                    .frame(width:40)
+//                    InfoRow(title: "Trace", value: errorCloudItem.traceCn ?? "")
                     Divider()
                     InfoRow(title: "Reqest URL", value: errorCloudItem.restUrl ?? "")
                     Divider()
-                    InfoRow(title: "Register DT", value: Util.formatDateTime(from:errorCloudItem.registerDt))
+                    InfoRow(title: "Register DT", value: Util.formatDateTime(errorCloudItem.registerDt))
                     Divider()
                     InfoRow(title: "Request Info", value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
                     Divider()
@@ -44,9 +62,9 @@ struct ErrorCloudItemView: View {
             .padding()
         }
 #if os(iOS)
-        .navigationTitle(Util.formatDateTime(from:errorCloudItem.registerDt))
+        .navigationTitle(Util.formatDateTime(errorCloudItem.registerDt))
 #elseif os(macOS)
-        .navigationSubtitle(Util.formatDateTime(from:errorCloudItem.registerDt))
+        .navigationSubtitle(Util.formatDateTime(errorCloudItem.registerDt))
 #endif
     }
 }

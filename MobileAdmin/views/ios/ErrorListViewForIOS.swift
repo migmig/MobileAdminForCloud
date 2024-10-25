@@ -1,11 +1,12 @@
 //For iOS
 import SwiftUI
-struct ContentViewForIOS: View {
+struct ErrorListViewForIOS: View {
     @ObservedObject var viewModel:ViewModel
     @ObservedObject var toastManager: ToastManager
     @State private var errorItems:[ErrorCloudItem] = []
     @State private var searchText = ""
     @State private var isSearchBarVisible:Bool = true
+    @State private var isLoading: Bool = false
     //    let errorItems:[ErrorCloudItem]
     
     var formatDate:String {
@@ -25,6 +26,9 @@ struct ContentViewForIOS: View {
     var body: some View {
         NavigationStack{
             VStack{
+                if isLoading{
+                    ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
+                }
                 // 검색창 추가
                 if isSearchBarVisible {
                     HStack {
@@ -33,7 +37,7 @@ struct ContentViewForIOS: View {
                             .padding(.leading, 10) // 아이콘 왼쪽 패딩
                         
                         TextField("검색어 입력...", text: $searchText)
-                            .padding(10) 
+                            .padding(10)
                             .cornerRadius(10) // 모서리 둥글게
                             .font(.system(size: 16)) // 폰트 크기
                         Text("\(filteredErrorItems.count)개의 오류")
@@ -55,21 +59,24 @@ struct ContentViewForIOS: View {
         }
         .onAppear(){
             Task{
-                print("OnAppear")
+                isLoading = true;
                 await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
+                isLoading = false;
             }
         }
         .refreshable {
             Task{
-                print("OnRefresh")
+                isLoading = true;
                 await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
+                isLoading = false;
             }
         }
-        .background(GeometryReader{ geometry in
-            Color.clear.onChange(of: geometry.frame(in:.global).minY){minY in
-                isSearchBarVisible  = minY > 0
-            }
-        })
+        //        .background(GeometryReader{ geometry in
+        //            Color.clear.onChange(of: geometry.frame(in:.global).minY){minY in
+        //                isSearchBarVisible  = minY > 0
+        //            }
+        //        }
+        //        )
         
     }
     

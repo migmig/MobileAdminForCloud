@@ -13,7 +13,7 @@ struct MobileAdminTests {
 
     let logger = Logger(label:"com.migmig.MobileAdmin.MobileAdminTests")
     var viewModel = ViewModel()
-    
+
     @Test func fetchToastsTest() async throws {
         let toast = await viewModel.fetchToasts()
         if let toast = toast {
@@ -23,7 +23,7 @@ struct MobileAdminTests {
         }
         logger.info("test end")
         #expect(toast != nil)
-      //  #expect(toast?.applcBeginDt.contains("T") == false)
+        //  #expect(toast?.applcBeginDt.contains("T") == false)
     }
 
     @Test func setToastsTest() async throws {

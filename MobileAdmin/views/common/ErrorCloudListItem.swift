@@ -6,9 +6,16 @@ struct ErrorCloudListItem: View {
     var body: some View {
         
         VStack(alignment: .leading) {
-            Text(errorCloudItem.description ?? errorCloudItem.msg ?? "")
-                .lineLimit(3)
-                .truncationMode(.tail)
+            HStack{
+                Image(systemName:"checkmark.message")
+                Text(errorCloudItem.description ?? errorCloudItem.msg ?? "")
+#if os(iOS)
+                    .lineLimit(2)
+#elseif os(macOS)
+                    .lineLimit(3)
+#endif 
+                    .truncationMode(.tail)
+            }
             VStack(alignment: .trailing) {
                 Text(errorCloudItem.userId ?? "")
                     .font(.caption)
@@ -16,4 +23,4 @@ struct ErrorCloudListItem: View {
             }
         }
     }
-} 
+}

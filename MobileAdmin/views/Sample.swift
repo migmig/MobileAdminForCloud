@@ -21,6 +21,7 @@ struct FileInfo: Identifiable {
 }
 
 struct ContentView: View {
+    @State var user:User?
     @State var isShowingSheet = false
     @State private var alertDetails: FileInfo?
     @State var isShowDialog = false
@@ -102,10 +103,33 @@ struct ContentView: View {
                 }
                 .accentColor(.purple)
             }
+            Divider()
+            Button("Show Part Details") {
+                user = User(name: "John Doe", age: 30, profileImage: "profile", isOnline: true)
+                //Text("Show Part Details")
+            }
+            .sheet(item:$user,onDismiss: {
+                print("onDismiss")
+            }, content: { user in
+                Text("User: \(user.name)")
+            })
+            Divider()
+            Table(of: User.self){
+                TableColumn("Name"){
+                    Text($0.name)
+                }
+                TableColumn("Age"){
+                    Text("\($0.age)")
+                }
+            } rows:{
+                TableRow(User(name: "John Doe", age: 30, profileImage: "profile", isOnline: true))
+                TableRow(User(name: "Jane Doe", age: 25, profileImage: "profile", isOnline: false))
+            }
         }
     }
 }
 
-#Preview {
+#Preview{
     ContentView()
 }
+ 
