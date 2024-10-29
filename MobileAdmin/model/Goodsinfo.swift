@@ -2,25 +2,24 @@ import Foundation
 
 // MARK: - Goodsinfo
 struct Goodsinfo :Codable,Identifiable,Hashable{
-    var rdt: String?
+    let rdt: String?
     let goods: [Good]
-    let id: Int?
+    var id:Int?
     let gno: String?
     let kindGb: String?
-    var userId: String?
+    let userId: String?
     let registerDt: String?
-     
 }
 
 // MARK: - Good
 struct Good :Codable,Identifiable,Hashable{
-    var id:UUID? = UUID()
+    var id:UUID?=UUID()
     let goodsCd: String
-    let maxLmt: Int?
+    let maxLmt: Int
     let finProdType:String?
     let goodsNm: String
     let userAlertYn: String?
-    let treatmentList: [TreatmentList]?
+    var treatmentList: [TreatmentList]?
     let msgDispYn: String?
     let feeRate: Double?
     let inrstMax: Double?
@@ -31,11 +30,12 @@ struct Good :Codable,Identifiable,Hashable{
     let bankIemList: [BankIemList]?
     let dispMsg, popDispYn: String?
     let inrstMin: Double?
+     
 }
 
 // MARK: - BankIemList
 struct BankIemList :Codable,Identifiable,Hashable{
-    var id:UUID? = UUID()
+    var id:UUID?=UUID()
     let goodsCd: String?
     let iemCodeNm, iemCode: String?
 }
@@ -43,7 +43,7 @@ struct BankIemList :Codable,Identifiable,Hashable{
 
 // MARK: - GoodsContList
 struct GoodsContList :Codable,Identifiable,Hashable{
-    var id:UUID? = UUID()
+    var id:UUID?=UUID()
     let sortNo: String?
     let goodsCd: String?
     let msgUseContent, userMsgTitle: String?
@@ -51,7 +51,7 @@ struct GoodsContList :Codable,Identifiable,Hashable{
 
 // MARK: - TreatmentList
 struct TreatmentList :Codable,Identifiable,Hashable{
-    var id:UUID? = UUID()
+    var id:UUID?=UUID()
     let sortNo: String?
     let goodsCd: String?
     let treatmentCd: String?

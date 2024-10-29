@@ -16,6 +16,9 @@ struct MobileAdminApp: App {
         MySceneForIOS()
         #elseif os(macOS)
         MySceneForMacOS()
+            .commands{
+                MyCommands()
+            }
         #endif
 
     }

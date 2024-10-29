@@ -22,6 +22,7 @@ struct EnvironmentConfig {
         case .development:
             return "http://172.16.111.7:8080"
         case .local:
+//            return "http://172.30.1.77:8080"
             return "http://192.168.0.234:8080"
         }
     }

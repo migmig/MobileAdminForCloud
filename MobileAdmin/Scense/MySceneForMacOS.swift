@@ -17,20 +17,6 @@ struct MySceneForMacOS: Scene {
            .onAppear{
                logger.info("serverType:\(serverType)")
                 EnvironmentConfig.current = serverType
-//               switch(serverType){
-//               case "local":
-//                   EnvironmentConfig.current = .local
-//               case "dev":
-//                   EnvironmentConfig.current = .development
-//               case "prod":
-//                   EnvironmentConfig.current = .production
-//               default:
-//#if DEBUG
-//                   EnvironmentConfig.current = .local
-//#else
-//                   EnvironmentConfig.current = .production
-//#endif
-//               }
            }
        }
        
@@ -41,3 +27,4 @@ struct MySceneForMacOS: Scene {
        #endif
    }
 }
+  

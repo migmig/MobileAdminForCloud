@@ -1,83 +1,77 @@
- 
+
 import SwiftUI
 
 struct GoodsDetailView: View {
     var goodsinfo:Goodsinfo
-    @State private var showingSheet:Bool = false
-    @State private var selectedGoods:Set<Good.ID>?
+    
     var body: some View {
         ScrollView{
-            VStack{
+            LazyVStack{
                 Section(header: Text("상세 정보").font(.headline)) {
-                    Table(of:Good.self){
-                        TableColumn("goodsCd"){
-                            Text($0.goodsCd  )
-                        }
-                        TableColumn("goodsNm" ) {
-                            Text($0.goodsNm )
-                        }
-                    } rows:{
-                        ForEach(goodsinfo.goods,id:\.self){item in
-                            TableRow(item)
-                        }
-                    }
+                
                     InfoRow(title: "userId", value: goodsinfo.userId ?? "")
+                    Divider()
                     InfoRow(title: "rdt", value: goodsinfo.rdt ?? "")
+                    Divider()
                     InfoRow(title: "gno", value: goodsinfo.gno ?? "")
+                    Divider()
                     InfoRow(title: "kindGb", value: goodsinfo.kindGb ?? "")
+                    Divider()
                     InfoRow(title: "registerDt", value: goodsinfo.registerDt ?? "")
+                    Divider()
                     // macOS용 Table과 iOS용 List로 구분
-                  #if os(macOS)
-                  Text("Goods Table (macOS)")
-                      .font(.headline)
-                      .padding(.vertical, 5)
-                  
-                  Table(goodsinfo.goods  ) {
-                      TableColumn("Goods Code") { item in
-                          Text(item.goodsCd  )
-                      }
-                      TableColumn("Goods Name") { item in
-                          Text(item.goodsNm  )
-                      }
-                  }
-                  .frame(height: 200)  // 테이블 높이 설정
-                  #else
-                  // iOS 대체 UI (List)
-                  Text("Goods List (iOS)")
-                      .font(.headline)
-                      .padding(.vertical, 5)
-                  
-                  List(goodsinfo.goods ?? [], id: \.goodsCd) { item in
-                      VStack(alignment: .leading) {
-                          Text("goodsCd: \(item.goodsCd ?? "N/A")")
-                          Text("goodsNm: \(item.goodsNm ?? "N/A")")
-                              .foregroundColor(.secondary)
-                      }
-                      .padding(.vertical, 5)
-                  }
-                  .frame(height: 200)
-                  #endif
+  
+                    HStack{
+                        Text("상품정보")
+                            .font(.headline)
+                        Spacer()
+                    }
+                    LazyVGrid(
+                        columns:Array(
+                            repeating:GridItem(.flexible()),
+                            count:2
+                        ),
+                        spacing:20
+                    ){
+                        ForEach(goodsinfo.goods, id: \.self) { item in
+                            NavigationLink(destination: SelectedGoodsDetailView(goodsItem: item)) {
+                                VStack(alignment: .leading) {
+                                    Text("상품코드: \(item.goodsCd)")
+                                        .font(.headline)
+                                    Text("상품명: \(item.goodsNm)")
+                                        .foregroundColor(item.maxLmt > 0 ? .blue : .secondary)
+                                        .font(.subheadline)
+                                }
+                                .padding()
+//                                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+                                .padding(.horizontal)
+                            }
+                        }
 //                        VStack{
-//                            ForEach(goodsinfo.goods,id:\.self){item in
-//                                HStack{
-//                                    Text("goodsCd: \(item.goodsCd ?? ""), goodsNm: \(item.goodsNm ?? "")")
-//                                    Spacer()
-//                                    NavigationLink(value:item){
-//                                        Text("상품상세")
-//                                            .foregroundColor(.gray)
+//                            List(goodsinfo.goods  , id: \.self) { item in
+//                                NavigationLink(value:item){
+//                                    VStack(alignment:.trailing){
+//                                        Text("상품코드: \(item.goodsCd )")
+//                                        Text("상품명: \(item.goodsNm )")
+//                                            .foregroundColor(item.maxLmt > 0 ? .blue : .secondary)
+//                                            .font(.subheadline)
 //                                    }
-//                                    .navigationDestination(for:Good.self){item2 in
-//                                        SelectedGoodsDetailView(goodsItem:item2)
-//                                    }
+//                                    
 //                                }
 //                            }
-//                        }
-                    }
-                    .padding(.vertical, 10)
+                        }
+                    
+                    Divider()
                 }
-                .padding()
             }
-         
+            .padding()
+        }
+        .navigationDestination(for:Good.self){item2 in
+            SelectedGoodsDetailView(goodsItem:item2)
+        }
+        .onAppear{
+        }
+        
 #if os(iOS)
         .navigationTitle(Util.formatDateTime(goodsinfo.registerDt))
 #elseif os(macOS)
@@ -88,40 +82,77 @@ struct GoodsDetailView: View {
 
 struct SelectedGoodsDetailView:View{
     var goodsItem:Good
+    
     var body: some View{
         ScrollView{
-            List{
-                    InfoRow(title: "상품코드", value: goodsItem.goodsCd ?? "")
-                    InfoRow(title: "maxLmt", value: String(goodsItem.maxLmt ?? 0))
-                    InfoRow(title: "finProdType", value: goodsItem.finProdType ?? "")
-                    InfoRow(title: "userAlertYn", value: goodsItem.userAlertYn ?? "")
-                    InfoRow(title: "msgDispYn", value: goodsItem.msgDispYn ?? "")
-                    InfoRow(title: "feeRate", value: String(goodsItem.feeRate ?? 0))
-                    InfoRow(title: "inrstMax", value: String(goodsItem.inrstMax ?? 0))
-                    InfoRow(title: "autoRptYn", value: goodsItem.autoRptYn ?? "")
-                    InfoRow(title: "dispMsg", value: goodsItem.dispMsg ?? "")
-                    InfoRow(title: "popDispYn", value: goodsItem.popDispYn ?? "")
-                    InfoRow(title: "inrstMin", value: String(goodsItem.inrstMin ?? 0))
-//                    HStack{
-//                        Text("treatmentList")
-//                        Spacer()
-//                        NavigationLink(value:item.treatmentList){
-//                            Text("상품상세")
-//                                .foregroundColor(.gray)
-//                        }
-//                        .navigationDestination(for:[TreatmentList].self){treatment in
-//                            ScrollView{
-//                                List{
-//                                    ForEach(treatment,id:\.self){treatmentitem in
-//                                        InfoRow(title: "treatmentCd", value: treatmentitem.treatmentCd ?? "")
-//                                        InfoRow(title: "useYn", value: treatmentitem.useYn ?? "")
-//                                        InfoRow(title: "treatmentNm", value: treatmentitem.treatmentNm ?? "")
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
+            VStack{
+                InfoRow(title: "상품코드", value: goodsItem.goodsCd  )
+                Divider()
+                InfoRow(title: "maxLmt", value: String(goodsItem.maxLmt ))
+                Divider()
+                InfoRow(title: "finProdType", value: goodsItem.finProdType ?? "")
+                Divider()
+                InfoRow(title: "userAlertYn", value: goodsItem.userAlertYn ?? "")
+                Divider()
+                InfoRow(title: "msgDispYn", value: goodsItem.msgDispYn ?? "")
+                Divider()
+                InfoRow(title: "feeRate", value: String(goodsItem.feeRate ?? 0))
+                Divider()
+                InfoRow(title: "inrstMax", value: String(goodsItem.inrstMax ?? 0))
+                Divider()
+                InfoRow(title: "autoRptYn", value: goodsItem.autoRptYn ?? "")
+                Divider()
+                InfoRow(title: "dispMsg", value: goodsItem.dispMsg ?? "")
+                Divider()
+                InfoRow(title: "popDispYn", value: goodsItem.popDispYn ?? "")
+                Divider()
+                InfoRow(title: "inrstMin", value: String(goodsItem.inrstMin ?? 0))
+                HStack{
+                    Text("별도안내내용")
+                    Spacer()
+                    VStack{
+                        if let treatmentList = goodsItem.treatmentList{
+                            List(treatmentList,id:\.self){ item in
+                                Text("\(item.treatmentNm ?? "")")
+                            }
+                        }else{
+                            Text("No Data")
+                        }
+                    }
+                }
+                HStack{
+                    Text("메세지출력여부")
+                    Spacer()
+                    VStack{
+                        if let goodsContList = goodsItem.goodsContList{
+                            List(goodsContList,id:\.self){ item in
+                                HStack{
+                                    Text("userMsgTitle: \(item.userMsgTitle ?? "")")
+                                    Text("msgUseContent: \(item.msgUseContent ?? "")")
+                                }
+                            }
+                        }else{
+                            Text("")
+                        }
+                    }
+                }
+                HStack{
+                    Text("은행정보")
+                    Spacer()
+                    VStack{
+                        if let bankIemList = goodsItem.bankIemList{
+                            List(bankIemList,id:\.self){ item in
+                                HStack{
+                                    Text("\(item.iemCodeNm ?? "")")
+                                }
+                            }
+                        }else{
+                            Text("")
+                        }
+                    }
+                }
             }
+            .padding()
         }
     }
 }

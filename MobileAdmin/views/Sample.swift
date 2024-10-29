@@ -124,12 +124,28 @@ struct ContentView: View {
             } rows:{
                 TableRow(User(name: "John Doe", age: 30, profileImage: "profile", isOnline: true))
                 TableRow(User(name: "Jane Doe", age: 25, profileImage: "profile", isOnline: false))
+                TableRow(User(name: "Jane Doe", age: 25, profileImage: "profile", isOnline: false))
             }
         }
     }
 }
 
 #Preview{
-    ContentView()
+    //ContentView()
+    testView()
+}
+
+struct testView:View{
+    var body: some View{
+        
+        ZStack {
+            Image(.robot)
+                .resizable()
+                .frame(width: 100, height: 100)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.red, lineWidth: 4))
+                .shadow(radius: 10)
+        }
+    }
 }
  

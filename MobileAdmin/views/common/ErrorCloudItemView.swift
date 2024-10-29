@@ -35,9 +35,10 @@ struct ErrorCloudItemView: View {
                         Spacer()
                         NavigationLink(value:errorCloudItem.traceCn){
                             Text(errorCloudItem.traceCn ?? "")
-//                                .foregroundColor(.gray)
+                                .foregroundColor(.gray)
                                 .lineLimit(1)
                         }
+                        .frame(width:200)
                         .navigationDestination(for: String.self){value in
                             ScrollView([.horizontal, .vertical]){
                                 VStack(alignment:.leading){
@@ -47,7 +48,6 @@ struct ErrorCloudItemView: View {
                             }
                         }
                     }
-                    .frame(width:40)
 //                    InfoRow(title: "Trace", value: errorCloudItem.traceCn ?? "")
                     Divider()
                     InfoRow(title: "Reqest URL", value: errorCloudItem.restUrl ?? "")
