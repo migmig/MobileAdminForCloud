@@ -17,9 +17,12 @@ struct ErrorCloudListItem: View {
                     .truncationMode(.tail)
             }
             VStack(alignment: .trailing) {
-                Text(errorCloudItem.userId ?? "")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                HStack{
+                    Spacer()
+                    Text(errorCloudItem.userId ?? "")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
             }
         }
     }

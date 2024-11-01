@@ -16,8 +16,8 @@ struct GoodsListViewIOS: View {
                     NavigationLink(value:item){
                         GoodsItemListItem(item)
                     }
-                    .navigationTitle("GoodsList")
                 }
+                .navigationTitle("GoodsList")
                 .navigationDestination(for: Goodsinfo.self){item in
                     GoodsDetailView(goodsinfo: item)
                 }

@@ -25,7 +25,8 @@ struct ErrorListViewForIOS: View {
     
     var body: some View {
         NavigationStack{
-            VStack{
+            
+            VStack() {
                 if isLoading{
                     ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
                 }
@@ -48,9 +49,9 @@ struct ErrorListViewForIOS: View {
                     NavigationLink(value:entry){
                         ErrorCloudListItem(errorCloudItem: entry)
                     }
-                    .navigationTitle("ErrorList")
                     
                 }
+                .navigationTitle("ErrorList")
                 .navigationDestination(for: ErrorCloudItem.self){entry in
                     ErrorCloudItemView(errorCloudItem: entry,
                                        toastManager: toastManager)
@@ -70,14 +71,11 @@ struct ErrorListViewForIOS: View {
                 await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
                 isLoading = false;
             }
-        }
-        //        .background(GeometryReader{ geometry in
-        //            Color.clear.onChange(of: geometry.frame(in:.global).minY){minY in
-        //                isSearchBarVisible  = minY > 0
-        //            }
-        //        }
-        //        )
-        
+        } 
     }
     
+}
+
+#Preview{
+    ErrorListViewForIOS(viewModel: .init(),toastManager: .init())
 }

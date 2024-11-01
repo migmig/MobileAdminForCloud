@@ -13,18 +13,22 @@ struct SettingsDetailsView: View {
     @AppStorage("serverType") var serverType:EnvironmentType = .development
     var body: some View {
         List {
-            Picker("환경설정변경", selection: $serverType) {
-                Text("운영환경").tag(EnvironmentType.production)
-                Text("개발환경").tag(EnvironmentType.development)
-                Text("로컬환경").tag(EnvironmentType.local)
+            if #available(iOS 17.0, *) {
+                Picker("환경설정변경", selection: $serverType) {
+                    Text("운영환경").tag(EnvironmentType.production)
+                    Text("개발환경").tag(EnvironmentType.development)
+                    Text("로컬환경").tag(EnvironmentType.local)
+                }
+                .onChange(of:serverType){oldvalue,newValue in
+                    EnvironmentConfig.current = newValue
+                    ViewModel.token = nil
+                }
+                .font(.title)
+                .pickerStyle(.inline)
+                .padding()
+            } else {
+                // Fallback on earlier versions
             }
-            .onChange(of:serverType){oldvalue,newValue in
-                EnvironmentConfig.current = newValue
-                ViewModel.token = nil
-            }
-            .font(.title)
-            .pickerStyle(.inline)
-            .padding()
             
         } // List
         .navigationTitle(title)

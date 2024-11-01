@@ -139,12 +139,9 @@ struct testView:View{
     var body: some View{
         
         ZStack {
-            Image(.robot)
-                .resizable()
-                .frame(width: 100, height: 100)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.red, lineWidth: 4))
-                .shadow(radius: 10)
+            Color.red
+            Text("Hello, World!")
+                .foregroundColor(.white)
         }
     }
 }

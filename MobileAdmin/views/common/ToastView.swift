@@ -58,20 +58,29 @@ struct ToastView: View {
                         Text("표시여부: ")
                             .font(.headline)
                         Spacer()
-                        Toggle(" ", isOn: $useYn)
-                            .labelsHidden()
-                            .onChange(of: useYn) {
-                                Task{
-                                    toastItem?.useYn = useYn ? "Y" : "N"
-                                    await viewModel.setNoticeVisible(toastData: toastItem!)
-                                    if let newToast = await viewModel.fetchToasts() {
-                                        DispatchQueue.main.async{
-                                            toastItem = newToast
-                                            useYn = (toastItem?.useYn == "Y") // 업데이트된 상태 반영
+                        if #available(iOS 17.0, *) {
+                            Toggle(" ", isOn: $useYn)
+                                .labelsHidden()
+                                .onChange(of: useYn) {
+                                    Task{
+                                        toastItem?.useYn = useYn ? "Y" : "N"
+                                        await viewModel
+                                            .setNoticeVisible(
+                                                toastData: toastItem!
+                                            )
+                                        if let newToast = await viewModel.fetchToasts() {
+                                            DispatchQueue.main.async{
+                                                toastItem = newToast
+                                                useYn = (
+                                                    toastItem?.useYn == "Y"
+                                                ) // 업데이트된 상태 반영
+                                            }
                                         }
                                     }
                                 }
-                            }
+                        } else {
+                            // Fallback on earlier versions
+                        }
                     }
                     Button(action: {
 #if os(iOS)
