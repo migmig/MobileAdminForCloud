@@ -13,7 +13,7 @@ struct MySceneForIOS: Scene {
     @StateObject private var toastManager: ToastManager = ToastManager()
     @AppStorage("serverType") var serverType:EnvironmentType = .local
     @StateObject private var viewModel = ViewModel()
-    @State var toast:Toast? = Toast(applcBeginDt: "", applcEndDt: "", noticeHder: "", noticeSj: "", noticeCn: "", useYn: "")
+    @State var toast:Toast = Toast(applcBeginDt: nil, applcEndDt: nil, noticeHder: "", noticeSj: "", noticeCn: "", useYn: "")
     @State var goodsItems:[Goodsinfo] = []
     @State private var isLoading: Bool = false
     

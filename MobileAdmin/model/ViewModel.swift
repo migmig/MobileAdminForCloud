@@ -74,7 +74,7 @@ class ViewModel: ObservableObject {
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
-        ViewModel.token = httpResponse.value(forHTTPHeaderField: "Authorization") 
+        ViewModel.token = httpResponse.value(forHTTPHeaderField: "Authorization")
         //        logger.info("get token sucess:\(ViewModel.token!)")
         if ViewModel.token != nil {
             ViewModel.tokenExpirationDate = extractExpiration(from: ViewModel.token!)
@@ -103,9 +103,18 @@ class ViewModel: ObservableObject {
             request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
         }
 
+        
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMddHHmmss"
         // 요청 데이터가 주어졌다면 JSON 인코딩
         if let requestData = requestData {
-            request.httpBody = try JSONEncoder().encode(requestData)
+            
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .formatted(dateFormatter)
+            let str = try encoder.encode(requestData)
+            print(str)
+            request.httpBody = str
         }
 
         let (_, _) = try await URLSession.shared.data(for: request)
@@ -133,10 +142,17 @@ class ViewModel: ObservableObject {
         if(ViewModel.token != nil){
             request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
         }
-
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMddHHmmss"
         // 요청 데이터가 주어졌다면 JSON 인코딩
         if let requestData = requestData {
-            request.httpBody = try JSONEncoder().encode(requestData)
+            
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .formatted(dateFormatter)
+            let str = try encoder.encode(requestData)
+            print(str)
+            request.httpBody = str
         }
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -145,20 +161,26 @@ class ViewModel: ObservableObject {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
 
-        let decodedData = try JSONDecoder().decode(T.self, from: data)
+        let stringfromdata = String(data: data, encoding: .utf8)
+        print("data:\(String(describing: stringfromdata))")
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        let decodedData = try decoder.decode(T.self, from: data)
+        
         return decodedData
     }
 
     // Toast 데이터를 가져오는 비동기 함수
-    func fetchToasts() async  -> Toast?{
+    func fetchToasts() async  -> Toast{
         do {
             let url = "\(baseUrl)/admin/toastNotice"
-            let toast: Toast = try await makeRequest(url: url)
-            return toast
+            let toast: Toast? = try await makeRequest(url: url)
+            return toast ?? Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
         } catch {
             print("Error fetching toasts: \(error)")
         }
-        return nil
+        return Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
     }
 
     // Error 데이터를 가져오는 비동기 함수

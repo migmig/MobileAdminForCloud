@@ -5,7 +5,7 @@ struct ContentViewForMac: View {
     @ObservedObject var toastManager: ToastManager
     @State var errorItems:[ErrorCloudItem] = []
     @State var selectedErrorItem:ErrorCloudItem? = nil
-    @State var toast:Toast?
+    @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
     @State var goodsItems:[Goodsinfo] = []
     @State var selectedGoods:Goodsinfo? = nil
     

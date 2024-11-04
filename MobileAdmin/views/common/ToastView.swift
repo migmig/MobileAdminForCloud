@@ -6,11 +6,23 @@ struct ToastView: View {
     @ObservedObject var viewModel : ViewModel
     @ObservedObject var toastManager: ToastManager
     //var viewModel : ViewModel = ViewModel()
-    @Binding var toastItem:Toast?
-    @State var isLoading: Bool = false // 로딩중 
+    @Binding var toastItem:Toast
+    @State var isLoading: Bool = false // 로딩중
     @State private var useYn: Bool = false
+    @State private var startdt: Date = Date()//getDate(toastItem?.applcBeginDt)
+    @State private var enddt:   Date = Date()//getDate(toastItem?.applcEndDt)
+    @State private var strCn: String = ""
     
     let logger = Logger(label:"com.migmig.MobileAdmin.ToastView")
+    
+    let dateRange: ClosedRange<Date> = {
+        let calendar = Calendar.current
+        let startComponents = DateComponents(year: 2024, month: 1, day: 1)
+        let endComponents = DateComponents(year: 2025, month: 12, day: 31, hour: 23, minute: 59, second: 59)
+        return calendar.date(from:startComponents)!
+            ...
+            calendar.date(from:endComponents)!
+    }()
     
     var body: some View {
         ScrollView{
@@ -21,27 +33,20 @@ struct ToastView: View {
                         Spacer()
                         TextField("제목", text: Binding(
                             get: {
-                                toastItem?.noticeHder ?? ""
+                                toastItem.noticeHder
                             },
                             set: { newValue in
-                                if toastItem != nil {
-                                    toastItem?.noticeHder = newValue
-                                }
+                                    toastItem.noticeHder = newValue
                             }))
                     }
                     Divider()
                     HStack {
                         Text("내용").padding()
                         Spacer()
-                        TextEditor(text: Binding(
-                            get: {
-                                toastItem?.noticeCn ?? ""
-                            },
-                            set: { newValue in
-                                if toastItem != nil {
-                                    toastItem?.noticeCn = newValue
-                                }
-                            }))
+                        TextEditor(text:$strCn)
+                            .onAppear(){
+                                strCn = toastItem.noticeCn.replacingOccurrences(of:"\\n", with: "\n")
+                            }
 #if os(macOS)
                         .font(.title)
 #endif
@@ -50,9 +55,16 @@ struct ToastView: View {
 #if os(iOS)
                     .frame(height: 150)
 #endif
+                    
                     Divider()
-                    InfoRow(title: "개시 시작", value: Util.formatDateTime(toastItem?.applcBeginDt))
-                    InfoRow(title: "개시 종료", value: Util.formatDateTime(toastItem?.applcEndDt))
+                    HStack{
+                        Text("개시 종료")
+                        Spacer()
+                        DatePicker("",
+                            selection: $toastItem.applcEndDt,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                    }
                     Divider()
                     HStack {
                         Text("표시여부: ")
@@ -63,19 +75,18 @@ struct ToastView: View {
                                 .labelsHidden()
                                 .onChange(of: useYn) {
                                     Task{
-                                        toastItem?.useYn = useYn ? "Y" : "N"
+                                        toastItem.useYn = useYn ? "Y" : "N"
                                         await viewModel
                                             .setNoticeVisible(
-                                                toastData: toastItem!
+                                                toastData: toastItem
                                             )
-                                        if let newToast = await viewModel.fetchToasts() {
-                                            DispatchQueue.main.async{
-                                                toastItem = newToast
-                                                useYn = (
-                                                    toastItem?.useYn == "Y"
-                                                ) // 업데이트된 상태 반영
-                                            }
+                                        toastItem = await viewModel.fetchToasts()
+                                         DispatchQueue.main.async{
+                                            useYn = (
+                                                toastItem.useYn == "Y"
+                                            ) // 업데이트된 상태 반영
                                         }
+                                         
                                     }
                                 }
                         } else {
@@ -88,7 +99,8 @@ struct ToastView: View {
 #endif
                         // 저장 로직
                         Task{
-                            await viewModel.setToastData(toastData: toastItem!)
+                            toastItem.noticeCn = strCn.replacingOccurrences(of:"\n", with: "\\n")
+                            await viewModel.setToastData(toastData: toastItem)
                             logger.info("저장완료")
                             toastManager.showToast(message:"저장되었습니다.")
                         }
@@ -113,9 +125,11 @@ struct ToastView: View {
             .onAppear{
                 Task{
                     isLoading = true;
-                    toastItem = await viewModel.fetchToasts() ?? toastItem
-                    useYn = (toastItem?.useYn == "Y")
+                    toastItem = await viewModel.fetchToasts()
+                    useYn = (toastItem.useYn == "Y")
                     isLoading = false;
+                  //  startdt  = getDate(toastItem?.applcBeginDt )
+                   // enddt    = getDate(toastItem?.applcEndDt)
                 }
             }
             .onTapGesture {
@@ -125,5 +139,15 @@ struct ToastView: View {
             }//VStack
         }//ScrollView
     }//body
+//    func getDate(_ dateString:String?) -> Date {
+//        if(dateString == nil){
+//            return Date()
+//        }
+//        print(dateString)
+//        let dateFormatter = DateFormatter()
+//
+//        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" // ISO8601 형식
+//        return dateFormatter.date(from: dateString!) ?? Date()
+//    }
 }//struct
 

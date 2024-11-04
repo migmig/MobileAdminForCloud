@@ -5,7 +5,7 @@ struct DetailViewForMac: View {
     @ObservedObject var toastManager: ToastManager
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var selectedErrorItem : ErrorCloudItem?
-    @Binding var toast: Toast?
+    @Binding var toast: Toast
     @Binding var selectedGoods:Goodsinfo?
     var body: some View {
         if(selectedSlidebarItem == SlidebarItem.errerlist){

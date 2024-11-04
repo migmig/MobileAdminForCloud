@@ -3,7 +3,7 @@ import SwiftUI
 struct ContentListViewForMac: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
     @Binding var selectedSlidebarItem:SlidebarItem?
-    @Binding var toast:Toast?
+    @Binding var toast:Toast
     @Binding var errorItems:[ErrorCloudItem]
     @Binding var selectedEntry:ErrorCloudItem?
     @Binding var goodsinfos:[Goodsinfo]
@@ -73,7 +73,7 @@ struct ContentListViewForMac: View {
         }else if(selectedSlidebarItem == SlidebarItem.toast){
             List{
                 NavigationLink(value:toast){
-                    Text(toast?.noticeHder ?? "")
+                    Text(toast.noticeHder )
                 }
             }.onAppear()
             {
