@@ -20,8 +20,8 @@ struct ToastView: View {
         let startComponents = DateComponents(year: 2024, month: 1, day: 1)
         let endComponents = DateComponents(year: 2025, month: 12, day: 31, hour: 23, minute: 59, second: 59)
         return calendar.date(from:startComponents)!
-            ...
-            calendar.date(from:endComponents)!
+        ...
+        calendar.date(from:endComponents)!
     }()
     
     var body: some View {
@@ -36,7 +36,7 @@ struct ToastView: View {
                                 toastItem.noticeHder
                             },
                             set: { newValue in
-                                    toastItem.noticeHder = newValue
+                                toastItem.noticeHder = newValue
                             }))
                     }
                     Divider()
@@ -44,26 +44,25 @@ struct ToastView: View {
                         Text("내용").padding()
                         Spacer()
                         TextEditor(text:$strCn)
-                            .onAppear(){
-                                strCn = toastItem.noticeCn.replacingOccurrences(of:"\\n", with: "\n")
-                            }
 #if os(macOS)
-                        .font(.title)
+                            .font(.headline)
 #endif
                         //.border(Color.gray, width: 1)
+                            .frame(maxHeight: .infinity) // 자동으로 높이가 늘어남
                     }
 #if os(iOS)
-                    .frame(height: 150)
+//                    .frame(height: 150)
 #endif
                     
                     Divider()
                     HStack{
                         Text("개시 종료")
-                        Spacer()
-                        DatePicker("",
-                            selection: $toastItem.applcEndDt,
-                            displayedComponents: [.date, .hourAndMinute]
+                        //Spacer()
+                        KorDatePicker("",
+                                   selection: $toastItem.applcEndDt,
+                                   displayedComponents: [.date, .hourAndMinute]
                         )
+                        .environment(\.locale, Locale(identifier: "ko_KR"))
                     }
                     Divider()
                     HStack {
@@ -81,12 +80,12 @@ struct ToastView: View {
                                                 toastData: toastItem
                                             )
                                         toastItem = await viewModel.fetchToasts()
-                                         DispatchQueue.main.async{
+                                        DispatchQueue.main.async{
                                             useYn = (
                                                 toastItem.useYn == "Y"
                                             ) // 업데이트된 상태 반영
                                         }
-                                         
+                                        
                                     }
                                 }
                         } else {
@@ -116,7 +115,7 @@ struct ToastView: View {
                     .buttonStyle(PlainButtonStyle()) // macOS에서 기본 버튼 스타일 제거
 #endif
                     .shadow(radius: 2, x: 0, y: 2) // 살짝의 그림자 효과
-                                       
+                    
                     
                 }
                 .padding(.vertical, 4)
@@ -127,9 +126,10 @@ struct ToastView: View {
                     isLoading = true;
                     toastItem = await viewModel.fetchToasts()
                     useYn = (toastItem.useYn == "Y")
+                    strCn = toastItem.noticeCn.replacingOccurrences(of:"\\n", with: "\n")
                     isLoading = false;
-                  //  startdt  = getDate(toastItem?.applcBeginDt )
-                   // enddt    = getDate(toastItem?.applcEndDt)
+                    //  startdt  = getDate(toastItem?.applcBeginDt )
+                    // enddt    = getDate(toastItem?.applcEndDt)
                 }
             }
             .onTapGesture {
@@ -138,16 +138,30 @@ struct ToastView: View {
 #endif
             }//VStack
         }//ScrollView
+#if os(iOS)
+        .navigationTitle("상세 정보")
+#endif
     }//body
-//    func getDate(_ dateString:String?) -> Date {
-//        if(dateString == nil){
-//            return Date()
-//        }
-//        print(dateString)
-//        let dateFormatter = DateFormatter()
-//
-//        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" // ISO8601 형식
-//        return dateFormatter.date(from: dateString!) ?? Date()
-//    }
+     
+    func formattedDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "ko_KR") // 한국어 로케일 설정
+            formatter.dateFormat = "yyyy-MM-dd EEEE" // 원하는 포맷 (예: "2024-11-04 목.")
+            return formatter.string(from: date)
+        }
 }//struct
 
+#Preview{
+    ToastView(
+        viewModel: ViewModel(),
+        toastManager: ToastManager(),
+        toastItem: .constant(Toast(
+            applcBeginDt: Date(),
+            applcEndDt: Date(),
+            noticeHder: "제목",
+            noticeSj: "제목",
+            noticeCn: "내용\n\n 내용  내용\n\n 내용내용\n\n 내용내용\n\n 내용",
+            useYn: "N"
+        ))
+    )
+}

@@ -113,7 +113,7 @@ class ViewModel: ObservableObject {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .formatted(dateFormatter)
             let str = try encoder.encode(requestData)
-            print(str)
+           // print(str)
             request.httpBody = str
         }
 
@@ -162,7 +162,7 @@ class ViewModel: ObservableObject {
         }
 
         let stringfromdata = String(data: data, encoding: .utf8)
-        print("data:\(String(describing: stringfromdata))")
+        //print("data:\(String(describing: stringfromdata))")
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -184,10 +184,9 @@ class ViewModel: ObservableObject {
     }
 
     // Error 데이터를 가져오는 비동기 함수
-    func fetchErrors(startFrom: String, endTo: String) async -> [ErrorCloudItem]?{
-        do {
-            //            logger.info("fetchErrors called")
-            let urlPath = "/admin/findByRegisterDtBetween/\(startFrom)/\(endTo)"
+    func fetchErrors(startFrom: Date, endTo: Date) async -> [ErrorCloudItem]?{
+        do { 
+            let urlPath = "/admin/findByRegisterDtBetween/\(Util.getFormattedDateString(startFrom))/\(Util.getFormattedDateString(endTo))"
             let errorItems: [ErrorCloudItem] = try await makeRequest(url: "\(baseUrl)\(urlPath)")
             return errorItems
         } catch {

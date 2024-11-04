@@ -18,10 +18,10 @@ struct ContentViewForMac: View {
                 viewModel : viewModel,
                 selectedSlidebarItem: $selectedSidebarItem,
                 toast: $toast,
-                errorItems: $errorItems,
-                selectedEntry: $selectedErrorItem,
                 goodsinfos: $goodsItems,
-                selectedGoods: $selectedGoods
+                selectedGoods: $selectedGoods,
+                selectedErrorItem: $selectedErrorItem,
+                errorItems: $errorItems
             )
         }detail:{
             NavigationStack{

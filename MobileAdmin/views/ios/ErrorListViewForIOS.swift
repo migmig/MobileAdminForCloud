@@ -7,13 +7,9 @@ struct ErrorListViewForIOS: View {
     @State private var searchText = ""
     @State private var isSearchBarVisible:Bool = true
     @State private var isLoading: Bool = false
-    //    let errorItems:[ErrorCloudItem]
+    @State private var dateFrom:Date = Date()
+    @State private var dateTo:Date = Date()
     
-    var formatDate:String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd" // 날짜 형식을 설정
-        return formatter.string(from: Date()) // 포맷된 문자열 반환
-    }
     
     var filteredErrorItems: [ErrorCloudItem] {
         if searchText.isEmpty {
@@ -27,12 +23,20 @@ struct ErrorListViewForIOS: View {
         NavigationStack{
             
             VStack() {
-                if isLoading{
-                    ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
-                }
+                
+                KorDatePicker(
+                    "From",
+                    selection: $dateFrom,
+                    displayedComponents: .date
+                ).padding(.horizontal)
+                KorDatePicker(
+                    "To",
+                    selection: $dateTo,
+                    displayedComponents: .date
+                ).padding(.horizontal)
                 // 검색창 추가
                 if isSearchBarVisible {
-                    HStack {
+                    HStack(alignment:.center) {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray) // 아이콘 색상
                             .padding(.leading, 10) // 아이콘 왼쪽 패딩
@@ -41,9 +45,26 @@ struct ErrorListViewForIOS: View {
                             .padding(10)
                             .cornerRadius(10) // 모서리 둥글게
                             .font(.system(size: 16)) // 폰트 크기
+                        if isLoading{
+                            VStack {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .frame(maxHeight: .infinity)
+                            }
+                        }
+                        Button("조회"){
+                            Task{
+                                isLoading = true;
+                                await errorItems = viewModel.fetchErrors(startFrom: dateFrom, endTo:  dateTo) ?? []
+                                isLoading = false;
+                            }
+                        }
+                        .buttonStyle(.bordered)
                         Text("\(filteredErrorItems.count)개의 오류")
                     }
+                    .frame(maxHeight:40)
                     .padding(.horizontal) // 전체 HStack의 패딩
+                     
                 }
                 List(filteredErrorItems){entry in
                     NavigationLink(value:entry){
@@ -61,17 +82,19 @@ struct ErrorListViewForIOS: View {
         .onAppear(){
             Task{
                 isLoading = true;
-                await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
+                await errorItems = viewModel.fetchErrors(startFrom: dateFrom,
+                                                         endTo:  dateTo) ?? []
                 isLoading = false;
             }
         }
         .refreshable {
             Task{
                 isLoading = true;
-                await errorItems = viewModel.fetchErrors(startFrom: formatDate, endTo:  formatDate) ?? []
+                await errorItems = viewModel.fetchErrors(startFrom: dateFrom,
+                                                         endTo:  dateTo) ?? []
                 isLoading = false;
             }
-        } 
+        }
     }
     
 }
