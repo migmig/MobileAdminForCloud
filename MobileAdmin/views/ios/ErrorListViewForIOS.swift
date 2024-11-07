@@ -23,54 +23,47 @@ struct ErrorListViewForIOS: View {
         NavigationStack{
             
             VStack() {
-                
-                KorDatePicker(
-                    "From",
-                    selection: $dateFrom,
-                    displayedComponents: .date
-                ).padding(.horizontal)
-                KorDatePicker(
-                    "To",
-                    selection: $dateTo,
-                    displayedComponents: .date
-                ).padding(.horizontal)
-                // 검색창 추가
-                if isSearchBarVisible {
-                    HStack(alignment:.center) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray) // 아이콘 색상
-                            .padding(.leading, 10) // 아이콘 왼쪽 패딩
+                List{
+                    Section{
+                        SearchArea(dateFrom: $dateFrom,
+                                   dateTo: $dateTo,
+                                   isLoading: $isLoading,
+                                   clearAction:{
+                            searchText = ""
+                        }){
+                            errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo:  dateTo) ?? []
+                        }//.padding()
+                        // 검색창 추가
+                        if isSearchBarVisible {
+                            HStack(alignment:.center) {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(.gray) // 아이콘 색상
+                                    .padding(.leading, 10) // 아이콘 왼쪽 패딩
+                                
+                                TextField("검색어 입력...", text: $searchText)
+                                    .padding(10)
+                                    .cornerRadius(10) // 모서리 둥글게
+                                    .font(.system(size: 16)) // 폰트 크기
+                                if isLoading{
+                                    VStack {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle())
+                                            .frame(maxHeight: .infinity)
+                                    }
+                                }
+                                Text("\(filteredErrorItems.count)개의 오류")
+                            }
+                            .frame(maxHeight:40)
+                            .padding(.horizontal) // 전체 HStack의 패딩
+                            
+                        }
+                    }
+                    ForEach(filteredErrorItems,id:\.id){entry in
+                        NavigationLink(value:entry){
+                            ErrorCloudListItem(errorCloudItem: entry)
+                        }
                         
-                        TextField("검색어 입력...", text: $searchText)
-                            .padding(10)
-                            .cornerRadius(10) // 모서리 둥글게
-                            .font(.system(size: 16)) // 폰트 크기
-                        if isLoading{
-                            VStack {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle())
-                                    .frame(maxHeight: .infinity)
-                            }
-                        }
-                        Button("조회"){
-                            Task{
-                                isLoading = true;
-                                await errorItems = viewModel.fetchErrors(startFrom: dateFrom, endTo:  dateTo) ?? []
-                                isLoading = false;
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                        Text("\(filteredErrorItems.count)개의 오류")
                     }
-                    .frame(maxHeight:40)
-                    .padding(.horizontal) // 전체 HStack의 패딩
-                     
-                }
-                List(filteredErrorItems){entry in
-                    NavigationLink(value:entry){
-                        ErrorCloudListItem(errorCloudItem: entry)
-                    }
-                    
                 }
                 .navigationTitle("ErrorList")
                 .navigationDestination(for: ErrorCloudItem.self){entry in

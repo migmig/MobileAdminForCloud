@@ -136,12 +136,19 @@ struct ContentView: View {
 }
 
 struct testView:View{
+    @State private var isPresent: Bool = false
     var body: some View{
         
         ZStack {
-            Color.red
-            Text("Hello, World!")
+            Button("Hello, World!"){
+                
+            }
                 .foregroundColor(.white)
+                .confirmationDialog("Are you sure?", isPresented: $isPresent) {
+                    Button("OK",role:.destructive){
+                        
+                    }
+                }
         }
     }
 }

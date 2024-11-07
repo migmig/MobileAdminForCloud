@@ -104,15 +104,38 @@ class Util{
        return "{\n\t\(formattedString)\n}"
    }
     
-    static func getCurrentDateString() -> String {
+    static func getCurrentDateString(_ format:String,_ date:Date?) -> String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMMdd"
-        return dateFormatter.string(from: Date())
+        dateFormatter.dateFormat = format
+        return dateFormatter.string(from: date ?? Date())
+    }
+    
+    static func getCurrentDateString() -> String {
+        return getCurrentDateString("yyyyMMdd", Date())
     }
     
     static func getFormattedDateString(_ date: Date) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        return dateFormatter.string(from: date)
+        return getCurrentDateString("yyyy-MM-dd", date)
+    }
+    
+    static func convertToFormattedDate(_ input: String?) -> String {
+        // 입력 형식의 DateFormatter 설정
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyyMMdd"
+        
+        // 출력 형식의 DateFormatter 설정
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        if(input == nil){
+            return ""
+        }
+        // 입력 문자열을 Date 객체로 변환
+        if let date = inputFormatter.date(from: input!) {
+            // Date 객체를 yyyy-MM-dd 형식의 문자열로 변환
+            return outputFormatter.string(from: date)
+        } else {
+            return ""
+        }
     }
 }

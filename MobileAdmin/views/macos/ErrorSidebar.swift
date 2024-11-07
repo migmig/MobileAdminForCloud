@@ -27,27 +27,13 @@ struct ErrorSidebar: View {
     
     var body: some View {
         VStack{
-            HStack(alignment:.center){
-                VStack(alignment:.trailing){
-                    KorDatePicker("From", selection: $dateFrom, displayedComponents: .date)
-                    KorDatePicker("To", selection: $dateTo, displayedComponents: .date)
-                }
-                VStack(alignment:.leading){
-                    Button("조회", systemImage: "magnifyingglass"){
-                        Task{
-                            isLoading = true;
-                            await errorItems = viewModel.fetchErrors(startFrom: dateFrom,
-                                                                     endTo:  dateTo) ?? []
-                            isLoading = false;
-                        }
-                    }
-                    Button("초기화", systemImage:"arrow.clockwise"){
-                        dateFrom = Date()
-                        dateTo = Date()
-                    }
-                }
+            SearchArea(dateFrom: $dateFrom,
+                       dateTo: $dateTo,
+                       isLoading: $isLoading,
+                       clearAction: {searchText = ""}){
+                    errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
+                                                             endTo:  dateTo) ?? []
             }
-//            .frame(height:100)
             .padding()
             // 검색창 추가
            HStack {

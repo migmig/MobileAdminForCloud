@@ -4,62 +4,60 @@ import SwiftUI
 struct GoodsDetailView: View {
     var goodsinfo:Goodsinfo
     
+    fileprivate func goodsDetailOfDetail() -> some View{
+        return Grid(alignment:.trailing)
+        {
+            ForEach(goodsinfo.goods, id: \.self) { item in
+                NavigationLink(destination: SelectedGoodsDetailView(goodsItem: item)) {
+                    GridRow{
+                        VStack(alignment: .trailing) {
+                            HStack{
+                                Image(systemName:"cart.circle")
+                                Text("\(item.goodsCd)")
+                                    .font(.headline)
+                                Spacer()
+                            Text("\(item.goodsNm)")
+                                .foregroundColor(item.maxLmt > 0 ? .blue : .secondary)
+                                .font(.subheadline)
+                            }
+                        }
+                        //.padding()
+                        // .padding(.horizontal)
+                    }
+                    .padding(3)
+                }
+            }
+        }
+    }
+    
     var body: some View {
         ScrollView{
             LazyVStack{
                 Section(header: Text("상세 정보").font(.headline)) {
-                
-                    InfoRow(title: "userId", value: goodsinfo.userId ?? "")
+                    
+                    InfoRow(title: "사용자아이디", value: goodsinfo.userId ?? "")
                     Divider()
-                    InfoRow(title: "rdt", value: goodsinfo.rdt ?? "")
+                    InfoRow(
+                        title: "접수일자",
+                        value: Util.convertToFormattedDate(goodsinfo.rdt)
+                    )
                     Divider()
-                    InfoRow(title: "gno", value: goodsinfo.gno ?? "")
+                    InfoRow(title: "보증번호", value: goodsinfo.gno ?? "")
                     Divider()
-                    InfoRow(title: "kindGb", value: goodsinfo.kindGb ?? "")
+                    InfoRow(title: "접수구분", value: goodsinfo.kindGb ?? "")
                     Divider()
-                    InfoRow(title: "registerDt", value: goodsinfo.registerDt ?? "")
+                    InfoRow(title: "등록일자", value: goodsinfo.registerDt ?? "")
                     Divider()
                     // macOS용 Table과 iOS용 List로 구분
-  
+                    
                     HStack{
                         Text("상품정보")
-                            .font(.headline)
+                            //.font(.headline)
                         Spacer()
-                    }
-                    LazyVGrid(
-                        columns:Array(
-                            repeating:GridItem(.flexible()),
-                            count:2
-                        ),
-                        spacing:20
-                    ){
-                        ForEach(goodsinfo.goods, id: \.self) { item in
-                            NavigationLink(destination: SelectedGoodsDetailView(goodsItem: item)) {
-                                VStack(alignment: .leading) {
-                                    Text("상품코드: \(item.goodsCd)")
-                                        .font(.headline)
-                                    Text("상품명: \(item.goodsNm)")
-                                        .foregroundColor(item.maxLmt > 0 ? .blue : .secondary)
-                                        .font(.subheadline)
-                                }
-                                .padding()
-//                                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                                .padding(.horizontal)
-                            }
-                        }
-//                        VStack{
-//                            List(goodsinfo.goods  , id: \.self) { item in
-//                                NavigationLink(value:item){
-//                                    VStack(alignment:.trailing){
-//                                        Text("상품코드: \(item.goodsCd )")
-//                                        Text("상품명: \(item.goodsNm )")
-//                                            .foregroundColor(item.maxLmt > 0 ? .blue : .secondary)
-//                                            .font(.subheadline)
-//                                    }
-//                                    
-//                                }
-//                            }
-                        }
+                    } 
+                    
+                     
+                    goodsDetailOfDetail()
                     
                     Divider()
                 }
@@ -80,79 +78,15 @@ struct GoodsDetailView: View {
     }
 }
 
-struct SelectedGoodsDetailView:View{
-    var goodsItem:Good
-    
-    var body: some View{
-        ScrollView{
-            VStack{
-                InfoRow(title: "상품코드", value: goodsItem.goodsCd  )
-                Divider()
-                InfoRow(title: "maxLmt", value: String(goodsItem.maxLmt ))
-                Divider()
-                InfoRow(title: "finProdType", value: goodsItem.finProdType ?? "")
-                Divider()
-                InfoRow(title: "userAlertYn", value: goodsItem.userAlertYn ?? "")
-                Divider()
-                InfoRow(title: "msgDispYn", value: goodsItem.msgDispYn ?? "")
-                Divider()
-                InfoRow(title: "feeRate", value: String(goodsItem.feeRate ?? 0))
-                Divider()
-                InfoRow(title: "inrstMax", value: String(goodsItem.inrstMax ?? 0))
-                Divider()
-                InfoRow(title: "autoRptYn", value: goodsItem.autoRptYn ?? "")
-                Divider()
-                InfoRow(title: "dispMsg", value: goodsItem.dispMsg ?? "")
-                Divider()
-                InfoRow(title: "popDispYn", value: goodsItem.popDispYn ?? "")
-                Divider()
-                InfoRow(title: "inrstMin", value: String(goodsItem.inrstMin ?? 0))
-                HStack{
-                    Text("별도안내내용")
-                    Spacer()
-                    VStack{
-                        if let treatmentList = goodsItem.treatmentList{
-                            List(treatmentList,id:\.self){ item in
-                                Text("\(item.treatmentNm ?? "")")
-                            }
-                        }else{
-                            Text("No Data")
-                        }
-                    }
-                }
-                HStack{
-                    Text("메세지출력여부")
-                    Spacer()
-                    VStack{
-                        if let goodsContList = goodsItem.goodsContList{
-                            List(goodsContList,id:\.self){ item in
-                                HStack{
-                                    Text("userMsgTitle: \(item.userMsgTitle ?? "")")
-                                    Text("msgUseContent: \(item.msgUseContent ?? "")")
-                                }
-                            }
-                        }else{
-                            Text("")
-                        }
-                    }
-                }
-                HStack{
-                    Text("은행정보")
-                    Spacer()
-                    VStack{
-                        if let bankIemList = goodsItem.bankIemList{
-                            List(bankIemList,id:\.self){ item in
-                                HStack{
-                                    Text("\(item.iemCodeNm ?? "")")
-                                }
-                            }
-                        }else{
-                            Text("")
-                        }
-                    }
-                }
-            }
-            .padding()
-        }
-    }
+#Preview(
+    "Content",
+    traits: .fixedLayout(width: 500, height: 500)
+)
+{
+    GoodsDetailView(
+        goodsinfo: Goodsinfo("UT000000",
+                             "20111104",
+                             [Good("N002", "청년어찌고저찌고"),
+                              Good("GD01","부채상환연장 특례보증(영업점심사)")])
+    )
 }

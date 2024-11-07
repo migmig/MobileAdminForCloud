@@ -26,30 +26,24 @@ struct ContentListViewForMac: View {
                          selectedErrorItem :$selectedErrorItem)
         }else if(selectedSlidebarItem == SlidebarItem.toast){
             List{
+                if isLoading {
+                    ProgressView(" ")
+                        .progressViewStyle(CircularProgressViewStyle())
+                }
                 NavigationLink(value:toast){
                     Text(toast.noticeHder )
                 }
             }.onAppear()
             {
                 Task{
-                    isLoading = true;
-                    await toast = viewModel.fetchToasts()
+                    isLoading = true; 
+                    //await toast = viewModel.fetchToasts()
                     isLoading = false;
                 }
             }
         }else if(selectedSlidebarItem == SlidebarItem.goodsInfo){
-            List(goodsinfos,selection:$selectedGoods){ item in
-                NavigationLink(value:item){
-                    GoodsItemListItem(item)
-                }
-            }.onAppear()
-            {
-                Task{
-                    isLoading = true;
-                    await goodsinfos = viewModel.fetchGoods(nil,nil) ?? []
-                    isLoading = false;
-                }
-            }
+            GoodsSidebar(goodsItems: $goodsinfos,
+                         selectedGoods: $selectedGoods)
         }
     }
 }

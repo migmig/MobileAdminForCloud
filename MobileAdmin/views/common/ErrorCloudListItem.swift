@@ -13,7 +13,7 @@ struct ErrorCloudListItem: View {
                     .lineLimit(2)
 #elseif os(macOS)
                     .lineLimit(3)
-#endif 
+#endif
                     .truncationMode(.tail)
             }
             VStack(alignment: .trailing) {
@@ -26,4 +26,17 @@ struct ErrorCloudListItem: View {
             }
         }
     }
+}
+
+#Preview{
+    ErrorCloudListItem(errorCloudItem: ErrorCloudItem(
+        code: "code",
+        description: "description",
+        msg: "msg",
+        registerDt: "traceCn",
+        requestInfo: "requestInfo",
+        restUrl: "restUrl",
+        traceCn: "traceCn",
+        userId: "userId"
+    ))
 }

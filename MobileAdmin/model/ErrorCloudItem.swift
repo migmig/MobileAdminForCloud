@@ -11,7 +11,15 @@ struct ErrorCloudItem:Codable,Identifiable,Hashable{
     var restUrl: String?
     var traceCn: String?
     var userId: String?
-    init(code: String? = nil, description: String? = nil, id: Int? = nil, msg: String? = nil, registerDt: String? = nil, requestInfo: String? = nil, restUrl: String? = nil, traceCn: String? = nil, userId: String? = nil) {
+    init(code: String? = nil,
+         description: String? = nil,
+         id: Int? = nil,
+         msg: String? = nil,
+         registerDt: String? = nil,
+         requestInfo: String? = nil,
+         restUrl: String? = nil,
+         traceCn: String? = nil,
+         userId: String? = nil) {
         self.code = code
         self.description = description
         self.id = id

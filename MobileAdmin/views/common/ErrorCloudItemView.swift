@@ -68,4 +68,6 @@ struct ErrorCloudItemView: View {
 #endif
     }
 }
-
+#Preview{
+    ErrorCloudItemView(errorCloudItem: ErrorCloudItem(), toastManager: ToastManager())
+}

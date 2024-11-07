@@ -30,5 +30,6 @@ struct KorDatePicker: View {
 }
 
 #Preview {
-    KorDatePicker("", selection: .constant(Date()), displayedComponents: [.date, .hourAndMinute])
+    KorDatePicker("From", selection: .constant(Date()), displayedComponents: [.date, .hourAndMinute])
+    KorDatePicker("To", selection: .constant(Date()), displayedComponents: [.date, .hourAndMinute])
 }

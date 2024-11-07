@@ -7,11 +7,15 @@ struct InfoRow: View {
     
     var body: some View {
         HStack {
-            Text(title) 
+            Text(title)
             Spacer()
             Text(value)
                 .foregroundColor(.gray)
         }
         .padding(.vertical, 10)
     }
+}
+
+#Preview {
+    InfoRow(title: "User ID:", value: "123456")
 }

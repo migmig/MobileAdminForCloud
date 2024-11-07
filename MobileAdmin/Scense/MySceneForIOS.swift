@@ -50,7 +50,9 @@ struct MySceneForIOS: Scene {
                 GoodsListViewIOS(
                     viewModel:viewModel,
                     toastManager: toastManager,
-                    goodsItems:$goodsItems )
+                    goodsItems:$goodsItems
+                )
+                .font(.custom("D2Coding", size: 16))
                 .tabItem {
                     Label("GoodsInfo", systemImage: "cart")
                 }

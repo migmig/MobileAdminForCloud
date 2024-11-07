@@ -161,8 +161,8 @@ class ViewModel: ObservableObject {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
 
-        let stringfromdata = String(data: data, encoding: .utf8)
-        //print("data:\(String(describing: stringfromdata))")
+//        let stringfromdata = String(data: data, encoding: .utf8)
+//        print("data:\(String(describing: stringfromdata))")
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -215,11 +215,11 @@ class ViewModel: ObservableObject {
         }
     }
 
-    func fetchGoods(_ startFrom: String?, _ endTo: String?) async -> [Goodsinfo]?{
+    func fetchGoods(_ startFrom: Date?, _ endTo: Date?) async -> [Goodsinfo]?{
         do {
-            let p_startFrom = startFrom ?? Util.getCurrentDateString()
-            let p_endTo = endTo ?? Util.getCurrentDateString()
-            let urlPath = "/admin/getGoodsHistList/\(p_startFrom)/\(p_endTo)"
+            let p_startFrom = Util.getCurrentDateString("yyyyMMdd", startFrom)
+            let p_endTo     = Util.getCurrentDateString("yyyyMMdd", endTo)
+            let urlPath     = "/admin/getGoodsHistList/\(p_startFrom)/\(p_endTo)"
             let goodsinfos: [Goodsinfo] = try await makeRequest(url: "\(baseUrl)\(urlPath)")
             return goodsinfos
         } catch {
