@@ -13,6 +13,11 @@ struct InfoRow: View {
                 .foregroundColor(.gray)
         }
         .padding(.vertical, 10)
+        .contextMenu{
+            Button("Copy"){
+                Util.copyToClipboard(value)
+            }
+        }
     }
 }
 

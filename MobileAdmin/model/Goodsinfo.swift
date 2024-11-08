@@ -36,6 +36,31 @@ struct Goodsinfo :Codable,Identifiable,Hashable{
         self.kindGb = ""
         self.registerDt = ""
     }
+    init(_ userid:String,_ rdt:String,_ gno:String,_ kindGb:String, _ registerDt:String,_ goods:[Good]){
+        self.userId = userid
+        self.rdt = rdt
+        self.goods = goods
+        self.id = 0
+        self.gno = gno
+        self.kindGb = kindGb
+        self.registerDt = registerDt
+    }
+    
+    init( id:Int
+         ,userid:String
+         ,rdt:String
+         ,gno:String
+         ,kindGb:String
+         ,registerDt:String
+         ,goods:[Good]){
+        self.id     = id
+        self.userId = userid
+        self.rdt    = rdt
+        self.goods  = goods
+        self.gno    = gno
+        self.kindGb = kindGb
+        self.registerDt = registerDt
+    }
 }
 
 // MARK: - Good

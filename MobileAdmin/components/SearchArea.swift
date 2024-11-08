@@ -16,32 +16,34 @@ struct SearchArea: View {
     var body: some View {
         HStack{
             VStack(alignment:.trailing){
-                KorDatePicker("From", selection: $dateFrom, displayedComponents: .date)
-                KorDatePicker("To", selection: $dateTo, displayedComponents: .date)
+                KorDatePicker("시작일", selection: $dateFrom, displayedComponents: .date)
+                KorDatePicker("종료일", selection: $dateTo, displayedComponents: .date)
             }
             VStack(alignment:.leading){
-                Button("조회", systemImage: "magnifyingglass"){
+                Button("조  회",systemImage:"magnifyingglass"){
                     Task{
                         isLoading = true;
                         await escaping()
                         isLoading = false;
                     }
                 }
-                .font(.caption)
+//                .font(.caption)
                 .buttonStyle(.bordered)
                 Button("초기화", systemImage:"arrow.clockwise"){
                     dateFrom = Date()
                     dateTo = Date()
                     clearAction()
                 }
-                .font(.caption)
+               // .font(.caption)
                 .buttonStyle(.bordered)
             }
         }
     }
 }
 
-#Preview {
+#Preview(
+    traits: .fixedLayout(width:400,height:200)
+) {
     SearchArea(dateFrom: .constant(Date()),
                dateTo: .constant(Date()),
                isLoading: .constant(false),

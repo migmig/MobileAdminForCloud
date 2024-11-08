@@ -41,14 +41,14 @@ class Util{
    // JSON 또는 HashMap toString() 포매팅 함수 (userEncMsg 제외, 잘린 JSON 처리)
     static func formatRequestInfo(_ requestInfo: String) -> String {
        // JSON 포매팅 시도 (userEncMsg 제외, 잘린 JSON 처리)
-       if let jsonString = prettyPrintedJSON(from: requestInfo, excludingKey: "userEncMsg"),
+       if let jsonString = prettyPrintedJSON(from: requestInfo, excludingKey: ["userEncMsg","ci"]),
           jsonString != requestInfo {
            return jsonString
        }
        
        // HashMap.toString() 포매팅 시도 (userEncMsg 제외)
        if requestInfo.hasPrefix("{") && requestInfo.hasSuffix("}") {
-           return formatHashMapString(requestInfo, excludingKey: "userEncMsg")
+           return formatHashMapString(requestInfo, excludingKey: ["userEncMsg","ci"])
        }
        
        // JSON도 HashMap도 아닌 경우 원본 출력
@@ -56,7 +56,7 @@ class Util{
    }
 
    // JSON 포매팅 함수 (잘린 JSON 보정 및 특정 키 제외)
-    static func prettyPrintedJSON(from jsonString: String, excludingKey key: String) -> String? {
+    static func prettyPrintedJSON(from jsonString: String, excludingKey key: [String]) -> String? {
        // JSON 문자열이 끝까지 완전하지 않을 경우 마지막을 제거
        var validJSONString = jsonString
         // }로 끝나지 않으면 쉼표 이전까지 자름
@@ -71,7 +71,10 @@ class Util{
        if let jsonData = validJSONString.data(using: .utf8),
           var jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
            
-           jsonObject.removeValue(forKey: key) // userEncMsg 키 제거
+           key.forEach {item in
+               jsonObject.removeValue(forKey: item)
+           } // userEncMsg 키 제거
+//           jsonObject.removeValue(forKey: key) // userEncMsg 키 제거
            
            if let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
               let prettyString = String(data: prettyData, encoding: .utf8) {
@@ -82,13 +85,15 @@ class Util{
    }
 
    // HashMap.toString() 포매팅 함수 (특정 키 제외)
-    static func formatHashMapString(_ hashMapString: String, excludingKey key: String) -> String {
+    static func formatHashMapString(_ hashMapString: String, excludingKey key: [String]) -> String {
        // String을 key-value로 파싱
        let trimmedString = hashMapString.trimmingCharacters(in: CharacterSet(charactersIn: "{}"))
        var keyValues = trimmedString.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
        
-       // userEncMsg 항목 제거
-       keyValues.removeAll { $0.hasPrefix("\(key)=") }
+        key.forEach{key in
+            keyValues.removeAll { $0.hasPrefix("\(key)=") }
+        }
+//       keyValues.removeAll { $0.hasPrefix("\(key)=") }
         
         // 남은 key-value 쌍 다시 조합
         let formattedString = keyValues.map { keyValue -> String in

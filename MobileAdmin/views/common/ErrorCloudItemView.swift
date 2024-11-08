@@ -9,20 +9,7 @@ struct ErrorCloudItemView: View {
         ScrollView {
             VStack{
                 Section(header: Text("상세 정보").font(.headline)) {
-                    InfoRow(title: "User ID:", value: errorCloudItem.userId ?? "")
-                        .contextMenu{
-                            Button("Copy"){
-                                Util.copyToClipboard(errorCloudItem.userId ?? "")
-                                if errorCloudItem.userId != nil {
-                                    toastManager.showToast(message: "copy complete : \(errorCloudItem.userId ?? "")")
-                                }
-                            }
-                            Button("View LogInfo"){
-                                if errorCloudItem.userId != nil {
-                                    toastManager.showToast(message: errorCloudItem.userId ?? "")
-                                }
-                            }
-                        }
+                    InfoRow(title: "User ID:", value: errorCloudItem.userId ?? "") 
                     Divider()
                     InfoRow(title: "Code:", value: errorCloudItem.code ?? "")
                     Divider()

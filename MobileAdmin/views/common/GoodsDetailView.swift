@@ -30,6 +30,15 @@ struct GoodsDetailView: View {
         }
     }
     
+    func getGnoWithDash(gno : String?) -> String{
+        
+        if gno == nil || gno!.isEmpty{
+            return ""
+        }else{
+            return gno!.prefix(3) + "-" + gno!.dropFirst(3).prefix(4) + "-" + gno!.suffix(5)
+        }
+    }
+    
     var body: some View {
         ScrollView{
             LazyVStack{
@@ -42,19 +51,23 @@ struct GoodsDetailView: View {
                         value: Util.convertToFormattedDate(goodsinfo.rdt)
                     )
                     Divider()
-                    InfoRow(title: "보증번호", value: goodsinfo.gno ?? "")
+                    InfoRow(
+                        title: "보증번호",
+                        value: getGnoWithDash(gno: goodsinfo.gno)
+                    )
                     Divider()
                     InfoRow(title: "접수구분", value: goodsinfo.kindGb ?? "")
                     Divider()
-                    InfoRow(title: "등록일자", value: goodsinfo.registerDt ?? "")
+                    InfoRow(
+                        title: "등록일자",
+                        value: Util.convertToFormattedDate(goodsinfo.registerDt)
+                    )
                     Divider()
-                    // macOS용 Table과 iOS용 List로 구분
                     
                     HStack{
                         Text("상품정보")
-                            //.font(.headline)
                         Spacer()
-                    } 
+                    }
                     
                      
                     goodsDetailOfDetail()
@@ -84,9 +97,15 @@ struct GoodsDetailView: View {
 )
 {
     GoodsDetailView(
-        goodsinfo: Goodsinfo("UT000000",
-                             "20111104",
-                             [Good("N002", "청년어찌고저찌고"),
-                              Good("GD01","부채상환연장 특례보증(영업점심사)")])
+        goodsinfo: Goodsinfo(id: 1,
+                             userid:"UT000000",
+                             rdt:"20111104",
+                             gno:"110202401958",
+                             kindGb:"G",
+                             registerDt:"20211104",
+                             goods:[Good("N002", "청년어찌고저찌고"),
+                                    Good("GD01","부채상환연장 특례보증(영업점심사)"),
+                                    Good("GD02","부채상연장 특례보증(영업점심사)"),
+                                    Good("GD03","부상환연장 특례보증(영업점심사)")])
     )
 }

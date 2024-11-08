@@ -15,26 +15,19 @@ struct MobileAdminTests {
     var viewModel = ViewModel()
 
     @Test func fetchToastsTest() async throws {
+        EnvironmentConfig.current = .local
         let toast = await viewModel.fetchToasts()
-        if let toast = toast {
-            print("Toast 데이터: \(toast)")
-        } else {
-            print("Toast 데이터를 가져오는 데 실패했습니다.")
-        }
+         print("Toast 데이터: \(toast)")
+         
         logger.info("test end")
         #expect(toast != nil)
         //  #expect(toast?.applcBeginDt.contains("T") == false)
     }
-
-    @Test func setToastsTest() async throws {
-        let toast = await viewModel.fetchToasts()
-        if let toast = toast {
-            print("Toast 데이터: \(toast)")
-        } else {
-            print("Toast 데이터를 가져오는 데 실패했습니다.")
-        }
-
-        #expect(toast != nil)
-      //  #expect(toast?.applcBeginDt.contains("T") == false)
+    @Test func getClsLists() async throws{
+        EnvironmentConfig.current = .local
+        viewModel.setToken(token: nil)
+        let clsLists = await viewModel.fetchClsLists()
+        print("clsLists 데이터: \(clsLists)")
+        #expect(clsLists != nil)
     }
 }

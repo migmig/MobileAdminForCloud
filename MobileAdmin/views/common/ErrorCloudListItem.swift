@@ -18,6 +18,9 @@ struct ErrorCloudListItem: View {
             }
             VStack(alignment: .trailing) {
                 HStack{
+                    Text("       \(Util.formattedDate(errorCloudItem.registerDt ?? "").prefix(19))")
+                        .font(.caption)
+                        .foregroundColor(.gray)
                     Spacer()
                     Text(errorCloudItem.userId ?? "")
                         .font(.caption)
@@ -28,15 +31,24 @@ struct ErrorCloudListItem: View {
     }
 }
 
-#Preview{
-    ErrorCloudListItem(errorCloudItem: ErrorCloudItem(
-        code: "code",
-        description: "description",
-        msg: "msg",
-        registerDt: "traceCn",
-        requestInfo: "requestInfo",
-        restUrl: "restUrl",
-        traceCn: "traceCn",
-        userId: "userId"
-    ))
+#Preview(
+"Content",
+traits: .fixedLayout(width: 200, height: 500)
+)
+{
+    List{
+        ForEach(0..<10){idx in
+            ErrorCloudListItem(errorCloudItem: ErrorCloudItem(
+                code: "code\(idx)",
+                description: "description\(idx)",
+                msg: "msg\(idx)",
+                registerDt : Util.getCurrentDateString(),
+                requestInfo: "requestInfo",
+                restUrl: "restUrl",
+                traceCn: "traceCn",
+                userId: "userId\(idx)"
+            ))
+        }
+    
+    }
 }

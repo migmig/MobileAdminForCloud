@@ -30,4 +30,15 @@ struct ErrorCloudItem:Codable,Identifiable,Hashable{
         self.traceCn = traceCn
         self.userId = userId
     }
+    init(){
+        self.code = ""
+        self.description = ""
+        self.id = 0
+        self.msg = ""
+        self.registerDt = ""
+        self.requestInfo = ""
+        self.restUrl = ""
+        self.traceCn = ""
+        self.userId = ""
+    }
 }

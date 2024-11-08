@@ -6,7 +6,9 @@ struct DetailViewForMac: View {
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var selectedErrorItem : ErrorCloudItem?
     @Binding var toast: Toast
-    @Binding var selectedGoods:Goodsinfo?
+    @Binding var selectedGoods : Goodsinfo?
+    @Binding var edcCrseCl : [EdcCrseCl]
+    @Binding var selectedEdcCrseCl : EdcCrseCl?
     var body: some View {
         if(selectedSlidebarItem == SlidebarItem.errerlist){
             if let entry = selectedErrorItem{
@@ -25,7 +27,34 @@ struct DetailViewForMac: View {
             }else{
                 Text("Select a row to view details.")
             }
+        }else if(selectedSlidebarItem == SlidebarItem.gcpClsList){
+            if let entry = selectedEdcCrseCl{
+                EdcCrseDetailView(entry)
+            }else{
+                Text("Select a row to view details.")
+            }
+        }else{
+            Text("none")
         }
     }
 }
 
+#Preview{
+    DetailViewForMac(
+        viewModel: ViewModel(),
+        toastManager: ToastManager(),
+        selectedSlidebarItem: .constant(SlidebarItem.gcpClsList),
+        selectedErrorItem: .constant(nil),
+        toast: .constant(Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")),
+        selectedGoods: .constant(nil),
+        edcCrseCl: .constant(
+            Array(repeating: EdcCrseCl(
+                "강의제목",
+                "강의내용 길게길게길게 "
+            ), count: 30)),
+        selectedEdcCrseCl: .constant(EdcCrseCl(
+            "강의제목",
+            "강의내용 길게길게길게 "
+        ))
+    )
+}

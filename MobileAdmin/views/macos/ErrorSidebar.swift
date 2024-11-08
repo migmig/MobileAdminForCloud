@@ -36,18 +36,18 @@ struct ErrorSidebar: View {
             }
             .padding()
             // 검색창 추가
-           HStack {
+            HStack(spacing:1) {
                 
                Image(systemName: "magnifyingglass")
                    .foregroundColor(.gray) // 아이콘 색상
-                   .padding(.leading, 10) // 아이콘 왼쪽 패딩
+                   //.padding(.leading, 1) // 아이콘 왼쪽 패딩
                
                TextField("검색어 입력...", text: $searchText)
                    .padding(10)
 //                       .background(Color(UIColor.systemGray6)) // 배경 색상
                    .cornerRadius(10) // 모서리 둥글게
                    .font(.system(size: 16)) // 폰트 크기
-               Text("\(filteredErrorItems.count)개의 오류")
+               //Text("\(filteredErrorItems.count)개의 오류")
            }
            .padding(.horizontal) // 전체 HStack의 패딩
             
@@ -56,6 +56,10 @@ struct ErrorSidebar: View {
                     ErrorCloudListItem(errorCloudItem: entry)
                 }
             }
+            .navigationTitle("오류 조회")
+            #if os(macOS)
+            .navigationSubtitle("  \(filteredErrorItems.count)개의 오류")
+            #endif
             .navigationSplitViewColumnWidth(min:200,ideal: 200)
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -76,7 +80,20 @@ struct ErrorSidebar: View {
 }
  #Preview {
     ErrorSidebar(
-        errorItems: .constant([]),
-        selectedErrorItem: .constant(nil)
+        errorItems: .constant([
+            ErrorCloudItem(
+                code: "code",
+                description: "description",
+                id:1,
+                msg: "msg",
+                registerDt: "20241108",
+                requestInfo: "requestInfo",
+                restUrl: "restUrl",
+                traceCn: "traceCn",
+                userId: "userId"
+            )
+        ]),
+        selectedErrorItem: .constant(nil
+        )
     )
 }

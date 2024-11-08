@@ -36,17 +36,7 @@ struct MySceneForIOS: Scene {
                 .font(.custom("D2Coding", size: 16))
                 .tabItem{
                     Label("Toast", systemImage: "bell")
-                }
-//                .onAppear()
-//                {
-//                    Task{
-//                        //logger.info("onAppear called")
-//                        
-//                        isLoading = true;
-//                        await toast = viewModel.fetchToasts()
-//                        isLoading = false;
-//                    }
-//                }
+                } 
                 GoodsListViewIOS(
                     viewModel:viewModel,
                     toastManager: toastManager,

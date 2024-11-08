@@ -15,6 +15,9 @@ class ViewModel: ObservableObject {
         return EnvironmentConfig.baseUrl
     }
 
+    func setToken(token:String?){
+        ViewModel.token = token
+    }
 
     private func base64UrlDecode(_ input: String) -> Data? {
         var base64 = input.replacingOccurrences(of: "-", with: "+")
@@ -162,7 +165,7 @@ class ViewModel: ObservableObject {
         }
 
 //        let stringfromdata = String(data: data, encoding: .utf8)
-//        print("data:\(String(describing: stringfromdata))")
+//        print("data:\(String(describing: String(data: data, encoding: .utf8)))")
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -185,7 +188,7 @@ class ViewModel: ObservableObject {
 
     // Error 데이터를 가져오는 비동기 함수
     func fetchErrors(startFrom: Date, endTo: Date) async -> [ErrorCloudItem]?{
-        do { 
+        do {
             let urlPath = "/admin/findByRegisterDtBetween/\(Util.getFormattedDateString(startFrom))/\(Util.getFormattedDateString(endTo))"
             let errorItems: [ErrorCloudItem] = try await makeRequest(url: "\(baseUrl)\(urlPath)")
             return errorItems
@@ -226,5 +229,18 @@ class ViewModel: ObservableObject {
             print("Error fetching errors: \(error)")
         }
         return nil
+    }
+    
+    
+    // 강의 리스트  데이터를 가져오는 비동기 함수
+    func fetchClsLists() async  -> EdcCrseClListResponse{
+        do {
+            let url = "\(baseUrl)/gcamp/category/all-edu-list"
+            let toast: EdcCrseClListResponse? = try await makeRequest(url: url)
+            return toast ?? EdcCrseClListResponse()
+        } catch {
+            print("Error fetching toasts: \(error)")
+        }
+        return EdcCrseClListResponse()
     }
 }

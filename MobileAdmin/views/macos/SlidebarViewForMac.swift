@@ -9,11 +9,16 @@ import SwiftUI
 
 enum SlidebarItem: Hashable,CaseIterable{
     static var allCases: [SlidebarItem]{
-        return [.errerlist,.toast,.goodsInfo]
+        return [
+                .errerlist,
+                .toast,
+                .goodsInfo,
+                .gcpClsList
+        ]
     }
     // Hashable 프로토콜을 준수하도록 변경
 
-    case errerlist,toast,goodsInfo
+    case errerlist,toast,goodsInfo,gcpClsList
     case collection(String)
     
     var title: String{
@@ -24,6 +29,8 @@ enum SlidebarItem: Hashable,CaseIterable{
             return "토스트관리"
         case .goodsInfo:
             return "상품이력"
+        case .gcpClsList:
+            return "강의목록"
         case .collection(let title):
             return title
         }
@@ -31,11 +38,13 @@ enum SlidebarItem: Hashable,CaseIterable{
     var img: String{
         switch self{
         case .errerlist:
-            return "checkmark.message"
+            return "list.bullet"
         case .toast:
-            return "ellipsis.message"
+            return "list.bullet.rectangle.portrait"
         case .goodsInfo:
-            return "info.bubble"
+            return "cart"
+        case .gcpClsList:
+            return "list.bullet.rectangle"
         case .collection(let title):
             return title
         }
@@ -51,12 +60,14 @@ struct SlidebarViewForMac: View {
                 ForEach(SlidebarItem.allCases, id: \.self){ item in
                     NavigationLink(value:item){
                         //Text(item.title)
-                        Label(item.title, systemImage: item.img)
+                        Label(" [ \(item.title) ] ", systemImage: item.img)
                             .font(.title2)
                     }
                 }
             }
-            
+        }
+        .onChange(of: selection){ newValue in
+            print("Selected: \(newValue?.title ?? "nil")")
         }
     }
 }

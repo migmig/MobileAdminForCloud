@@ -4,12 +4,14 @@ struct ContentViewForMac: View {
     @ObservedObject var viewModel:ViewModel
     @ObservedObject var toastManager: ToastManager
     @State var errorItems:[ErrorCloudItem] = []
-    @State var selectedErrorItem:ErrorCloudItem? = nil
+    @State var selectedErrorItem:ErrorCloudItem? = .init()
     @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
     @State var goodsItems:[Goodsinfo] = []
     @State var selectedGoods:Goodsinfo? = nil
+    @State var edcCrseCl:[EdcCrseCl] = []
+    @State var selectedEdcCrseCl:EdcCrseCl? = nil
     
-    @State private var selectedSidebarItem: SlidebarItem? = SlidebarItem.toast
+    @State private var selectedSidebarItem: SlidebarItem? = nil
     var body: some View {
         NavigationSplitView{
             SlidebarViewForMac(selection: $selectedSidebarItem)
@@ -21,7 +23,9 @@ struct ContentViewForMac: View {
                 goodsinfos: $goodsItems,
                 selectedGoods: $selectedGoods,
                 selectedErrorItem: $selectedErrorItem,
-                errorItems: $errorItems
+                errorItems: $errorItems,
+                edcCrseCl: $edcCrseCl,
+                selectedEdcCrseCl: $selectedEdcCrseCl
             )
         }detail:{
             NavigationStack{
@@ -31,7 +35,9 @@ struct ContentViewForMac: View {
                     selectedSlidebarItem: $selectedSidebarItem,
                     selectedErrorItem: $selectedErrorItem,
                     toast:$toast,
-                    selectedGoods: $selectedGoods
+                    selectedGoods: $selectedGoods,
+                    edcCrseCl: $edcCrseCl,
+                    selectedEdcCrseCl: $selectedEdcCrseCl
                 )
             }
         }

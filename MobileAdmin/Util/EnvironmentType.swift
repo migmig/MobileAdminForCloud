@@ -27,7 +27,7 @@ struct EnvironmentConfig {
         }
     }
     #if DEBUG
-    static var current: EnvironmentType = .production
+    static var current: EnvironmentType = .development
     #else
     static var current: EnvironmentType = .production
     #endif

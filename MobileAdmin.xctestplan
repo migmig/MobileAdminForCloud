@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "53FA5084-A2E4-4FEC-A1AA-CD1C43309DAC",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:MobileAdmin.xcodeproj",
+        "identifier" : "9FE922DD2CB4B7AA007A64AF",
+        "name" : "MobileAdminTests"
+      }
+    }
+  ],
+  "version" : 1
+}

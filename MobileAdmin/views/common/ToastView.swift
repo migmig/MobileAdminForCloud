@@ -38,6 +38,7 @@ struct ToastView: View {
                             set: { newValue in
                                 toastItem.noticeHder = newValue
                             }))
+                        
                     }
                     Divider()
                     HStack {
@@ -128,8 +129,6 @@ struct ToastView: View {
                     useYn = (toastItem.useYn == "Y")
                     strCn = toastItem.noticeCn.replacingOccurrences(of:"\\n", with: "\n")
                     isLoading = false;
-                    //  startdt  = getDate(toastItem?.applcBeginDt )
-                    // enddt    = getDate(toastItem?.applcEndDt)
                 }
             }
             .onTapGesture {
@@ -138,6 +137,21 @@ struct ToastView: View {
 #endif
             }//VStack
         }//ScrollView
+        .toolbar{
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    Task{
+                        isLoading = true
+                        toastItem = await viewModel.fetchToasts()
+                        useYn = (toastItem.useYn == "Y")
+                        strCn = toastItem.noticeCn.replacingOccurrences(of:"\\n", with: "\n")
+                        isLoading = false
+                    }
+                }) {
+                    Label("새로고침", systemImage: "arrow.clockwise")
+                }
+            }
+        }
 #if os(iOS)
         .navigationTitle("상세 정보")
 #endif

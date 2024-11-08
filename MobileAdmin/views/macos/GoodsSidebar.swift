@@ -25,6 +25,7 @@ struct GoodsSidebar: View {
                    isLoading: $isLoading,
                    clearAction:{
                         selectedGoodsCd.removeAll()
+            
                     }
         ){
             goodsItems = await viewModel
@@ -34,7 +35,7 @@ struct GoodsSidebar: View {
             })
             arrGoods = Array(arr)
             filteredGoodsItems = goodsItems
-        }.padding()
+        }
         
         if isLoading {
             ProgressView(" ")
@@ -47,7 +48,7 @@ struct GoodsSidebar: View {
             filteredGoodsItems: $filteredGoodsItems,
             goodsItems: $goodsItems
         )
-        .padding()
+        .padding(.horizontal)
         
         if selectedGoodsCd.count > 0{
             HStack{
@@ -67,7 +68,8 @@ struct GoodsSidebar: View {
                     , selectedGoodsCd: selectedGoodsCd
                 )
             }
-        }.onAppear()
+        }
+        .onAppear()
         {
             Task{
                 isLoading = true;
@@ -75,12 +77,33 @@ struct GoodsSidebar: View {
                 isLoading = false;
             }
         }
+        .navigationTitle("상품조회이력")
+        #if os(macOS)
+        .navigationSubtitle("  \(filteredGoodsItems.count)개")
+        #endif
     }
 }
 
 #Preview {
     GoodsSidebar(
-        goodsItems: .constant([Goodsinfo("UT000000", "20111104")]),
+        goodsItems: .constant(
+            [
+                 Goodsinfo(
+                        "UT00012300016",
+                        "20111104",
+                        [Good("N002"),Good("G002"),Good("N002"),Good("G00A")]
+                    
+                 )
+                 ,
+                 Goodsinfo(
+                        "UT00012300018",
+                        "20111105",
+                        [Good("N001"),Good("G002"),Good("N002"),Good("G00A")]
+                    
+                 )
+            ]
+            
+        ),
         selectedGoods: .constant(Goodsinfo("UT000000", "20111104"))
     )
 }
