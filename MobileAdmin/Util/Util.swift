@@ -10,6 +10,12 @@ import SwiftUI
 
 class Util{
     
+    static func urlEncode(_ string: String?) -> String {
+        guard let string = string else {
+            return ""
+        }
+        return string.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+    }
     static func copyToClipboard(_ text: String) {
         #if os(iOS)
         UIPasteboard.general.string = text

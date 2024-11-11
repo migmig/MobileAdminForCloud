@@ -7,31 +7,33 @@
 
 import SwiftUI
 
-struct EdcClsSidebar: View {
+struct EdcClsSidebarIOS: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
-    @Binding var edcCrseCl:[EdcCrseCl]
-    @Binding var selectedEdcCrseCl:EdcCrseCl?
+    @State var edcCrseCl:[EdcCrseCl] = []
+    @State var selectedEdcCrseCl:EdcCrseCl? = nil
     @State var isLoading:Bool = false
     var body: some View {
+        NavigationStack{
             if isLoading {
                 ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
-            }
-            List(selection:$selectedEdcCrseCl){
-                ForEach(edcCrseCl, id:\.self){  entry in
-                    NavigationLink(value:entry){
-                        HStack {
-                            Image(systemName: SlidebarItem.gcpClsList.img)
-                                .font(.caption)
-                            Text(entry.edcCrseName ?? "")
+            }else{
+                List{
+                    ForEach(edcCrseCl, id:\.id){  entry in
+                        NavigationLink(value:entry){
+                            HStack {
+                                Image(systemName: SlidebarItem.gcpClsList.img)
+                                    .font(.caption)
+                                Text(entry.edcCrseName ?? "")
+                            }
                         }
                     }
                 }
+                .navigationDestination(for:EdcCrseCl.self){item in
+                    EdcCrseDetailView(viewModel:viewModel, edcCrseClinfo: item)
+                }
             }
+        }
          .navigationTitle("강의목록 조회")
-#if os(macOS)
-         .navigationSubtitle("  \(edcCrseCl.count)건의 강의")
-#endif
-         
          .onAppear(){
              Task{
                  isLoading = true

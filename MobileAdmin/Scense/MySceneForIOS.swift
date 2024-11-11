@@ -15,6 +15,8 @@ struct MySceneForIOS: Scene {
     @StateObject private var viewModel = ViewModel()
     @State var toast:Toast = Toast(applcBeginDt: nil, applcEndDt: nil, noticeHder: "", noticeSj: "", noticeCn: "", useYn: "")
     @State var goodsItems:[Goodsinfo] = []
+    @State var edcCrseCl:[EdcCrseCl] = []
+    @State var selectedEdcCrseCl:EdcCrseCl = .init()
     @State private var isLoading: Bool = false
     
     var body: some Scene {
@@ -27,7 +29,7 @@ struct MySceneForIOS: Scene {
                                     ,toastManager:toastManager)
                 .font(.custom("D2Coding", size: 16))
                 .tabItem {
-                    Label("ErrorList", systemImage: "checkmark.message")
+                    Label("오류", systemImage: "checkmark.message")
                 }
                 ToastView(
                     viewModel:viewModel,
@@ -35,7 +37,15 @@ struct MySceneForIOS: Scene {
                     toastItem: $toast )
                 .font(.custom("D2Coding", size: 16))
                 .tabItem{
-                    Label("Toast", systemImage: "bell")
+                    Label("토스트", systemImage: "bell")
+                }
+               
+                EdcClsSidebarIOS( 
+                    viewModel:viewModel
+                )
+                .font(.custom("D2Coding", size: 16))
+                .tabItem{
+                    Label("교육", systemImage: "book")
                 } 
                 GoodsListViewIOS(
                     viewModel:viewModel,
@@ -44,7 +54,7 @@ struct MySceneForIOS: Scene {
                 )
                 .font(.custom("D2Coding", size: 16))
                 .tabItem {
-                    Label("GoodsInfo", systemImage: "cart")
+                    Label("상품", systemImage: "cart")
                 }
                 SettingsView()
                     .tabItem {
@@ -54,9 +64,8 @@ struct MySceneForIOS: Scene {
             .toastManager(toastManager:toastManager)
             .onAppear{
                 logger.info("serverType:\(serverType)")
-                EnvironmentConfig.current = serverType 
+                EnvironmentConfig.current = serverType
             }
         }
     }
 }
-

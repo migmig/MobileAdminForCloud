@@ -17,13 +17,15 @@ struct EdcCrseClListResponse: Codable {
 }
 
 struct EdcCrseCl: Identifiable, Codable, Hashable {
-    var id : Int?
+    var id : Int?{
+        return self.edcCrseId
+    }
     let edcStartDt, lctreIntrcn: String?
     let edcCrseThumb: String?
-    let frstRegisterID: String?
-    let lrnRcognTime, edcCrseID: Int?
+    let frstRegisterId: String?
+    let lrnRcognTime, edcCrseId: Int?
     let edcEndDt: String?
-    let lastRegisterID: String?
+    let lastRegisterId: String?
     let evlScore, rmkCount: Int?
     let edcCrseName: String?
     let edcPDMonth: Int?
@@ -31,15 +33,14 @@ struct EdcCrseCl: Identifiable, Codable, Hashable {
     let rmkYn: String?
     let edcComplExpireMonth: Int?
     init(){
-        self.id = 0
         self.edcStartDt = ""
         self.lctreIntrcn = ""
         self.edcCrseThumb = ""
-        self.frstRegisterID = ""
+        self.frstRegisterId = ""
         self.lrnRcognTime = 0
-        self.edcCrseID = 0
+        self.edcCrseId = 0
         self.edcEndDt = ""
-        self.lastRegisterID = ""
+        self.lastRegisterId = ""
         self.evlScore = 0
         self.rmkCount = 0
         self.edcCrseName = ""
@@ -48,16 +49,32 @@ struct EdcCrseCl: Identifiable, Codable, Hashable {
         self.rmkYn = ""
         self.edcComplExpireMonth = 0
     }
-    init(_ edcCrseName:String, _ lcteIntrcn:String){
-        self.id = 0
+    init(edcCrseId:Int,edcCrseName:String,lcteIntrcn:String){
         self.edcStartDt = ""
         self.lctreIntrcn = lcteIntrcn
         self.edcCrseThumb = ""
-        self.frstRegisterID = ""
+        self.frstRegisterId = ""
         self.lrnRcognTime = 0
-        self.edcCrseID = 0
+        self.edcCrseId = edcCrseId
         self.edcEndDt = ""
-        self.lastRegisterID = ""
+        self.lastRegisterId = ""
+        self.evlScore = 0
+        self.rmkCount = 0
+        self.edcCrseName = edcCrseName
+        self.edcPDMonth = 0
+        self.gcpEdcCategoryList = []
+        self.rmkYn = ""
+        self.edcComplExpireMonth = 0
+    }
+    init(_ edcCrseName:String, _ lcteIntrcn:String){
+        self.edcStartDt = ""
+        self.lctreIntrcn = lcteIntrcn
+        self.edcCrseThumb = ""
+        self.frstRegisterId = ""
+        self.lrnRcognTime = 0
+        self.edcCrseId = 0
+        self.edcEndDt = ""
+        self.lastRegisterId = ""
         self.evlScore = 0
         self.rmkCount = 0
         self.edcCrseName = edcCrseName
@@ -69,27 +86,26 @@ struct EdcCrseCl: Identifiable, Codable, Hashable {
     init(edcStartDt:String
          ,lctreIntrcn:String
          ,edcCrseThumb:String
-         ,frstRegisterID:String
+         ,frstRegisterId:String
          ,lrnRcognTime:Int
-         ,edcCrseID:Int
+         ,edcCrseId:Int
          ,edcEndDt:String
-         ,lastRegisterID:String
+         ,lastRegisterId:String
          ,evlScore:Int
          ,rmkCount:Int
          ,edcCrseName:String
          ,edcPDMonth:Int
          ,gcpEdcCategoryList:[EdcCategory]
          ,rmkYn:String
-         ,edcComplExpireMonth:Int){
-        self.id = 0
+         ,edcComplExpireMonth:Int){ 
         self.edcStartDt = edcStartDt
         self.lctreIntrcn = lctreIntrcn
         self.edcCrseThumb = edcCrseThumb
-        self.frstRegisterID = frstRegisterID
+        self.frstRegisterId = frstRegisterId
         self.lrnRcognTime = lrnRcognTime
-        self.edcCrseID = edcCrseID
+        self.edcCrseId = edcCrseId
         self.edcEndDt = edcEndDt
-        self.lastRegisterID = lastRegisterID
+        self.lastRegisterId = lastRegisterId
         self.evlScore = evlScore
         self.rmkCount = rmkCount
         self.edcCrseName = edcCrseName
@@ -100,13 +116,16 @@ struct EdcCrseCl: Identifiable, Codable, Hashable {
     }
 }
 
-struct EdcCategory : Codable, Hashable {
+struct EdcCategory : Codable, Hashable,Identifiable {
+    var id: Int{
+        return self.categoryId ?? 0
+    }
     let sortNo: Int?
-    let lastRegisterID, frstRegisterID: String?
+    let lastRegisterId, frstRegisterId: String?
     let categoryCode: String?
     let useAt: String?
     let categoryName: String?
-    let categoryID: Int?
+    let categoryId: Int?
 }
-
+ 
 

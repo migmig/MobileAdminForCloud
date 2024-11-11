@@ -66,7 +66,7 @@ struct SlidebarViewForMac: View {
                 }
             }
         }
-        .onChange(of: selection){ newValue in
+        .onChange(of: selection){old, newValue in
             print("Selected: \(newValue?.title ?? "nil")")
         }
     }

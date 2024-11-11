@@ -125,9 +125,49 @@ class ViewModel: ObservableObject {
     }
 
     // 모든 요청을 처리하는 비동기 함수
-    private func makeRequest<T: Codable>(
+    private func makeRequestNoRequestData<T: Codable>(
+        url: String
+    ) async throws -> T {
+        //        logger.info("makeRequest called with url: \(url) and token: \(ViewModel.token ?? "none") ")
+        if ViewModel.token == nil{
+            try await fetchToken()
+        }else{
+            if let expirationDate = ViewModel.tokenExpirationDate, expirationDate <= Date() {
+                try await fetchToken()
+            }
+        }
+        print(url);
+        var request = URLRequest(url: URL(string: url)!)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-type")
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
+        if(ViewModel.token != nil){
+            request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
+        }
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMddHHmmss"
+      
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
+        }
+
+//        let stringfromdata = String(data: data, encoding: .utf8)
+//        print("data:\(String(describing: String(data: data, encoding: .utf8)))")
+        
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        let decodedData = try decoder.decode(T.self, from: data)
+        
+        return decodedData
+    }
+    // 모든 요청을 처리하는 비동기 함수
+    private func makeRequest<R: Codable , T: Codable>(
         url: String,
-        requestData: T? = nil
+        requestData: R? = nil
     ) async throws -> T {
         //        logger.info("makeRequest called with url: \(url) and token: \(ViewModel.token ?? "none") ")
         if ViewModel.token == nil{
@@ -154,7 +194,7 @@ class ViewModel: ObservableObject {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .formatted(dateFormatter)
             let str = try encoder.encode(requestData)
-            print(str)
+            //print(str)
             request.httpBody = str
         }
 
@@ -164,8 +204,8 @@ class ViewModel: ObservableObject {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
 
-//        let stringfromdata = String(data: data, encoding: .utf8)
-//        print("data:\(String(describing: String(data: data, encoding: .utf8)))")
+        let stringfromdata = String(data: data, encoding: .utf8)
+        print("data:\(String(describing: String(data: data, encoding: .utf8)))")
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -178,7 +218,7 @@ class ViewModel: ObservableObject {
     func fetchToasts() async  -> Toast{
         do {
             let url = "\(baseUrl)/admin/toastNotice"
-            let toast: Toast? = try await makeRequest(url: url)
+            let toast: Toast? = try await makeRequestNoRequestData(url: url)
             return toast ?? Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
         } catch {
             print("Error fetching toasts: \(error)")
@@ -190,7 +230,7 @@ class ViewModel: ObservableObject {
     func fetchErrors(startFrom: Date, endTo: Date) async -> [ErrorCloudItem]?{
         do {
             let urlPath = "/admin/findByRegisterDtBetween/\(Util.getFormattedDateString(startFrom))/\(Util.getFormattedDateString(endTo))"
-            let errorItems: [ErrorCloudItem] = try await makeRequest(url: "\(baseUrl)\(urlPath)")
+            let errorItems: [ErrorCloudItem] = try await makeRequestNoRequestData(url: "\(baseUrl)\(urlPath)")
             return errorItems
         } catch {
             print("Error fetching errors: \(error)")
@@ -223,7 +263,7 @@ class ViewModel: ObservableObject {
             let p_startFrom = Util.getCurrentDateString("yyyyMMdd", startFrom)
             let p_endTo     = Util.getCurrentDateString("yyyyMMdd", endTo)
             let urlPath     = "/admin/getGoodsHistList/\(p_startFrom)/\(p_endTo)"
-            let goodsinfos: [Goodsinfo] = try await makeRequest(url: "\(baseUrl)\(urlPath)")
+            let goodsinfos: [Goodsinfo] = try await makeRequestNoRequestData(url: "\(baseUrl)\(urlPath)")
             return goodsinfos
         } catch {
             print("Error fetching errors: \(error)")
@@ -236,11 +276,27 @@ class ViewModel: ObservableObject {
     func fetchClsLists() async  -> EdcCrseClListResponse{
         do {
             let url = "\(baseUrl)/gcamp/category/all-edu-list"
-            let toast: EdcCrseClListResponse? = try await makeRequest(url: url)
+            let toast: EdcCrseClListResponse? = try await makeRequestNoRequestData(url: url)
             return toast ?? EdcCrseClListResponse()
         } catch {
             print("Error fetching toasts: \(error)")
         }
         return EdcCrseClListResponse()
+    }
+    
+    
+    // 교육과정 데이터를 가져오는 비동기 함수
+    func fetchClsInfo(edcCrseId:Int) async  -> EdcCrseResponse{
+        do {
+            let url = "\(baseUrl)/gcamp/category/education-crse-info"
+            let resp:EdcCrseResponse? = try await makeRequest(
+                url: url,
+                requestData: EdcCrseClRequest(edcCrseId: edcCrseId)
+            )
+            return resp  ?? EdcCrseResponse()
+        } catch {
+            print("Error fetching EdcCrseResponse: \(error)")
+        }
+        return EdcCrseResponse()
     }
 }

@@ -40,12 +40,15 @@ struct ContentListViewForMac: View {
             GoodsSidebar(goodsItems: $goodsinfos,
                          selectedGoods: $selectedGoods)
         }else if(selectedSlidebarItem == SlidebarItem.gcpClsList){
+            #if os(macOS)
             EdcClsSidebar(
+                viewModel: viewModel,
                 edcCrseCl: $edcCrseCl,
                 selectedEdcCrseCl: $selectedEdcCrseCl
             )
+            #endif
         }else{
-            Text("none")
+            Text(" ")
         }
     }
 }

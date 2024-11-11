@@ -12,7 +12,10 @@ struct DetailViewForMac: View {
     var body: some View {
         if(selectedSlidebarItem == SlidebarItem.errerlist){
             if let entry = selectedErrorItem{
-                ErrorCloudItemView(errorCloudItem: entry,toastManager: toastManager)
+                ErrorCloudItemView(
+                    errorCloudItem: entry,
+                    toastManager: toastManager
+                )
             }else{
                 Text("Select a row to view details.")
             }
@@ -29,12 +32,15 @@ struct DetailViewForMac: View {
             }
         }else if(selectedSlidebarItem == SlidebarItem.gcpClsList){
             if let entry = selectedEdcCrseCl{
-                EdcCrseDetailView(entry)
+                EdcCrseDetailView(
+                    viewModel: viewModel,
+                    edcCrseClinfo:entry
+                )
             }else{
                 Text("Select a row to view details.")
             }
         }else{
-            Text("none")
+            Text(" ")
         }
     }
 }
