@@ -6,17 +6,45 @@
 //
 
 import SwiftUI
+import SwiftData
+import Foundation
 
 @main
 struct MobileAdminApp: App {
-
+    
+    
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            EnvironmentModel.self,
+        ])
+        
+        let configuration = ModelConfiguration(
+            isStoredInMemoryOnly: false,
+            allowsSave: true
+        )
+        do{
+            let container = try ModelContainer(
+                for: schema,
+                configurations: configuration
+            )
+            return try ModelContainer(for:schema,
+                                      configurations: configuration)
+        }catch{
+            fatalError("Failed to create ModelContainer:\(error)")
+        }
+    }()
+        
 
     var body: some Scene {
-        #if os(iOS)
-        MySceneForIOS()
-        #elseif os(macOS)
-        MySceneForMacOS() 
-        #endif
+            
+#if os(iOS)
+            MySceneForIOS()
+                .modelContainer(sharedModelContainer)
+#elseif os(macOS)
+            MySceneForMacOS()
+                .modelContainer(sharedModelContainer)
+#endif
+         
 
     }
 }

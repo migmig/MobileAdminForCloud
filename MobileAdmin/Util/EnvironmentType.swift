@@ -14,17 +14,23 @@ enum EnvironmentType: String {
     case local
 }
 
+
+
 struct EnvironmentConfig {
+   
+    static var environmentUrls: [EnvironmentType: String] = [:]
+    
+    static func initializeUrls(from environments: [EnvironmentModel]) {
+           environmentUrls = Dictionary(
+               uniqueKeysWithValues: environments.compactMap { env in
+                   guard let type = EnvironmentType(rawValue: env.envType) else { return nil }
+                   return (type, env.url)
+               }
+           )
+       }
+
     static var baseUrl: String {
-        switch current {
-        case .production:
-            return "https://untact.gcgf.or.kr:3002"
-        case .development:
-            return "http://172.16.111.7:8080"
-        case .local:
-//            return "http://172.30.1.77:8080"
-            return "http://192.168.0.234:8080"
-        }
+        return environmentUrls[current] ?? "http://default.url" // 기본 URL 설정
     }
     #if DEBUG
     static var current: EnvironmentType = .development

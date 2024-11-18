@@ -11,6 +11,7 @@ import Logging
 struct SettingsDetailsView: View {
     let title : String
     @AppStorage("serverType") var serverType:EnvironmentType = .development
+    @State private var isPresented = false
     var body: some View {
         List {
             if #available(iOS 17.0, *) {
@@ -29,7 +30,11 @@ struct SettingsDetailsView: View {
             } else {
                 // Fallback on earlier versions
             }
-            
+            Button("URL 변경"){
+                isPresented = true
+            }.sheet(isPresented: $isPresented, content: {
+                EnvSetView(isPresented: $isPresented)
+            })
         } // List
         .navigationTitle(title)
     }

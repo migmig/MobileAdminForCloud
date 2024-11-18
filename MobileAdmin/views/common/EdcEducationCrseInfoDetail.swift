@@ -37,7 +37,7 @@ struct EdcEducationCrseInfoDetail: View {
                 let resp:EdcCrseResponse  = await viewModel.fetchClsInfo(
                     edcCrseId: edcCrseId
                 )
-                print(resp)
+                
                 crseTmeList = resp.gcpEdcCrseClAndTimeVO.gcpEdcCrseTmeList
                 crseTmeList.forEach{ item in
                     print(URL(string:  Util.urlEncode(item.edcVidoUrl))!)
