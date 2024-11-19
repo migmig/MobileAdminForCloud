@@ -33,6 +33,7 @@ struct CodeDetailView:View{
                             Text(cmmnGroupCodeItem.useAt == "Y" ? "사용":"미사용")
                         }
                     }
+                    #if os(macOS)
                     Divider()
                     InfoRow(title:"기타항목1", value: cmmnGroupCodeItem.groupEstbs1Value)
                     Divider()
@@ -47,6 +48,7 @@ struct CodeDetailView:View{
                     InfoRow(title:"기타항목6", value: cmmnGroupCodeItem.groupEstbs6Value)
                     Divider()
                     InfoRow(title:"기타항목7", value: cmmnGroupCodeItem.groupEstbs7Value)
+                    #endif
                 }
                 .padding()
             }
@@ -69,19 +71,19 @@ struct CodeDetailView:View{
                     TableColumn("코드"     , value:\.cmmnCode )
                     TableColumn("코드명"   , value:\.cmmnCodeNm)
                     TableColumn("사용여부" , value:\.useAt)
-                    TableColumn("기타항목1", value:\.cmmnEstbs1Value)
-                    TableColumn("기타항목2", value:\.cmmnEstbs2Value)
-                    TableColumn("기타항목3", value:\.cmmnEstbs3Value)
-                    TableColumn("기타항목4", value:\.cmmnEstbs4Value)
-                    TableColumn("기타항목5", value:\.cmmnEstbs5Value)
-                    TableColumn("기타항목6", value:\.cmmnEstbs6Value)
-                    TableColumn("기타항목7", value:\.cmmnEstbs7Value)
+                    TableColumn(cmmnGroupCodeItem.groupEstbs1Value ?? "기타항목1", value:\.cmmnEstbs1Value)
+                    TableColumn(cmmnGroupCodeItem.groupEstbs2Value ?? "기타항목2", value:\.cmmnEstbs2Value)
+                    TableColumn(cmmnGroupCodeItem.groupEstbs3Value ?? "기타항목3", value:\.cmmnEstbs3Value)
+                    TableColumn(cmmnGroupCodeItem.groupEstbs4Value ?? "기타항목4", value:\.cmmnEstbs4Value)
+                    TableColumn(cmmnGroupCodeItem.groupEstbs5Value ?? "기타항목5", value:\.cmmnEstbs5Value)
+                    TableColumn(cmmnGroupCodeItem.groupEstbs6Value ?? "기타항목6", value:\.cmmnEstbs6Value)
+                    TableColumn(cmmnGroupCodeItem.groupEstbs7Value ?? "기타항목7", value:\.cmmnEstbs7Value)
                 }
             
     }
 }
 #Preview(
-    traits: .fixedLayout(width: 600, height: 3200)
+    traits: .fixedLayout(width: 600, height: 1200)
 ){
     CodeDetailView(
         viewModel: ViewModel(),

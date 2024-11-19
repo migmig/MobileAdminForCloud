@@ -31,6 +31,8 @@ struct MySceneForIOS: Scene {
                     if isLoading{
                         ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
                     }
+                    
+                    
                     ErrorListViewForIOS(viewModel:viewModel
                                         ,toastManager:toastManager)
                     .font(.custom("D2Coding", size: 16))
@@ -47,6 +49,7 @@ struct MySceneForIOS: Scene {
                         Label("토스트", systemImage: "bell")
                     }
                     
+                    
                     EdcClsSidebarIOS(
                         viewModel:viewModel
                     )
@@ -54,6 +57,8 @@ struct MySceneForIOS: Scene {
                     .tabItem{
                         Label("교육", systemImage: "book")
                     }
+                    
+                    
                     GoodsListViewIOS(
                         viewModel:viewModel,
                         toastManager: toastManager,
@@ -63,6 +68,12 @@ struct MySceneForIOS: Scene {
                     .tabItem {
                         Label("상품", systemImage: "cart")
                     }
+                    
+                    CodeListViewIOS(viewModel:viewModel)
+                    .tabItem{
+                        Label("코드", systemImage: "list.bullet")
+                    }
+                    
                     SettingsView()
                         .tabItem {
                             Label("Settings", systemImage: "gear")
