@@ -12,6 +12,15 @@ struct CodeDetailView:View{
     @State var isLoading:Bool = false
     @State var cmmnCodeItems:[CmmnCodeItem] = []
     
+    fileprivate func fnSearch()  {
+        Task{
+            isLoading = true;
+            cmmnCodeItems = await viewModel
+                .fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
+            isLoading = false;
+        }
+    }
+    
     var body : some View  {
             HStack(alignment:.top){
                 VStack{
@@ -19,7 +28,11 @@ struct CodeDetailView:View{
                     Divider()
                     InfoRow(title:"그룹코드명", value: cmmnGroupCodeItem.cmmnGroupCodeNm)
                     Divider()
-                    InfoRow(title:"사용여부", value: cmmnGroupCodeItem.useAt)
+                    InfoRow2(title:"사용여부"){
+                        Toggle(isOn: .constant(cmmnGroupCodeItem.useAt == "Y")){
+                            Text(cmmnGroupCodeItem.useAt == "Y" ? "사용":"미사용")
+                        }
+                    }
                     Divider()
                     InfoRow(title:"기타항목1", value: cmmnGroupCodeItem.groupEstbs1Value)
                     Divider()
@@ -39,33 +52,16 @@ struct CodeDetailView:View{
             }
             HStack {
                 Button("상세코드조회"){
-                    Task{
-                        isLoading = true;
-                        cmmnCodeItems = await viewModel
-                            .fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
-                        isLoading = false;
-                    }
+                    fnSearch()
                 }
             }
         
             .onAppear{
-                Task{
-                    isLoading = true;
-                    cmmnCodeItems = await viewModel
-                        .fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
-                    isLoading = false;
-                 
-                }
+                fnSearch()
             }
         
             .onChange(of: cmmnGroupCodeItem) {old, newValue in
-                Task{
-                    isLoading = true;
-                    cmmnCodeItems = await viewModel
-                        .fetchCodeListByGroupCode(newValue.cmmnGroupCode)
-                    isLoading = false;
-                 
-                }
+                fnSearch()
             }
             Divider()
             
@@ -99,6 +95,6 @@ struct CodeDetailView:View{
             groupEstbs5Value: "수정자",
             groupEstbs6Value: "수정일",
             groupEstbs7Value: "수정일",
-            useAt:"Y"
+            useAt:"N"
         ))
 }
