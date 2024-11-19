@@ -30,13 +30,13 @@ struct EdcCrseDetailView: View {
                 InfoRow(title: "교육과정 분류 명", value: edcCrseClinfo.edcCrseName)
                 Divider()
                 InfoRow2(title: "썸네일"){
-                    AsyncImage(
-                        url: URL(string: edcCrseClinfo.edcCrseThumb ?? "")
-                    ){img in
-                         img.resizable().scaledToFit()
-                    } placeholder: {
-                        ProgressView()
-                    }.frame(maxWidth:200)
+                    if let url = URL(string: edcCrseClinfo.edcCrseThumb ?? ""){
+                        AsyncImage(url: url){img in
+                            img.resizable().scaledToFit()
+                        } placeholder: {
+                            ProgressView()
+                        }.frame(maxWidth:200)
+                    } 
                 }
                 Divider()
                 InfoRow2(title: "회차정보"){
@@ -67,4 +67,12 @@ struct EdcCrseDetailView: View {
             .padding()
         }
     }
+}
+#Preview
+{
+    EdcCrseDetailView(
+        viewModel: ViewModel(),
+        edcCrseClinfo: EdcCrseCl(
+        )
+    )
 }

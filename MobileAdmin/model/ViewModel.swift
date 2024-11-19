@@ -299,4 +299,30 @@ class ViewModel: ObservableObject {
         }
         return EdcCrseResponse()
     }
+    
+    
+    // 코드그룹 리스트  데이터를 가져오는 비동기 함수
+    func fetchGroupCodeLists() async  -> [CmmnGroupCodeItem]{
+        do {
+            let url = "\(baseUrl)/admin/getCmmnGroupCodeList"
+            let result: [CmmnGroupCodeItem]? = try await makeRequestNoRequestData(url: url)
+            return result ?? []
+        } catch {
+            print("Error fetching toasts: \(error)")
+        }
+        return []
+    }
+    
+    
+    // 코드 리스트  데이터를 가져오는 비동기 함수
+    func fetchCodeListByGroupCode(_ groupCode:String) async  -> [CmmnCodeItem]{
+        do {
+            let url = "\(baseUrl)/admin/getCmmnCodeByCmmnGroupCode/\(groupCode)"
+            let result: [CmmnCodeItem]? = try await makeRequestNoRequestData(url: url)
+            return result ?? []
+        } catch {
+            print("Error fetching toasts: \(error)")
+        }
+        return []
+    }
 }

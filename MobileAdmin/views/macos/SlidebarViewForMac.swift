@@ -13,12 +13,13 @@ enum SlidebarItem: Hashable,CaseIterable{
                 .errerlist,
                 .toast,
                 .goodsInfo,
-                .gcpClsList
+                .gcpClsList,
+                .codeList
         ]
     }
     // Hashable 프로토콜을 준수하도록 변경
 
-    case errerlist,toast,goodsInfo,gcpClsList
+    case errerlist,toast,goodsInfo,gcpClsList,codeList
     case collection(String)
     
     var title: String{
@@ -31,6 +32,8 @@ enum SlidebarItem: Hashable,CaseIterable{
             return "상품이력"
         case .gcpClsList:
             return "강의목록"
+        case .codeList:
+            return "코드목록"
         case .collection(let title):
             return title
         }
@@ -45,6 +48,8 @@ enum SlidebarItem: Hashable,CaseIterable{
             return "cart"
         case .gcpClsList:
             return "list.bullet.rectangle"
+        case .codeList:
+            return "doc.text"
         case .collection(let title):
             return title
         }

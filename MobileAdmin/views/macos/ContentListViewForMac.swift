@@ -10,6 +10,8 @@ struct ContentListViewForMac: View {
     @Binding var errorItems:[ErrorCloudItem]
     @Binding var edcCrseCl:[EdcCrseCl]
     @Binding var selectedEdcCrseCl:EdcCrseCl?
+    @Binding var groupCodes:[CmmnGroupCodeItem]?
+    @Binding var selectedGroupCode:CmmnGroupCodeItem?
     @State private var isLoading:Bool = false
     @State private var searchText = ""
     
@@ -25,7 +27,7 @@ struct ContentListViewForMac: View {
         
         if(selectedSlidebarItem == SlidebarItem.errerlist){
             ErrorSidebar(errorItems:$errorItems,
-                         selectedErrorItem :$selectedErrorItem) 
+                         selectedErrorItem :$selectedErrorItem)
         }else if(selectedSlidebarItem == SlidebarItem.toast){
             List{
                 if isLoading {
@@ -40,13 +42,15 @@ struct ContentListViewForMac: View {
             GoodsSidebar(goodsItems: $goodsinfos,
                          selectedGoods: $selectedGoods)
         }else if(selectedSlidebarItem == SlidebarItem.gcpClsList){
-            #if os(macOS)
             EdcClsSidebar(
                 viewModel: viewModel,
                 edcCrseCl: $edcCrseCl,
                 selectedEdcCrseCl: $selectedEdcCrseCl
             )
-            #endif
+        }else if(selectedSlidebarItem == SlidebarItem.codeList){
+            GroupCodesSidebar(viewModel: viewModel,
+                              groupCodes: $groupCodes,
+                              selectedGroupCode: $selectedGroupCode)
         }else{
             Text(" ")
         }
@@ -55,7 +59,7 @@ struct ContentListViewForMac: View {
 
 #Preview{
     ContentListViewForMac(
-        selectedSlidebarItem: .constant(SlidebarItem.gcpClsList),
+        selectedSlidebarItem: .constant(SlidebarItem.codeList),
         toast: .constant(Toast(applcBeginDt: Date(),
                                applcEndDt: Date(),
                                noticeHder: "제목",
@@ -76,6 +80,30 @@ struct ContentListViewForMac: View {
         selectedEdcCrseCl: .constant(EdcCrseCl(
             "강의제목",
             "강의내용 길게길게길게 "
+        )),
+        groupCodes:.constant([CmmnGroupCodeItem(
+            cmmnGroupCode: "그룹코드",
+            cmmnGroupCodeNm: "그룹코드명",
+            groupEstbs1Value: "그룹코드설명",
+            groupEstbs2Value: "사용여부",
+            groupEstbs3Value: "등록자",
+            groupEstbs4Value: "등록일",
+            groupEstbs5Value: "수정자",
+            groupEstbs6Value: "수정일",
+            groupEstbs7Value: "수정일",
+            useAt:"Y"
+        )])
+        ,selectedGroupCode: .constant(CmmnGroupCodeItem(
+            cmmnGroupCode: "그룹코드",
+            cmmnGroupCodeNm: "그룹코드명",
+            groupEstbs1Value: "그룹코드설명",
+            groupEstbs2Value: "사용여부",
+            groupEstbs3Value: "등록자",
+            groupEstbs4Value: "등록일",
+            groupEstbs5Value: "수정자",
+            groupEstbs6Value: "수정일",
+            groupEstbs7Value: "수정일",
+            useAt:"Y"
         ))
     )
 }
