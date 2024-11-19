@@ -36,21 +36,21 @@ struct ErrorSidebar: View {
             }
             .padding()
             // 검색창 추가
-            HStack(spacing:1) {
-                
-               Image(systemName: "magnifyingglass")
-                   .foregroundColor(.gray) // 아이콘 색상
-                   //.padding(.leading, 1) // 아이콘 왼쪽 패딩
-               
-               TextField("검색어 입력...", text: $searchText)
-                   .padding(10)
-//                       .background(Color(UIColor.systemGray6)) // 배경 색상
-                   .cornerRadius(10) // 모서리 둥글게
-                   .font(.system(size: 16)) // 폰트 크기
-               //Text("\(filteredErrorItems.count)개의 오류")
-           }
+//            HStack(spacing:1) {
+//                
+//               Image(systemName: "magnifyingglass")
+//                   .foregroundColor(.gray) // 아이콘 색상
+//                   //.padding(.leading, 1) // 아이콘 왼쪽 패딩
+//               
+//               TextField("검색어 입력...", text: $searchText)
+//                   .padding(10)
+////                       .background(Color(UIColor.systemGray6)) // 배경 색상
+//                   .cornerRadius(10) // 모서리 둥글게
+//                   .font(.system(size: 16)) // 폰트 크기
+//               //Text("\(filteredErrorItems.count)개의 오류")
+//           }
            .padding(.horizontal) // 전체 HStack의 패딩
-            
+            .searchable(text: $searchText , placement: .automatic)
             List(filteredErrorItems,selection:$selectedErrorItem){entry in
                 NavigationLink(value:entry){
                     ErrorCloudListItem(errorCloudItem: entry)

@@ -10,7 +10,9 @@ struct GoodsListViewIOS: View {
     @State private var dateTo:Date = Date()
     @State private var arrGoods:[String] = []
     @State private var selectedGoodsCd:[String] = []
-     
+    
+    
+    
     var body: some View {
         NavigationStack{
             VStack{
@@ -49,8 +51,7 @@ struct GoodsListViewIOS: View {
                                 .buttonStyle(.bordered)
                             }
                         }
-                    }
-                    
+                    } 
                     if isLoading {
                         ProgressView(" ")
                             .progressViewStyle(CircularProgressViewStyle())
@@ -90,3 +91,8 @@ struct GoodsListViewIOS: View {
     }
 }
  
+#Preview{
+    GoodsListViewIOS(viewModel: .init()
+                     ,toastManager: .init()
+                     ,goodsItems: .constant([]))
+}
