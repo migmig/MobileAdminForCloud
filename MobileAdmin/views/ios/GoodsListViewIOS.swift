@@ -10,8 +10,18 @@ struct GoodsListViewIOS: View {
     @State private var dateTo:Date = Date()
     @State private var arrGoods:[String] = []
     @State private var selectedGoodsCd:[String] = []
+    @State private var searchText:String = ""
     
     
+    var filteredGoods:[Goodsinfo]{
+        if searchText.isEmpty{
+            return filteredGoodsItems
+        }else{
+            return filteredGoodsItems.filter{item in
+                item.userId?.localizedCaseInsensitiveContains(searchText) == true
+            }
+        }
+    }
     
     var body: some View {
         NavigationStack{
@@ -23,6 +33,7 @@ struct GoodsListViewIOS: View {
                                    isLoading: $isLoading,
                                    clearAction:{
                                         selectedGoodsCd.removeAll()
+                                    searchText = ""
                                     }){
                             goodsItems = await viewModel
                                 .fetchGoods(dateFrom, dateTo) ?? []
@@ -56,7 +67,7 @@ struct GoodsListViewIOS: View {
                         ProgressView(" ")
                             .progressViewStyle(CircularProgressViewStyle())
                     }else{
-                        ForEach( filteredGoodsItems,id:\.self){ item in
+                        ForEach( filteredGoods,id:\.self){ item in
                             NavigationLink(value:item){
                                 GoodsItemListItem(
                                     goodsItem: item,
@@ -64,6 +75,7 @@ struct GoodsListViewIOS: View {
                                 )
                             }
                         }
+                        .searchable(text: $searchText, placement: .automatic)
                     }
                 }
                 .navigationTitle("GoodsList")

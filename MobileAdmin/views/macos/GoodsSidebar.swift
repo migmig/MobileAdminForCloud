@@ -17,7 +17,17 @@ struct GoodsSidebar: View {
     @State private var arrGoods:[String] = []
     @State private var selectedGoodsCd:[String] = []
     @State private var filteredGoodsItems:[Goodsinfo] = []
+    @State private var searchText:String = ""
     
+    var filteredGoods:[Goodsinfo]{
+        if searchText.isEmpty{
+            return filteredGoodsItems
+        }else{
+            return filteredGoodsItems.filter{item in
+                item.userId?.localizedCaseInsensitiveContains(searchText) == true
+            }
+        }
+    }
     
     var body: some View {
         SearchArea(dateFrom: $dateFrom,
@@ -34,7 +44,13 @@ struct GoodsSidebar: View {
                 item.goods.map{$0.goodsCd}
             })
             arrGoods = Array(arr)
-            filteredGoodsItems = goodsItems
+            if searchText.isEmpty {
+                filteredGoodsItems = goodsItems
+            }else{
+                filteredGoodsItems = goodsItems.filter{item in
+                    item.userId?.localizedCaseInsensitiveContains(searchText) == true
+                }
+            }
         }
         
         if isLoading {
@@ -55,20 +71,29 @@ struct GoodsSidebar: View {
                 Text("count:\(filteredGoodsItems.count)")
                 Button("Clear"){
                     selectedGoodsCd = []
-                    filteredGoodsItems = goodsItems
+                    if searchText.isEmpty {
+                        filteredGoodsItems = goodsItems
+                    }else{
+                        filteredGoodsItems = goodsItems.filter{item in
+                            item.userId?.localizedCaseInsensitiveContains(searchText) == true
+                        }
+                    }
                 }
                 .font(.caption)
                 .buttonStyle(.bordered)
             }
         }
-        List(filteredGoodsItems,selection:$selectedGoods){ item in
-            NavigationLink(value:item){
-                GoodsItemListItem(
-                    goodsItem: item
-                    , selectedGoodsCd: selectedGoodsCd
-                )
+        Section{
+            List(filteredGoods,selection:$selectedGoods){ item in
+                NavigationLink(value:item){
+                    GoodsItemListItem(
+                        goodsItem: item
+                        , selectedGoodsCd: selectedGoodsCd
+                    )
+                }
             }
         }
+        .searchable(text: $searchText, placement: .automatic)
         .onAppear()
         {
             Task{

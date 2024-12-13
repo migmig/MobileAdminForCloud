@@ -18,7 +18,7 @@ struct MobileAdminTests {
         EnvironmentConfig.current = .local
         let toast = await viewModel.fetchToasts()
          print("Toast 데이터: \(toast)")
-         
+
         logger.info("test end")
         #expect(toast != nil)
         //  #expect(toast?.applcBeginDt.contains("T") == false)

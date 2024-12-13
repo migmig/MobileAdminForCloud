@@ -65,8 +65,11 @@ class ViewModel: ObservableObject {
 
 
         let tokenRequestData = TokenRequest(ci: adminCI)
-
-        var request = URLRequest(url: URL(string: url)!)
+        let tokenUrl =  URL(string: url)
+        if tokenUrl == nil {
+            throw NSError(domain: "Invalid token url", code: 0, userInfo: nil)
+        }
+        var request = URLRequest(url: tokenUrl!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-type")
         request.setValue("*/*", forHTTPHeaderField: "Accept")
@@ -204,8 +207,8 @@ class ViewModel: ObservableObject {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
 
-        let stringfromdata = String(data: data, encoding: .utf8)
-        print("data:\(String(describing: String(data: data, encoding: .utf8)))")
+      //  let stringfromdata = String(data: data, encoding: .utf8)
+       // print("data:\(String(describing: String(data: data, encoding: .utf8)))")
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(dateFormatter)

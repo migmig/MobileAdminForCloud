@@ -31,6 +31,7 @@ struct ContentView: View {
     @State var sliderValue = 0.0
     var body: some View {
         VStack {
+            
 #if os(iOS)
             Button("Show Action Sheet", action: {
                 isShowingSheet = true
@@ -60,11 +61,11 @@ struct ContentView: View {
                       dismissButton: .default(Text("Dismiss")))
             }
             Divider()
-            
+
             Button("confirm") {
                 isShowDialog = true
             }
-            
+
             .confirmationDialog("", isPresented: $isShowDialog) {
                 Text("Are you sure?")
             }
@@ -138,18 +139,18 @@ struct ContentView: View {
 struct testView:View{
     @State private var isPresent: Bool = false
     var body: some View{
-        
+
         ZStack {
             Button("Hello, World!"){
-                
+
             }
                 .foregroundColor(.white)
                 .confirmationDialog("Are you sure?", isPresented: $isPresent) {
                     Button("OK",role:.destructive){
-                        
+
                     }
                 }
         }
     }
 }
- 
+

@@ -131,7 +131,7 @@ struct SelectedGoodsDetailView:View{
 #Preview(
    traits: .fixedLayout(width: 500, height: 1200)
 ){
-    var good = Good("N002","직접짐사",10000000)
+    let good = Good("N002","직접짐사",10000000)
    // good.treatmentList = [TreatmentList("1","1","1","Y","treatmentNm")]
     SelectedGoodsDetailView(goodsItem: good)
 }

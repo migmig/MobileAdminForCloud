@@ -11,13 +11,13 @@ import Foundation
 
 @main
 struct MobileAdminApp: App {
-    
-    
+
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             EnvironmentModel.self,
         ])
-        
+
         let configuration = ModelConfiguration(
             isStoredInMemoryOnly: false,
             allowsSave: true
@@ -33,10 +33,10 @@ struct MobileAdminApp: App {
             fatalError("Failed to create ModelContainer:\(error)")
         }
     }()
-        
+
 
     var body: some Scene {
-            
+
 #if os(iOS)
             MySceneForIOS()
                 .modelContainer(sharedModelContainer)
@@ -44,7 +44,7 @@ struct MobileAdminApp: App {
             MySceneForMacOS()
                 .modelContainer(sharedModelContainer)
 #endif
-         
+
 
     }
 }
