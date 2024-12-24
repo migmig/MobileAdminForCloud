@@ -55,7 +55,7 @@ struct GcpEdcCrseClAndTimeVO: Codable,Identifiable {
    let lastRegistDt: Date?
    let gcpEdcCrseTmeList: [GcpEdcCrseTmeList]
    let atnlcReqYn: String?
-   let evlScore: Int?
+   let evlScore: Double?
    let rmkYn: String?
    let rmkCount: Int?
    let atnlcLastKey: String?

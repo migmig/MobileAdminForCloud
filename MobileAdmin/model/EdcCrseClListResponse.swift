@@ -26,7 +26,8 @@ struct EdcCrseCl: Identifiable, Codable, Hashable {
     let lrnRcognTime, edcCrseId: Int?
     let edcEndDt: String?
     let lastRegisterId: String?
-    let evlScore, rmkCount: Int?
+    let evlScore: Double?
+    let rmkCount: Int?
     let edcCrseName: String?
     let edcPDMonth: Int?
     let gcpEdcCategoryList: [EdcCategory]?
@@ -91,7 +92,7 @@ struct EdcCrseCl: Identifiable, Codable, Hashable {
          ,edcCrseId:Int
          ,edcEndDt:String
          ,lastRegisterId:String
-         ,evlScore:Int
+         ,evlScore:Double
          ,rmkCount:Int
          ,edcCrseName:String
          ,edcPDMonth:Int
