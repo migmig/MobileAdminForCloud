@@ -12,6 +12,8 @@ struct ContentListViewForMac: View {
     @Binding var selectedEdcCrseCl:EdcCrseCl?
     @Binding var groupCodes:[CmmnGroupCodeItem]?
     @Binding var selectedGroupCode:CmmnGroupCodeItem?
+    @Binding var closeDeptList:[Detail1]
+    @Binding var selectedCloseDept:Detail1?
     @State private var isLoading:Bool = false
     @State private var searchText = ""
     
@@ -51,6 +53,10 @@ struct ContentListViewForMac: View {
             GroupCodesSidebar(viewModel: viewModel,
                               groupCodes: $groupCodes,
                               selectedGroupCode: $selectedGroupCode)
+        }else if(selectedSlidebarItem == SlidebarItem.closeDeptList){
+            CloseDeptSidebar(viewModel: viewModel
+                             ,closeDeptList:$closeDeptList
+                             ,selectedCloseDept: $selectedCloseDept)
         }else{
             Text(" ")
         }
@@ -59,7 +65,7 @@ struct ContentListViewForMac: View {
 
 #Preview{
     ContentListViewForMac(
-        selectedSlidebarItem: .constant(SlidebarItem.codeList),
+        selectedSlidebarItem: .constant(SlidebarItem.closeDeptList),
         toast: .constant(Toast(applcBeginDt: Date(),
                                applcEndDt: Date(),
                                noticeHder: "제목",
@@ -93,7 +99,8 @@ struct ContentListViewForMac: View {
             groupEstbs7Value: "수정일",
             useAt:"Y"
         )])
-        ,selectedGroupCode: .constant(CmmnGroupCodeItem(
+        ,
+        selectedGroupCode: .constant(CmmnGroupCodeItem(
             cmmnGroupCode: "그룹코드",
             cmmnGroupCodeNm: "그룹코드명",
             groupEstbs1Value: "그룹코드설명",
@@ -105,6 +112,29 @@ struct ContentListViewForMac: View {
             groupEstbs7Value: "수정일",
             useAt:"Y"
         ))
+        , closeDeptList:.constant([Detail1(
+                    closeempno: "",
+                    rmk: "",
+                    deptprtnm: "",
+                    closegb: "",
+                    closetime: "",
+                    opentime: "",
+                    deptcd: ""
+                )])
+        ,
+        selectedCloseDept:
+                .constant(
+                    Detail1(
+                        closeempno: "",
+                        rmk: "",
+                        deptprtnm: "",
+                        closegb: "",
+                        closetime: "",
+                        opentime: "",
+                        deptcd: ""
+                    )
+                )
+        
     )
 }
  

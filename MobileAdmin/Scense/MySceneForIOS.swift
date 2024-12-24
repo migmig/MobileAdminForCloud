@@ -73,6 +73,10 @@ struct MySceneForIOS: Scene {
                     .tabItem{
                         Label("코드", systemImage: "list.bullet")
                     }
+                    CloseDeptListViewIOS(viewModel: viewModel)
+                        .tabItem{
+                            Label("개시여부", systemImage: "square.and.pencil")
+                        }
                     
                     SettingsView()
                         .tabItem {
@@ -90,3 +94,4 @@ struct MySceneForIOS: Scene {
         }
     }
 }
+ 

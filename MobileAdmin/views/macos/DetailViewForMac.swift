@@ -10,6 +10,7 @@ struct DetailViewForMac: View {
     @Binding var edcCrseCl : [EdcCrseCl]
     @Binding var selectedEdcCrseCl : EdcCrseCl?
     @Binding var selectedGroupCode: CmmnGroupCodeItem?
+    @Binding var selectedCloseDept: Detail1?
      
     
     var body: some View {
@@ -51,6 +52,14 @@ struct DetailViewForMac: View {
             }else{
                 Text("Select a row to view details.")
             }
+        }else if(selectedSlidebarItem == SlidebarItem.closeDeptList){
+            if let closeDeptDetail = selectedCloseDept{
+                CloseDeptDetail(
+                    closeDetail: closeDeptDetail)
+                
+            }else{
+                Text("Select a row to view details.")
+            }
         }else{
             Text(" ")
         }
@@ -88,6 +97,16 @@ struct DetailViewForMac: View {
             groupEstbs7Value: "수정일",
             useAt:"Y"
             )
+        ), selectedCloseDept: .constant( 
+                Detail1(
+                    closeempno: "",
+                    rmk: "",
+                    deptprtnm: "",
+                    closegb: "",
+                    closetime: "",
+                    opentime: "",
+                    deptcd: ""
+                )
         )
     )
 }

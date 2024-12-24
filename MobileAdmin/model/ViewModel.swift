@@ -328,4 +328,16 @@ class ViewModel: ObservableObject {
         }
         return []
     }
+    
+    func fetchCloseDeptList() async  -> CloseInfo {
+        do {
+            let url = "\(baseUrl)/admin/getStartEndOfDept"
+            let result: CloseInfo? = try await makeRequestNoRequestData(url: url)
+            
+            return result ?? CloseInfo()
+        } catch {
+            print("Error fetching deptlist: \(error)")
+        }
+        return CloseInfo()
+    }
 }
