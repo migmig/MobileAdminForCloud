@@ -27,6 +27,7 @@ struct ContentListViewForMac: View {
     
     var body: some View {
         
+        
         if(selectedSlidebarItem == SlidebarItem.errerlist){
             ErrorSidebar(errorItems:$errorItems,
                          selectedErrorItem :$selectedErrorItem)
@@ -59,12 +60,14 @@ struct ContentListViewForMac: View {
                              ,selectedCloseDept: $selectedCloseDept)
         }else{
             Text(" ")
+            
+            
         }
     }
 }
 
 #Preview{
-    ContentListViewForMac(
+    ContentListViewForMac(        
         selectedSlidebarItem: .constant(SlidebarItem.closeDeptList),
         toast: .constant(Toast(applcBeginDt: Date(),
                                applcEndDt: Date(),
@@ -112,26 +115,73 @@ struct ContentListViewForMac: View {
             groupEstbs7Value: "수정일",
             useAt:"Y"
         ))
-        , closeDeptList:.constant([Detail1(
+        , closeDeptList:.constant([
+                  Detail1(
+                                closeempno: "",
+                                rmk: "개시",
+                                deptprtnm: "수원1",
+                                closegb: "1",
+                                closetime: "",
+                                opentime: "",
+                                deptcd: "101"
+                    )
+                  ,Detail1(
                     closeempno: "",
-                    rmk: "",
-                    deptprtnm: "",
+                    rmk: "개시1",
+                    deptprtnm: "수원2",
+                    closegb: "2",
+                    closetime: "",
+                    opentime: "",
+                    deptcd: "102"
+                    )
+                  ,Detail1(
+                    closeempno: "",
+                    rmk: "개시",
+                    deptprtnm: "수원3",
+                    closegb: "0",
+                    closetime: "",
+                    opentime: "",
+                    deptcd: "103"
+                    )
+                  ,Detail1(
+                    closeempno: "",
+                    rmk: "개시",
+                    deptprtnm: "수원4",
                     closegb: "",
                     closetime: "",
                     opentime: "",
-                    deptcd: ""
-                )])
+                    deptcd: "104"
+                    )
+                  ,Detail1(
+                    closeempno: "",
+                    rmk: "개시",
+                    deptprtnm: "수원5",
+                    closegb: "",
+                    closetime: "",
+                    opentime: "",
+                    deptcd: "105"
+                    )
+                  ,Detail1(
+                    closeempno: "",
+                    rmk: "개시",
+                    deptprtnm: "수원6",
+                    closegb: "",
+                    closetime: "",
+                    opentime: "",
+                    deptcd: "106"
+                    )
+        ])
         ,
         selectedCloseDept:
                 .constant(
                     Detail1(
                         closeempno: "",
-                        rmk: "",
-                        deptprtnm: "",
+                        rmk: "개시",
+                        deptprtnm: "수원",
                         closegb: "",
                         closetime: "",
                         opentime: "",
-                        deptcd: ""
+                        deptcd: "100"
                     )
                 )
         

@@ -20,21 +20,21 @@ struct ContentViewForMac: View {
         NavigationSplitView{
             SlidebarViewForMac(selection: $selectedSidebarItem)
         }content:{
-            ContentListViewForMac(
-                viewModel : viewModel,
-                selectedSlidebarItem: $selectedSidebarItem,
-                toast: $toast,
-                goodsinfos: $goodsItems,
-                selectedGoods: $selectedGoods,
-                selectedErrorItem: $selectedErrorItem,
-                errorItems: $errorItems,
-                edcCrseCl: $edcCrseCl,
-                selectedEdcCrseCl: $selectedEdcCrseCl,
-                groupCodes: $groupCodes,
-                selectedGroupCode: $selectedGroupCode,
-                closeDeptList: $closeDeptList,
-                selectedCloseDept: $selectedCloseDept
-            )
+                ContentListViewForMac(
+                    viewModel : viewModel,
+                    selectedSlidebarItem: $selectedSidebarItem,
+                    toast: $toast,
+                    goodsinfos: $goodsItems,
+                    selectedGoods: $selectedGoods,
+                    selectedErrorItem: $selectedErrorItem,
+                    errorItems: $errorItems,
+                    edcCrseCl: $edcCrseCl,
+                    selectedEdcCrseCl: $selectedEdcCrseCl,
+                    groupCodes: $groupCodes,
+                    selectedGroupCode: $selectedGroupCode,
+                    closeDeptList: $closeDeptList,
+                    selectedCloseDept: $selectedCloseDept
+                ) 
         }detail:{
             NavigationStack{
                 DetailViewForMac(

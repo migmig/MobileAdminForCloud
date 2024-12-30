@@ -77,9 +77,9 @@ struct GoodsDetailView: View {
             }
             .padding()
         }
-        .navigationDestination(for:Good.self){item2 in
-            SelectedGoodsDetailView(goodsItem:item2)
-        }
+//        .navigationDestination(for:Good.self){item2 in
+//            SelectedGoodsDetailView(goodsItem:item2)
+//        }
         .onAppear{
         }
         

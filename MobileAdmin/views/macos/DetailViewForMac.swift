@@ -72,7 +72,7 @@ struct DetailViewForMac: View {
     DetailViewForMac(
         viewModel: ViewModel(),
         toastManager: ToastManager(),
-        selectedSlidebarItem: .constant(SlidebarItem.codeList),
+        selectedSlidebarItem: .constant(SlidebarItem.closeDeptList),
         selectedErrorItem: .constant(nil),
         toast: .constant(Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")),
         selectedGoods: .constant(nil),
