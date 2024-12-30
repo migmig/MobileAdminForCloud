@@ -156,13 +156,7 @@ struct ToastView: View {
         .navigationTitle("상세 정보")
 #endif
     }//body
-     
-    func formattedDate(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "ko_KR") // 한국어 로케일 설정
-            formatter.dateFormat = "yyyy-MM-dd EEEE" // 원하는 포맷 (예: "2024-11-04 목.")
-            return formatter.string(from: date)
-        }
+      
 }//struct
 
 #Preview{

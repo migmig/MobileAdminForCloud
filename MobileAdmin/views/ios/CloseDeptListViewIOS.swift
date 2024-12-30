@@ -10,6 +10,11 @@ import SwiftUI
 struct CloseDeptListViewIOS: View {
     @ObservedObject var viewModel:ViewModel
     @State var list:[Detail1] = []
+    
+    private func loadData() async {
+       let closeInfo = await viewModel.fetchCloseDeptList()
+       list = closeInfo.detail1
+   }
     var body: some View {
         VStack{
             List{
@@ -26,11 +31,15 @@ struct CloseDeptListViewIOS: View {
                     }
                 }
             }
+            .refreshable {
+                Task{
+                    await loadData()
+                }
+            }
         }
         .onAppear(){
             Task{
-                let closeInfo:CloseInfo = await viewModel.fetchCloseDeptList();
-                list = closeInfo.detail1
+                await loadData()
             }
         }
     }

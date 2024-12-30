@@ -17,7 +17,7 @@ struct GoodsDetailView: View {
                                     .font(.headline)
                                 Spacer()
                             Text("\(item.goodsNm)")
-                                .foregroundColor(item.maxLmt > 0 ? .blue : .secondary)
+                                    .foregroundColor(item.maxLmt > 0 && item.msgDispYn != "Y" ? .blue : .secondary)
                                 .font(.subheadline)
                             }
                         }
