@@ -19,14 +19,56 @@ struct CloseDeptDetail: View {
             Divider()
             InfoRow(title: "개시구분명"  ,value: closeDetail?.rmk)
             Divider()
-            InfoRow(title: "개시시각"    ,value: closeDetail?.opentime)
+            InfoRow2(title: "개시시각"){
+                KorDatePicker(
+                    "",
+                    selection:
+                            .constant(
+                                Util
+                                    .combineTodayWithTime(
+                                        closeDetail?.opentime ?? ""
+                                    ) ?? Date()
+                            ),
+                    displayedComponents: [.hourAndMinute]
+                )
+                .datePickerStyle(GraphicalDatePickerStyle())
+                    
+            }
             Divider()
-            InfoRow(title: "마감시각"    ,value: closeDetail?.closetime)
+            if (closeDetail?.closetime == "") {
+                Text(" ")
+            }else {
+                InfoRow2(title: "마감시각"){
+                    KorDatePicker(
+                        "",
+                        selection:
+                                .constant(
+                                    Util
+                                        .combineTodayWithTime(
+                                            closeDetail?.closetime ?? ""
+                                        ) ?? Date()
+                                ),
+                        displayedComponents: [.hourAndMinute]
+                    )
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                }
+                Divider()
+            }
         }
         .padding()
     }
 }
 
 #Preview {
-    CloseDeptDetail()
+    CloseDeptDetail(
+        closeDetail: Detail1(
+            closeempno: "",
+            rmk: "개시",
+            deptprtnm: "수원",
+            closegb: "0",
+            closetime: "",
+            opentime: "080101",
+            deptcd: "100400"
+        )
+    )
 }

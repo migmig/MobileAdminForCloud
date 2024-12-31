@@ -9,36 +9,69 @@ import SwiftUI
 
 struct CloseDeptSidebar: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
-    @Binding var closeDeptList:[Detail1] 
+    @Binding var list:[Detail1]
     @Binding var selectedCloseDept:Detail1?
+    @State var closeGb = "4"
+    
+    
+    var filteredList: [Detail1] {
+        closeGb  == "4" ? list : list.filter{$0.closegb == closeGb}
+    }
+    
+    private func loadData() async {
+       let closeInfo = await viewModel.fetchCloseDeptList()
+       list = closeInfo.detail1
+   }
+    
+     
+     var buttonsArr : [[String:String]] = [
+                                            ["전체"   : "4" ]
+                                          , ["미개시" : ""  ]
+                                          , ["개시"   : "0" ]
+                                          , ["가마감" : "1" ]
+                                          , ["마감"   : "2" ]
+                                         ]
+    
     var body: some View {
-        List(selection: $selectedCloseDept){
-            ForEach(closeDeptList, id:\.self){ close in
-                NavigationLink(value:close){
-                    HStack{
-                        Image(systemName: close.closegb == "0" ? "checkmark.circle" : "circle")
-                        Text(close.deptprtnm ?? "")
-                        Spacer()
-                        Text(close.rmk ?? "")
+        VStack{
+            HStack {
+                ForEach(buttonsArr, id:\.self){ button in
+                    ButtonView(txt: button.keys.first!
+                               , selectGb: button.values.first!
+                               , closeGb: $closeGb
+                               , loadData: loadData)
+                }
+            }
+            .padding()
+            List(selection: $selectedCloseDept){
+                ForEach(filteredList, id:\.self){ entry in
+                    NavigationLink(value:entry){
+                        HStack{
+                            Image(systemName: entry.closegb != "" ? "checkmark.circle" : "circle")
+                                .colorMultiply(  entry.closegb == "1" ? .purple
+                                               : entry.closegb == "2" ? .red
+                                               : .green)
+                            Text(entry.deptprtnm ?? "")
+                            Spacer()
+                            Text(entry.rmk ?? "")
+                        }
                     }
                 }
             }
         }
         
         .onAppear(){
-            Task{ 
-                let closeInfo:CloseInfo = await viewModel.fetchCloseDeptList();
-                closeDeptList = closeInfo.detail1
-                print("\(String(describing: closeInfo))")
+            Task{
+                await loadData()
             }
         }
     }
 }
-
+ 
 #Preview {
     CloseDeptSidebar(
         viewModel: ViewModel(),
-        closeDeptList: .constant([]),
+        list: .constant([]),
         selectedCloseDept: .constant(nil)
     )
 }

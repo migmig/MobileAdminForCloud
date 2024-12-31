@@ -56,7 +56,7 @@ struct ContentListViewForMac: View {
                               selectedGroupCode: $selectedGroupCode)
         }else if(selectedSlidebarItem == SlidebarItem.closeDeptList){
             CloseDeptSidebar(viewModel: viewModel
-                             ,closeDeptList:$closeDeptList
+                             ,list:$closeDeptList
                              ,selectedCloseDept: $selectedCloseDept)
         }else{
             Text(" ")

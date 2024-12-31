@@ -33,7 +33,7 @@ struct EnvironmentConfig {
         return environmentUrls[current] ?? "http://default.url" // 기본 URL 설정
     }
     #if DEBUG
-    static var current: EnvironmentType = .development
+    static var current: EnvironmentType = .production
     #else
     static var current: EnvironmentType = .production
     #endif

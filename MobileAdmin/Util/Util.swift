@@ -149,4 +149,30 @@ class Util{
             return ""
         }
     }
+    
+    static func combineTodayWithTime(_ time: String) -> Date? {
+        let today = Date() // 오늘 날짜
+        let calendar = Calendar.current
+        
+        // 시각 형식 변환기 설정
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HHmmss" // "080101"에 맞는 형식
+        timeFormatter.timeZone = TimeZone.current
+        timeFormatter.locale = Locale(identifier: "ko_KR")
+        
+        guard let timeOnly = timeFormatter.date(from: time) else {
+            return nil // 형식이 잘못된 경우
+        }
+        
+        // 오늘의 날짜와 파라미터 시각 결합
+        let todayComponents = calendar.dateComponents([.year, .month, .day], from: today)
+        let timeComponents = calendar.dateComponents([.hour, .minute, .second], from: timeOnly)
+        
+        var combinedComponents = todayComponents
+        combinedComponents.hour = timeComponents.hour
+        combinedComponents.minute = timeComponents.minute
+        combinedComponents.second = timeComponents.second
+        
+        return calendar.date(from: combinedComponents)
+    }
 }

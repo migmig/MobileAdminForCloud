@@ -50,14 +50,10 @@ struct MySceneForIOS: Scene {
                     }
                     
                     
-                    EdcClsSidebarIOS(
-                        viewModel:viewModel
-                    )
-                    .font(.custom("D2Coding", size: 16))
+                    CloseDeptListViewIOS(viewModel: viewModel)
                     .tabItem{
-                        Label("교육", systemImage: "book")
+                        Label("개시여부", systemImage: "square.and.pencil")
                     }
-                    
                     
                     GoodsListViewIOS(
                         viewModel:viewModel,
@@ -73,10 +69,13 @@ struct MySceneForIOS: Scene {
                     .tabItem{
                         Label("코드", systemImage: "list.bullet")
                     }
-                    CloseDeptListViewIOS(viewModel: viewModel)
-                        .tabItem{
-                            Label("개시여부", systemImage: "square.and.pencil")
-                        }
+                    EdcClsSidebarIOS(
+                        viewModel:viewModel
+                    )
+                    .font(.custom("D2Coding", size: 16))
+                    .tabItem{
+                        Label("교육", systemImage: "book")
+                    }
                     
                     SettingsView()
                         .tabItem {
