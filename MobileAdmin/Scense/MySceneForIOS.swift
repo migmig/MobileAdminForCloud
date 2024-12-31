@@ -94,3 +94,7 @@ struct MySceneForIOS: Scene {
     }
 }
  
+#Preview{
+    
+        EnvSetView(isPresented:.constant(false))
+}

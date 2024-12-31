@@ -22,44 +22,82 @@ struct EnvSetView: View {
     @Environment(\.modelContext) private var modelContext
     @Binding var isPresented:Bool
     var body: some View {
-        VStack{
-            InfoRow2(title: "운영: "){
-                TextField("운영", text: $prodUrl)
-            }
-            InfoRow2(title: "개발: "){
-                TextField("개발", text: $devUrl)
-            }
-            InfoRow2(title: "로컬: "){
-                TextField("로컬", text: $localUrl)
-            }
-            Button("저장"){
-                EnvironmentConfig.environmentUrls[.production] = prodUrl
-                EnvironmentConfig.environmentUrls[.development] = devUrl
-                EnvironmentConfig.environmentUrls[.local] = localUrl
-                EnvironmentConfig.environmentUrls.forEach { type, url in
-                    print("\(type.rawValue): \(url)")
-                    
-                    if let existsingSession = allEnvironment.first(
-                        where: {$0.envType == type.rawValue})
-                    {
-                        existsingSession.url = url
-                    }else{
-                        let newSession = EnvironmentModel()
-                        newSession.envType = type.rawValue
-                        newSession.url = url
-                        modelContext.insert(newSession)
+        ZStack{
+            VStack{
+                    Text("URL 설정")
+                        .font(.title)
+                        .foregroundColor(.primary)
+                        .padding()
+                
+                    // 운영 URL 입력
+                VStack(alignment: .leading) {
+                    Text("운영 URL")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    TextField("운영", text: $prodUrl)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .cornerRadius(8)
+                }
+                
+                // 개발 URL 입력
+                VStack(alignment: .leading) {
+                    Text("개발 URL")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    TextField("개발", text: $devUrl)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .cornerRadius(8)
+                }
+                
+                
+                // 로컬 URL 입력
+                VStack(alignment: .leading) {
+                    Text("로컬 URL")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    TextField("로컬", text: $localUrl)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .cornerRadius(8)
+                }
+                
+                Button("저장"){
+                    EnvironmentConfig.environmentUrls[.production] = prodUrl
+                    EnvironmentConfig.environmentUrls[.development] = devUrl
+                    EnvironmentConfig.environmentUrls[.local] = localUrl
+                    EnvironmentConfig.environmentUrls.forEach { type, url in
+                        print("\(type.rawValue): \(url)")
+                        
+                        if let existsingSession = allEnvironment.first(
+                            where: {$0.envType == type.rawValue})
+                        {
+                            existsingSession.url = url
+                        }else{
+                            let newSession = EnvironmentModel()
+                            newSession.envType = type.rawValue
+                            newSession.url = url
+                            modelContext.insert(newSession)
+                        }
                     }
+                    do{
+                        try modelContext.save()
+                        print("저장 성공: ")
+                    }catch{
+                        print("저장 실패: \(error.localizedDescription)")
+                    }
+                    isPresented = false
                 }
-                do{
-                    try modelContext.save()
-                    print("저장 성공: ")
-                }catch{
-                    print("저장 실패: \(error.localizedDescription)")
-                }
-                isPresented = false
+                .font(.title2)
+                .foregroundColor(.secondary)
+                .padding()
+                .background(.selection)
+                .cornerRadius(10)
+                .buttonStyle(PlainButtonStyle())
             }
+            .padding()
         }
-        .padding()
     }
 }
 
