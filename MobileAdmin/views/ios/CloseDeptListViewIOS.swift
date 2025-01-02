@@ -52,7 +52,7 @@ struct CloseDeptListViewIOS: View {
                     }){
                         HStack{
                             Image(systemName: entry.closegb != "" ? "checkmark.circle" : "circle")
-                                .colorMultiply(  entry.closegb == "1" ? .purple
+                                .foregroundColor( entry.closegb == "1" ? .purple
                                                : entry.closegb == "2" ? .red
                                                : .green)
                             Text(entry.deptprtnm ?? "")
@@ -73,6 +73,7 @@ struct CloseDeptListViewIOS: View {
                     await loadData()
                 }
             }
+            .navigationTitle("지점별 개시 마감 조회")
         }
     }
 }

@@ -8,14 +8,21 @@
 import SwiftUI
 
 struct CloseDeptSidebar: View {
-    @ObservedObject var viewModel:ViewModel = ViewModel()
+    @ObservedObject var viewModel:ViewModel
     @Binding var list:[Detail1]
     @Binding var selectedCloseDept:Detail1?
     @State var closeGb = "4"
+    @State var searchText:String = ""
     
-    
+    private func filterList() -> [Detail1] {
+        list.filter {
+            (searchText.isEmpty || $0.deptprtnm?.localizedStandardContains(searchText) == true) &&
+            (closeGb == "4" || $0.closegb == closeGb)
+        }
+    }
+
     var filteredList: [Detail1] {
-        closeGb  == "4" ? list : list.filter{$0.closegb == closeGb}
+        filterList()
     }
     
     private func loadData() async {
@@ -23,6 +30,14 @@ struct CloseDeptSidebar: View {
        list = closeInfo.detail1
    }
     
+    private func colorForCloseGb(_ closeGb: String?) -> Color {
+        switch closeGb {
+        case "1": return .purple
+        case "2": return .red
+        case "3": return .green
+        default: return .blue
+        }
+    }
      
      var buttonsArr : [[String:String]] = [
                                             ["전체"   : "4" ]
@@ -30,6 +45,7 @@ struct CloseDeptSidebar: View {
                                           , ["개시"   : "0" ]
                                           , ["가마감" : "1" ]
                                           , ["마감"   : "2" ]
+                                          , ["마감후거래"   : "3" ]
                                          ]
     
     var body: some View {
@@ -48,18 +64,19 @@ struct CloseDeptSidebar: View {
                     NavigationLink(value:entry){
                         HStack{
                             Image(systemName: entry.closegb != "" ? "checkmark.circle" : "circle")
-                                .colorMultiply(  entry.closegb == "1" ? .purple
-                                               : entry.closegb == "2" ? .red
-                                               : .green)
+                                .foregroundColor(colorForCloseGb(entry.closegb))
                             Text(entry.deptprtnm ?? "")
                             Spacer()
                             Text(entry.rmk ?? "")
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
             }
+            .searchable(text: $searchText)
         }
-        
+        .navigationTitle("지점별 개시 마감 조회")
+        .navigationSubtitle("\(filteredList.count) 건 조회")
         .onAppear(){
             Task{
                 await loadData()
