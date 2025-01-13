@@ -23,6 +23,25 @@ struct EnvSetView: View {
     @Binding var isPresented:Bool
     var body: some View {
         ZStack{
+//            // 카드 배경
+//            RoundedRectangle(cornerRadius: 1)
+//                .fill(
+//                    MeshGradient(
+//                        width: 3,
+//                        height: 3,
+//                        points: [
+//                            [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+//                            [0.0, 0.1], [0.5, 0.5], [1.0, 0.9],
+//                            [0.0, 1.0], [0.5, 1.0], [1.0, 1.0]
+//                        ],
+//                        colors: [
+//                            .yellow, .yellow,  .yellow,
+//                            .blue, .blue,  .blue,
+//                            .green, .green, .green
+//                        ]
+//                        
+//                    )
+//                ).ignoresSafeArea()
             VStack{
                     Text("URL 설정")
                         .font(.title)
@@ -38,6 +57,7 @@ struct EnvSetView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding()
                         .cornerRadius(8)
+                    
                 }
                 
                 // 개발 URL 입력
@@ -90,7 +110,7 @@ struct EnvSetView: View {
                     isPresented = false
                 }
                 .font(.title2)
-                .foregroundColor(.secondary)
+//                .foregroundColor(.secondary)
                 .padding()
                 .background(.selection)
                 .cornerRadius(10)

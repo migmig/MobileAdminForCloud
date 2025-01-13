@@ -7,11 +7,11 @@
 
 import SwiftUI
 import SwiftData
+import LocalAuthentication
 import Foundation
 
 @main
 struct MobileAdminApp: App {
-
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -47,6 +47,8 @@ struct MobileAdminApp: App {
 
 
     }
+    
+     
 }
 #if os(iOS)
 extension UIApplication {

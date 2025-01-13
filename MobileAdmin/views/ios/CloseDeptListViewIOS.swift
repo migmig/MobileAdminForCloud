@@ -24,12 +24,20 @@ struct CloseDeptListViewIOS: View {
        list = closeInfo.detail1
    }
     
+    private func colorForCloseGb(_ closeGb: String?) -> Color {
+        switch closeGb {
+        case "1": return .purple
+        case "2": return .red
+        case "3": return .green
+        default: return .blue
+        }
+    }
     var buttonsArr : [[String:String]] = [
                                            ["전체"   : "4" ]
                                          , ["미개시" : ""  ]
                                          , ["개시"   : "0" ]
                                          , ["가마감" : "1" ]
-                                         , ["마감"   : "2" ]
+                                         , ["마감"   : "2" ] 
                                         ]
     
     var body: some View {
@@ -52,9 +60,7 @@ struct CloseDeptListViewIOS: View {
                     }){
                         HStack{
                             Image(systemName: entry.closegb != "" ? "checkmark.circle" : "circle")
-                                .foregroundColor( entry.closegb == "1" ? .purple
-                                               : entry.closegb == "2" ? .red
-                                               : .green)
+                                .foregroundColor( colorForCloseGb(entry.closegb) )
                             Text(entry.deptprtnm ?? "")
                             Spacer()
                             Text(entry.rmk ?? "")

@@ -76,7 +76,9 @@ struct CloseDeptSidebar: View {
             .searchable(text: $searchText)
         }
         .navigationTitle("지점별 개시 마감 조회")
+        #if os(macOS)
         .navigationSubtitle("\(filteredList.count) 건 조회")
+        #endif
         .onAppear(){
             Task{
                 await loadData()
