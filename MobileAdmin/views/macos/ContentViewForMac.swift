@@ -14,6 +14,7 @@ struct ContentViewForMac: View {
     @State var selectedGroupCode:CmmnGroupCodeItem?
     @State var closeDeptList:[Detail1] = []
     @State var selectedCloseDept:Detail1? = nil
+    @State var selectedSourceBuildProject:SourceBuildProject?
     
     @State private var selectedSidebarItem: SlidebarItem? = nil
     var body: some View {
@@ -33,8 +34,9 @@ struct ContentViewForMac: View {
                     groupCodes: $groupCodes,
                     selectedGroupCode: $selectedGroupCode,
                     closeDeptList: $closeDeptList,
-                    selectedCloseDept: $selectedCloseDept
-                ) 
+                    selectedCloseDept: $selectedCloseDept,
+                    selectedSourceBuildProject: $selectedSourceBuildProject
+                )
         }detail:{
             NavigationStack{
                 DetailViewForMac(
@@ -47,7 +49,8 @@ struct ContentViewForMac: View {
                     edcCrseCl: $edcCrseCl,
                     selectedEdcCrseCl: $selectedEdcCrseCl,
                     selectedGroupCode: $selectedGroupCode,
-                    selectedCloseDept: $selectedCloseDept
+                    selectedCloseDept: $selectedCloseDept,
+                    selectedSourceBuildProject: $selectedSourceBuildProject
                 )
             }
         }

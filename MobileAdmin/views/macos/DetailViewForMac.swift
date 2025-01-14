@@ -11,6 +11,7 @@ struct DetailViewForMac: View {
     @Binding var selectedEdcCrseCl : EdcCrseCl?
     @Binding var selectedGroupCode: CmmnGroupCodeItem?
     @Binding var selectedCloseDept: Detail1?
+    @Binding var selectedSourceBuildProject: SourceBuildProject?
      
     
     var body: some View {
@@ -60,6 +61,12 @@ struct DetailViewForMac: View {
             }else{
                 Text("Select a row to view details.")
             }
+        }else if(selectedSlidebarItem == SlidebarItem.sourceBuild){
+            if let selectedProject = selectedSourceBuildProject{
+                SourceBuildDetail(selectedProject:selectedProject)
+            }else{
+                Text("Select a row to view details.")
+            }
         }else{
             Text(" ")
         }
@@ -72,7 +79,7 @@ struct DetailViewForMac: View {
     DetailViewForMac(
         viewModel: ViewModel(),
         toastManager: ToastManager(),
-        selectedSlidebarItem: .constant(SlidebarItem.closeDeptList),
+        selectedSlidebarItem: .constant(SlidebarItem.sourceBuild),
         selectedErrorItem: .constant(nil),
         toast: .constant(Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")),
         selectedGoods: .constant(nil),
@@ -97,7 +104,7 @@ struct DetailViewForMac: View {
             groupEstbs7Value: "수정일",
             useAt:"Y"
             )
-        ), selectedCloseDept: .constant( 
+        ), selectedCloseDept: .constant(
                 Detail1(
                     closeempno: "",
                     rmk: "",
@@ -107,6 +114,6 @@ struct DetailViewForMac: View {
                     opentime: "",
                     deptcd: ""
                 )
-        )
+        ),selectedSourceBuildProject:.constant(nil)
     )
 }

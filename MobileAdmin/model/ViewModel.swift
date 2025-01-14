@@ -3,6 +3,8 @@ import Logging
 
 
 class ViewModel: ObservableObject {
+    @Published var buildProjects: [SourceBuildProject] = []
+    //@Published var selectedProject:SourceBuildProject?
     //    @Published var toasts: Toast = Toast()
     //    @Published var errorItems: [ErrorCloudItem] = []
 
@@ -340,4 +342,24 @@ class ViewModel: ObservableObject {
         }
         return CloseInfo()
     }
+    
+    func fetchSourceBuildList() async -> BuildProjects {
+        do{
+            let url = "\(baseUrl)/admin/cloud/build-project-list"
+            let result: BuildProjects? = try await makeRequestNoRequestData(url:url)
+            return result ?? BuildProjects()
+        }catch{
+            print("Error fetching source build list: \(error)")
+        }
+        return BuildProjects()
+    }
+//    func fetchSourceBuildList() async -> {
+//        do{
+//            let url = "\(baseUrl)/admin/cloud/build-project-list"
+//            let result:BuildProjects = try await makeRequestNoRequestData(url:url)
+//            //self.buildProjects = result.result.project
+//        }catch{
+//            print("Error fetching source build list: \(error)")
+//        }
+//    }
 }

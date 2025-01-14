@@ -14,6 +14,7 @@ struct ContentListViewForMac: View {
     @Binding var selectedGroupCode:CmmnGroupCodeItem?
     @Binding var closeDeptList:[Detail1]
     @Binding var selectedCloseDept:Detail1?
+    @Binding var selectedSourceBuildProject:SourceBuildProject?
     @State private var isLoading:Bool = false
     @State private var searchText = ""
     
@@ -26,49 +27,55 @@ struct ContentListViewForMac: View {
       
     
     var body: some View {
-        
-        
-        if(selectedSlidebarItem == SlidebarItem.errerlist){
-            ErrorSidebar(errorItems:$errorItems,
-                         selectedErrorItem :$selectedErrorItem)
-        }else if(selectedSlidebarItem == SlidebarItem.toast){
-            List{
+        Group {
+            if let selectedItem = selectedSlidebarItem {
+                makeSidebar(for: selectedItem)
+            } else {
+                Text("선택된 항목이 없습니다.")
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func makeSidebar(for item: SlidebarItem) -> some View {
+        switch item {
+        case .errerlist:
+            ErrorSidebar(errorItems: $errorItems, selectedErrorItem: $selectedErrorItem)
+            
+        case .toast:
+            List {
                 if isLoading {
-                    ProgressView(" ")
+                    ProgressView("로딩 중...")
                         .progressViewStyle(CircularProgressViewStyle())
                 }
-                NavigationLink(value:toast){
-                    Text(toast.noticeHder )
+                NavigationLink(value: toast) {
+                    Text(toast.noticeHder)
                 }
             }
-        }else if(selectedSlidebarItem == SlidebarItem.goodsInfo){
-            GoodsSidebar(goodsItems: $goodsinfos,
-                         selectedGoods: $selectedGoods)
-        }else if(selectedSlidebarItem == SlidebarItem.gcpClsList){
-            EdcClsSidebar(
-                viewModel: viewModel,
-                edcCrseCl: $edcCrseCl,
-                selectedEdcCrseCl: $selectedEdcCrseCl
-            )
-        }else if(selectedSlidebarItem == SlidebarItem.codeList){
-            GroupCodesSidebar(viewModel: viewModel,
-                              groupCodes: $groupCodes,
-                              selectedGroupCode: $selectedGroupCode)
-        }else if(selectedSlidebarItem == SlidebarItem.closeDeptList){
-            CloseDeptSidebar(viewModel: viewModel
-                             ,list:$closeDeptList
-                             ,selectedCloseDept: $selectedCloseDept)
-        }else{
-            Text(" ")
             
+        case .goodsInfo:
+            GoodsSidebar(goodsItems: $goodsinfos, selectedGoods: $selectedGoods)
             
+        case .gcpClsList:
+            EdcClsSidebar(viewModel: viewModel, edcCrseCl: $edcCrseCl, selectedEdcCrseCl: $selectedEdcCrseCl)
+            
+        case .codeList:
+            GroupCodesSidebar(viewModel: viewModel, groupCodes: $groupCodes, selectedGroupCode: $selectedGroupCode)
+            
+        case .closeDeptList:
+            CloseDeptSidebar(viewModel: viewModel, list: $closeDeptList, selectedCloseDept: $selectedCloseDept)
+            
+        case .sourceBuild:
+            SourceBuildSidebar(viewModel: viewModel, selectedSourceBuildProject: $selectedSourceBuildProject)
+        default:
+            Text("알 수 없는 항목입니다.")
         }
     }
 }
 
 #Preview{
-    ContentListViewForMac(        
-        selectedSlidebarItem: .constant(SlidebarItem.closeDeptList),
+    ContentListViewForMac(
+        selectedSlidebarItem: .constant(SlidebarItem.sourceBuild),
         toast: .constant(Toast(applcBeginDt: Date(),
                                applcEndDt: Date(),
                                noticeHder: "제목",
@@ -183,7 +190,7 @@ struct ContentListViewForMac: View {
                         opentime: "",
                         deptcd: "100"
                     )
-                )
+                ), selectedSourceBuildProject: .constant(nil)
         
     )
 }
