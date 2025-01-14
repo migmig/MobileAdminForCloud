@@ -3,7 +3,7 @@ import SwiftUI
 struct ContentViewForMac: View {
     @ObservedObject var viewModel:ViewModel
     @ObservedObject var toastManager: ToastManager
-    @State var errorItems:[ErrorCloudItem] = []
+//    @State var errorItems:[ErrorCloudItem] = []
     @State var selectedErrorItem:ErrorCloudItem? = .init()
     @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
     @State var goodsItems:[Goodsinfo] = []
@@ -28,7 +28,7 @@ struct ContentViewForMac: View {
                     goodsinfos: $goodsItems,
                     selectedGoods: $selectedGoods,
                     selectedErrorItem: $selectedErrorItem,
-                    errorItems: $errorItems,
+//                    errorItems: $errorItems,
                     edcCrseCl: $edcCrseCl,
                     selectedEdcCrseCl: $selectedEdcCrseCl,
                     groupCodes: $groupCodes,

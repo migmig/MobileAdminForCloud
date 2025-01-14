@@ -175,4 +175,16 @@ class Util{
         
         return calendar.date(from: combinedComponents)
     }
+    
+    static func convertFromDateIntoString(_ date: Double?) -> String {
+        guard let date = date else {
+            return ""
+        }
+        // 밀리초를 초 단위로 변환
+        let timeInterval = date / 1000
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return dateFormatter.string(from: Date(timeIntervalSince1970: timeInterval))
+    }
+     
 }

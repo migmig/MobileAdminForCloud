@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ErrorSidebar: View {
-    @Binding var errorItems:[ErrorCloudItem]
+//    @Binding var errorItems:[ErrorCloudItem]
     @Binding var selectedErrorItem:ErrorCloudItem?
     @ObservedObject var viewModel:ViewModel = ViewModel()
     @State private var searchText = ""
@@ -19,9 +19,9 @@ struct ErrorSidebar: View {
    
    var filteredErrorItems: [ErrorCloudItem] {
        if searchText.isEmpty {
-           return errorItems
+           return viewModel.errorItems
        }else{
-           return errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
+           return viewModel.errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
        }
    }
     
@@ -31,17 +31,20 @@ struct ErrorSidebar: View {
                        dateTo: $dateTo,
                        isLoading: $isLoading,
                        clearAction: {searchText = ""}){
-                    errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
-                                                             endTo:  dateTo) ?? []
+                Task{
+                        let errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
+                                                                     endTo:  dateTo) ?? []
+                        viewModel.errorItems = errorItems
+                }
             }
             .padding()
             // 검색창 추가
 //            HStack(spacing:1) {
-//                
+//
 //               Image(systemName: "magnifyingglass")
 //                   .foregroundColor(.gray) // 아이콘 색상
 //                   //.padding(.leading, 1) // 아이콘 왼쪽 패딩
-//               
+//
 //               TextField("검색어 입력...", text: $searchText)
 //                   .padding(10)
 ////                       .background(Color(UIColor.systemGray6)) // 배경 색상
@@ -69,8 +72,9 @@ struct ErrorSidebar: View {
                 Task{
                     isLoading = true;
                     print("start")
-                    await errorItems = viewModel.fetchErrors(startFrom: dateFrom
-                                                             , endTo:  dateTo) ?? []
+                    let errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
+                                                             endTo:  dateTo) ?? []
+                    viewModel.errorItems = errorItems 
                     print("end")
                     isLoading = false;
                 }
@@ -80,19 +84,19 @@ struct ErrorSidebar: View {
 }
  #Preview {
     ErrorSidebar(
-        errorItems: .constant([
-            ErrorCloudItem(
-                code: "code",
-                description: "description",
-                id:1,
-                msg: "msg",
-                registerDt: "20241108",
-                requestInfo: "requestInfo",
-                restUrl: "restUrl",
-                traceCn: "traceCn",
-                userId: "userId"
-            )
-        ]),
+//        errorItems: .constant([
+//            ErrorCloudItem(
+//                code: "code",
+//                description: "description",
+//                id:1,
+//                msg: "msg",
+//                registerDt: "20241108",
+//                requestInfo: "requestInfo",
+//                restUrl: "restUrl",
+//                traceCn: "traceCn",
+//                userId: "userId"
+//            )
+//        ]),
         selectedErrorItem: .constant(nil
         )
     )

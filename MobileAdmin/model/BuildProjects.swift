@@ -34,6 +34,13 @@ struct SourceBuildProject : Codable,Identifiable,Hashable{
         permission = ""
         actionName = ""
     }
+    
+    init(_ id:Int,_ name:String,_ permission:String,_ actionName:String){
+        self.id = id
+        self.name = name
+        self.permission = permission
+        self.actionName = actionName
+    }
 }
 
 struct PiplelineProjectList : Codable,Hashable{

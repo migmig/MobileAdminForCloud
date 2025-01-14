@@ -7,7 +7,7 @@ struct ContentListViewForMac: View {
     @Binding var goodsinfos:[Goodsinfo]
     @Binding var selectedGoods:Goodsinfo?
     @Binding var selectedErrorItem:ErrorCloudItem?
-    @Binding var errorItems:[ErrorCloudItem]
+//    @Binding var errorItems:[ErrorCloudItem]
     @Binding var edcCrseCl:[EdcCrseCl]
     @Binding var selectedEdcCrseCl:EdcCrseCl?
     @Binding var groupCodes:[CmmnGroupCodeItem]?
@@ -40,7 +40,9 @@ struct ContentListViewForMac: View {
     private func makeSidebar(for item: SlidebarItem) -> some View {
         switch item {
         case .errerlist:
-            ErrorSidebar(errorItems: $errorItems, selectedErrorItem: $selectedErrorItem)
+            ErrorSidebar(
+//                errorItems: $errorItems,
+                         selectedErrorItem: $selectedErrorItem)
             
         case .toast:
             List {
@@ -85,7 +87,7 @@ struct ContentListViewForMac: View {
         goodsinfos: .constant([]),
         selectedGoods: .constant(nil),
         selectedErrorItem: .constant(nil),
-        errorItems: .constant([]),
+//        errorItems: .constant([]),
         edcCrseCl: .constant([EdcCrseCl(
             "강의제목2",
             "강의내용 길게길게길게 "

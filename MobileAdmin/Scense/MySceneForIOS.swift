@@ -21,7 +21,7 @@ struct MySceneForIOS: Scene {
     @State var selectedEdcCrseCl:EdcCrseCl = .init()
     @State private var isLoading: Bool = false
     @State private var selectedTab: Int = 0 // 현재 선택된 탭
-    @State private var isAuthenticated = false
+    @State private var isAuthenticated = true
     @State private var authenticationMessage = ""
     @Query var allEnvironment: [EnvironmentModel]
  
@@ -65,10 +65,11 @@ struct MySceneForIOS: Scene {
                         (0, "오류"    , "checkmark.message" , AnyView(ErrorListViewForIOS(viewModel: viewModel, toastManager: toastManager))),
                         (1, "토스트"  , "bell"              , AnyView(ToastView(viewModel: viewModel, toastManager: toastManager, toastItem: $toast))),
                         (2, "개시여부", "square.and.pencil" , AnyView(CloseDeptListViewIOS(viewModel: viewModel))),
-                        (3, "상품"    , "cart"              , AnyView(GoodsListViewIOS(viewModel: viewModel, toastManager: toastManager, goodsItems: $goodsItems))),
-                        (4, "코드"    , "list.bullet"       , AnyView(CodeListViewIOS(viewModel: viewModel))),
-                        (5, "교육"    , "book"              , AnyView(EdcClsSidebarIOS(viewModel: viewModel))),
-                        (6, "Settings", "gear"              , AnyView(SettingsView()))
+                        (3, "소스빌드", "hammer"            , AnyView(SourceBuildListViewIOS(viewModel: viewModel, toastManager: toastManager))),
+                        (4, "상품"    , "cart"              , AnyView(GoodsListViewIOS(viewModel: viewModel, toastManager: toastManager, goodsItems: $goodsItems))),
+                        (5, "코드"    , "list.bullet"       , AnyView(CodeListViewIOS(viewModel: viewModel))),
+                        (6, "교육"    , "book"              , AnyView(EdcClsSidebarIOS(viewModel: viewModel))),
+                        (7, "Settings", "gear"              , AnyView(SettingsView()))
                     ]
                     
                     TabView(selection: $selectedTab) {
@@ -128,9 +129,4 @@ struct MySceneForIOS: Scene {
             }
         }
     }
-}
- 
-#Preview{
-    
-        EnvSetView(isPresented:.constant(false))
 }

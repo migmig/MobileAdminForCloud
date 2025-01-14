@@ -4,9 +4,7 @@ import Logging
 
 class ViewModel: ObservableObject {
     @Published var buildProjects: [SourceBuildProject] = []
-    //@Published var selectedProject:SourceBuildProject?
-    //    @Published var toasts: Toast = Toast()
-    //    @Published var errorItems: [ErrorCloudItem] = []
+    @Published var errorItems:[ErrorCloudItem] = []
 
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
@@ -61,7 +59,7 @@ class ViewModel: ObservableObject {
 
     // 토큰을 가져오는 비동기 함수
     private func fetchToken() async throws {
-        //        logger.info("fetchToken called")
+        logger.info("fetchToken called")
         let url = "\(baseUrl)/simpleLoginForAdmin"
         let adminCI:String  = Bundle.main.object(forInfoDictionaryKey: "adminCI") as! String
 
@@ -349,17 +347,30 @@ class ViewModel: ObservableObject {
             let result: BuildProjects? = try await makeRequestNoRequestData(url:url)
             return result ?? BuildProjects()
         }catch{
-            print("Error fetching source build list: \(error)")
+            print("Error fetchSourceBuildList: \(error)")
         }
         return BuildProjects()
     }
-//    func fetchSourceBuildList() async -> {
-//        do{
-//            let url = "\(baseUrl)/admin/cloud/build-project-list"
-//            let result:BuildProjects = try await makeRequestNoRequestData(url:url)
-//            //self.buildProjects = result.result.project
-//        }catch{
-//            print("Error fetching source build list: \(error)")
-//        }
-//    }
+    
+    func fetchSourceBuildInfo(_ buildId:Int) async -> SourceBuildInfo? {
+        do{
+            let url = "\(baseUrl)/admin/cloud/build-project-info/\(buildId)"
+            let result: SourceBuildInfo? = try await makeRequestNoRequestData(url:url)
+            return result
+        }catch{
+            print("Error fetchSourceBuildInfo: \(error)")
+        }
+        return nil
+    }
+    
+    func execSourceBuild(_ buildId:Int) async -> BuildExecResult? {
+        do{
+            let url = "\(baseUrl)/admin/cloud/exec-build-project/\(buildId)"
+            let result: BuildExecResult? = try await makeRequestNoRequestData(url:url)
+            return result
+        }catch{
+            print("Error execSourceBuild: \(error)")
+        }
+        return nil
+    }
 }

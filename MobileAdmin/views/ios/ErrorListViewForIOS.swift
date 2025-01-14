@@ -3,7 +3,7 @@ import SwiftUI
 struct ErrorListViewForIOS: View {
     @ObservedObject var viewModel:ViewModel
     @ObservedObject var toastManager: ToastManager
-    @State private var errorItems:[ErrorCloudItem] = []
+//    @State private var errorItems:[ErrorCloudItem] = []
     @State private var searchText = ""
     @State private var isSearchBarVisible:Bool = true
     @State private var isLoading: Bool = false
@@ -13,9 +13,9 @@ struct ErrorListViewForIOS: View {
     
     var filteredErrorItems: [ErrorCloudItem] {
         if searchText.isEmpty {
-            return errorItems
+            return viewModel.errorItems
         }else{
-            return errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
+            return viewModel.errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
         }
     }
     
@@ -31,7 +31,7 @@ struct ErrorListViewForIOS: View {
                                    clearAction:{
                             searchText = ""
                         }){
-                            errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo:  dateTo) ?? []
+                            viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo:  dateTo) ?? []
                         }//.padding()
                         // 검색창 추가
                         if isSearchBarVisible {
@@ -76,7 +76,7 @@ struct ErrorListViewForIOS: View {
         .onAppear(){
             Task{
                 isLoading = true;
-                await errorItems = viewModel.fetchErrors(startFrom: dateFrom,
+                await viewModel.errorItems = viewModel.fetchErrors(startFrom: dateFrom,
                                                          endTo:  dateTo) ?? []
                 isLoading = false;
             }
@@ -84,7 +84,7 @@ struct ErrorListViewForIOS: View {
         .refreshable {
             Task{
                 isLoading = true;
-                await errorItems = viewModel.fetchErrors(startFrom: dateFrom,
+                await viewModel.errorItems = viewModel.fetchErrors(startFrom: dateFrom,
                                                          endTo:  dateTo) ?? []
                 isLoading = false;
             }

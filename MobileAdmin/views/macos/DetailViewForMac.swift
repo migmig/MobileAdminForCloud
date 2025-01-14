@@ -62,11 +62,13 @@ struct DetailViewForMac: View {
                 Text("Select a row to view details.")
             }
         }else if(selectedSlidebarItem == SlidebarItem.sourceBuild){
-            if let selectedProject = selectedSourceBuildProject{
-                SourceBuildDetail(selectedProject:selectedProject)
+            if let sourceBuildProject = selectedSourceBuildProject{
+                SourceBuildDetail(viewModel : viewModel,
+                                  selectedProject : sourceBuildProject)
             }else{
                 Text("Select a row to view details.")
             }
+            
         }else{
             Text(" ")
         }

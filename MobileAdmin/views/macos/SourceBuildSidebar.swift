@@ -20,6 +20,9 @@ struct SourceBuildSidebar: View {
                 }
             }
         }
+        .onChange(of: selectedSourceBuildProject) { newValue in
+            print("Selected project changed to: \(String(describing: newValue))")
+        }
         .onAppear(){
             if viewModel.buildProjects.isEmpty {
                 Task{
