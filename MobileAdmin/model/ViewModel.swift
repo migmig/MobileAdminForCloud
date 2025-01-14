@@ -373,4 +373,16 @@ class ViewModel: ObservableObject {
         }
         return nil
     }
+    
+    
+    func fetchSourceBuildHistory(_ buildId:Int) async -> SourceBuildHistoryInfo? {
+        do{
+            let url = "\(baseUrl)/admin/cloud/build-project-history-info/\(buildId)"
+            let result: SourceBuildHistoryInfo? = try await makeRequestNoRequestData(url:url)
+            return result
+        }catch{
+            print("Error fetchSourceBuildHistory: \(error)")
+        }
+        return nil
+    }
 }

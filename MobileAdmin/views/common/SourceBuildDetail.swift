@@ -17,6 +17,7 @@ struct SourceBuildDetail: View {
         VStack{
             HStack{
                 Button(action:{
+                    print("Refresh")
                     Task{
                         isLoaded = true
                         sourceBuildInfoResult = await viewModel.fetchSourceBuildInfo(selectedProject?.id ?? 0)?.result
@@ -71,7 +72,8 @@ struct SourceBuildDetail: View {
                     }
                     Section("Last Build"){
                         NavigationLink{
-                            SourceBuildHistory(projectId: selectedProject?.id ?? 0)
+                            SourceBuildHistory(viewModel:viewModel,
+                                               projectId: selectedProject?.id ?? 0)
                         } label:{
                             InfoRow3(
                                 title:"History ID",

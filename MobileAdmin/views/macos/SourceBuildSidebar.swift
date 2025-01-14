@@ -20,7 +20,7 @@ struct SourceBuildSidebar: View {
                 }
             }
         }
-        .onChange(of: selectedSourceBuildProject) { newValue in
+        .onChange(of: selectedSourceBuildProject) {oldvalue, newValue in
             print("Selected project changed to: \(String(describing: newValue))")
         }
         .onAppear(){
