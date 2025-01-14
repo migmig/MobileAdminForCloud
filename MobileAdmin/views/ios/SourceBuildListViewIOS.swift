@@ -27,27 +27,12 @@ struct SourceBuildListViewIOS: View {
     var body: some View {
         NavigationStack{
             VStack{
-                HStack{
-                    Button(action:{searchText = ""}){
-                        Label("전체", systemImage:"gear")
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(searchText.isEmpty ? .accentColor : .gray)
-                    Button(action:{searchText = "prod"}){
-                        Label("운영", systemImage:"gear")
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(searchText == "prod" ? .accentColor : .gray)
-                    Button(action:{searchText = "dev"}){
-                        Label("개발", systemImage:"gear")
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(searchText == "dev" ? .accentColor : .gray)
-                }
+                StageButtonViewCommon(searchText: $searchText)
                 List(filteredList){ item in
                     NavigationLink(value:item){
                         HStack{
                             Image(systemName:"hammer")
+                                .foregroundColor(item.name.contains("prod") ? .red : .blue)
                             Text("[\(item.id.description)] \(item.name)")
                         }
                     }
@@ -57,6 +42,7 @@ struct SourceBuildListViewIOS: View {
                                       selectedProject: item)
                 }
             }
+            .navigationTitle("소스빌드목록")
             .onAppear(){
                 if viewModel.buildProjects.isEmpty {
                     Task{
@@ -65,11 +51,11 @@ struct SourceBuildListViewIOS: View {
                         await MainActor.run{
                             viewModel.buildProjects = projects.result.project.sorted(by: {$0.id < $1.id})
                         }
+                         
                     }
                 }
             }
         }
-        .navigationTitle("Build Projects")
     }
 }
 

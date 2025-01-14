@@ -385,4 +385,15 @@ class ViewModel: ObservableObject {
         }
         return nil
     }
+    
+    func fetchSourcePipelineList() async -> SourcePipelineInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/pipeline-project-list"
+            let result: SourcePipelineInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourcePipelineInfo()
+        }catch{
+            print("Error fetchSourcePipelineList: \(error)")
+        }
+        return SourcePipelineInfo()
+    }
 }
