@@ -4,7 +4,7 @@ struct ContentListViewForMac: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var toast:Toast
-    @Binding var goodsinfos:[Goodsinfo]
+//    @Binding var goodsinfos:[Goodsinfo]
     @Binding var selectedGoods:Goodsinfo?
     @Binding var selectedErrorItem:ErrorCloudItem?
 //    @Binding var errorItems:[ErrorCloudItem]
@@ -56,7 +56,9 @@ struct ContentListViewForMac: View {
             }
             
         case .goodsInfo:
-            GoodsSidebar(goodsItems: $goodsinfos, selectedGoods: $selectedGoods)
+            GoodsSidebar(
+//                goodsItems: $goodsinfos,
+                         selectedGoods: $selectedGoods)
             
         case .gcpClsList:
             EdcClsSidebar(viewModel: viewModel, edcCrseCl: $edcCrseCl, selectedEdcCrseCl: $selectedEdcCrseCl)
@@ -84,7 +86,6 @@ struct ContentListViewForMac: View {
                                noticeSj: "제목",
                                noticeCn: "내용\n\n 내용  내용\n\n 내용내용\n\n 내용내용\n\n 내용",
                                useYn: "N")),
-        goodsinfos: .constant([]),
         selectedGoods: .constant(nil),
         selectedErrorItem: .constant(nil),
 //        errorItems: .constant([]),

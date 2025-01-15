@@ -3,8 +3,9 @@ import Logging
 
 
 class ViewModel: ObservableObject {
-    @Published var buildProjects: [SourceBuildProject] = []
-    @Published var errorItems:[ErrorCloudItem] = []
+    @Published var buildProjects : [SourceBuildProject] = []
+    @Published var errorItems    : [ErrorCloudItem] = []
+    @Published var goodsItems    : [Goodsinfo] = []
 
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
@@ -139,7 +140,7 @@ class ViewModel: ObservableObject {
                 try await fetchToken()
             }
         }
-        print(url);
+        //print(url);
         var request = URLRequest(url: URL(string: url)!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-type")

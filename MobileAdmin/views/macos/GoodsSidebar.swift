@@ -9,7 +9,7 @@ import SwiftUI
 
 struct GoodsSidebar: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
-    @Binding var goodsItems:[Goodsinfo]
+//    @Binding var goodsItems:[Goodsinfo]
     @Binding var selectedGoods:Goodsinfo?
     @State   var isLoading:Bool = false
     @State var dateFrom:Date = Date()
@@ -38,16 +38,15 @@ struct GoodsSidebar: View {
             
                     }
         ){
-            goodsItems = await viewModel
-                .fetchGoods(dateFrom, dateTo) ?? []
-            let arr  = Set(goodsItems.flatMap{item in
+            viewModel.goodsItems = await viewModel.fetchGoods(dateFrom, dateTo) ?? []
+            let arr  = Set(viewModel.goodsItems.flatMap{item in
                 item.goods.map{$0.goodsCd}
             })
             arrGoods = Array(arr)
             if searchText.isEmpty {
-                filteredGoodsItems = goodsItems
+                filteredGoodsItems = viewModel.goodsItems
             }else{
-                filteredGoodsItems = goodsItems.filter{item in
+                filteredGoodsItems = viewModel.goodsItems.filter{item in
                     item.userId?.localizedCaseInsensitiveContains(searchText) == true
                 }
             }
@@ -62,7 +61,7 @@ struct GoodsSidebar: View {
             arrGoods: $arrGoods,
             selectedGoodsCd: $selectedGoodsCd,
             filteredGoodsItems: $filteredGoodsItems,
-            goodsItems: $goodsItems
+            goodsItems: $viewModel.goodsItems
         )
         .padding(.horizontal)
         
@@ -72,9 +71,9 @@ struct GoodsSidebar: View {
                 Button("Clear"){
                     selectedGoodsCd = []
                     if searchText.isEmpty {
-                        filteredGoodsItems = goodsItems
+                        filteredGoodsItems = viewModel.goodsItems
                     }else{
-                        filteredGoodsItems = goodsItems.filter{item in
+                        filteredGoodsItems = viewModel.goodsItems.filter{item in
                             item.userId?.localizedCaseInsensitiveContains(searchText) == true
                         }
                     }
@@ -111,24 +110,6 @@ struct GoodsSidebar: View {
 
 #Preview {
     GoodsSidebar(
-        goodsItems: .constant(
-            [
-                 Goodsinfo(
-                        "UT00012300016",
-                        "20111104",
-                        [Good("N002"),Good("G002"),Good("N002"),Good("G00A")]
-                    
-                 )
-                 ,
-                 Goodsinfo(
-                        "UT00012300018",
-                        "20111105",
-                        [Good("N001"),Good("G002"),Good("N002"),Good("G00A")]
-                    
-                 )
-            ]
-            
-        ),
         selectedGoods: .constant(Goodsinfo("UT000000", "20111104"))
     )
 }

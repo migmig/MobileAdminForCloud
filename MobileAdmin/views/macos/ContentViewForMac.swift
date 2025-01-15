@@ -3,10 +3,9 @@ import SwiftUI
 struct ContentViewForMac: View {
     @ObservedObject var viewModel:ViewModel
     @ObservedObject var toastManager: ToastManager
-//    @State var errorItems:[ErrorCloudItem] = []
     @State var selectedErrorItem:ErrorCloudItem? = .init()
     @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
-    @State var goodsItems:[Goodsinfo] = []
+//    @State var goodsItems:[Goodsinfo] = []
     @State var selectedGoods:Goodsinfo? = nil
     @State var edcCrseCl:[EdcCrseCl] = []
     @State var selectedEdcCrseCl:EdcCrseCl? = nil
@@ -25,10 +24,9 @@ struct ContentViewForMac: View {
                     viewModel : viewModel,
                     selectedSlidebarItem: $selectedSidebarItem,
                     toast: $toast,
-                    goodsinfos: $goodsItems,
+//                    goodsinfos: $goodsItems,
                     selectedGoods: $selectedGoods,
                     selectedErrorItem: $selectedErrorItem,
-//                    errorItems: $errorItems,
                     edcCrseCl: $edcCrseCl,
                     selectedEdcCrseCl: $selectedEdcCrseCl,
                     groupCodes: $groupCodes,

@@ -117,7 +117,7 @@ struct ErrorSidebar: View {
                         isLoading = false;
                     }
                 }
-                .onChange(of:viewModel.errorItems){_ in
+                .onChange(of:viewModel.errorItems){_,_ in
                     proxy.scrollTo(viewModel.errorItems.first, anchor: .top)
                 }
             }
