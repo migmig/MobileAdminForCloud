@@ -2,8 +2,6 @@
 import SwiftUI
 struct ErrorListViewForIOS: View {
     @ObservedObject var viewModel:ViewModel
-    @ObservedObject var toastManager: ToastManager
-//    @State private var errorItems:[ErrorCloudItem] = []
     @State private var searchText = ""
     @State private var isSearchBarVisible:Bool = true
     @State private var isLoading: Bool = false
@@ -20,7 +18,7 @@ struct ErrorListViewForIOS: View {
     }
     
     var body: some View {
-        NavigationStack{
+       // NavigationStack{
             
             VStack() {
                 List{
@@ -35,15 +33,7 @@ struct ErrorListViewForIOS: View {
                         }//.padding()
                         // 검색창 추가
                         if isSearchBarVisible {
-                            HStack(alignment:.center) {
-//                                Image(systemName: "magnifyingglass")
-//                                    .foregroundColor(.gray) // 아이콘 색상
-//                                    .padding(.leading, 10) // 아이콘 왼쪽 패딩
-//                                
-//                                TextField("검색어 입력...", text: $searchText)
-//                                    .padding(10)
-//                                    .cornerRadius(10) // 모서리 둥글게
-//                                    .font(.system(size: 16)) // 폰트 크기
+                            HStack(alignment:.center) { 
                                 if isLoading{
                                     VStack {
                                         ProgressView()
@@ -60,19 +50,15 @@ struct ErrorListViewForIOS: View {
                     }
                     .searchable(text: $searchText , placement: .automatic)
                     ForEach(filteredErrorItems,id:\.id){entry in
-                        NavigationLink(value:entry){
+                        NavigationLink(destination: ErrorCloudItemView(errorCloudItem: entry)){
                             ErrorCloudListItem(errorCloudItem: entry)
                         }
                         
                     }
                 }
-                .navigationTitle("ErrorList")
-                .navigationDestination(for: ErrorCloudItem.self){entry in
-                    ErrorCloudItemView(errorCloudItem: entry,
-                                       toastManager: toastManager)
-                }
+                .navigationTitle("오류 조회")
             }
-        }
+        //}
         .onAppear(){
             Task{
                 isLoading = true;
@@ -94,5 +80,5 @@ struct ErrorListViewForIOS: View {
 }
 
 #Preview{
-    ErrorListViewForIOS(viewModel: .init(),toastManager: .init())
+    ErrorListViewForIOS(viewModel: .init() )
 }

@@ -2,8 +2,8 @@ import SwiftUI
 
 struct GoodsListViewIOS: View {
     @ObservedObject var viewModel:ViewModel
-    @ObservedObject var toastManager: ToastManager
-    @Binding var goodsItems:[Goodsinfo]
+//    @ObservedObject var toastManager: ToastManager
+    @State var goodsItems:[Goodsinfo] = []
     @State private var filteredGoodsItems:[Goodsinfo] = []
     @State private var isLoading:Bool = false
     @State private var dateFrom:Date = Date()
@@ -69,22 +69,19 @@ struct GoodsListViewIOS: View {
                 }
                 
                 List(filteredGoods){ entry in
-//                    ForEach( filteredGoods,id:\.id){ entry in
-                        NavigationLink(value:entry){
+                    NavigationLink(destination:{
+                        GoodsDetailView(goodsinfo: entry)
+                    }){
                             GoodsItemListItem(
                                 goodsItem: entry,
                                 selectedGoodsCd: selectedGoodsCd
                             )
                         }
-//                    }
                     .searchable(text: $searchText, placement: .automatic)
                     
                     
                 }
-                .navigationTitle("GoodsList")
-                .navigationDestination(for: Goodsinfo.self){item in
-                    GoodsDetailView(goodsinfo: item)
-                }
+                .navigationTitle("상품 조회")
             }
         }
         .onAppear()
@@ -107,7 +104,5 @@ struct GoodsListViewIOS: View {
 }
  
 #Preview{
-    GoodsListViewIOS(viewModel: .init()
-                     ,toastManager: .init()
-                     ,goodsItems: .constant([]))
+    GoodsListViewIOS(viewModel: .init()  )
 }

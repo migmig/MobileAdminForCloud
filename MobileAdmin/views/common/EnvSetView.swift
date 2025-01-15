@@ -21,6 +21,7 @@ struct EnvSetView: View {
     )
     @Environment(\.modelContext) private var modelContext
     @Binding var isPresented:Bool
+    
     var body: some View {
         ZStack{
 //            // 카드 배경
@@ -39,10 +40,11 @@ struct EnvSetView: View {
 //                            .blue, .blue,  .blue,
 //                            .green, .green, .green
 //                        ]
-//                        
+//
 //                    )
 //                ).ignoresSafeArea()
             VStack{
+                CloseButton(isPresented: $isPresented)
                     Text("URL 설정")
                         .font(.title)
                         .foregroundColor(.primary)

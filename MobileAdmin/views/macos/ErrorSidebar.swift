@@ -18,6 +18,7 @@ struct ErrorSidebar: View {
     @State var autoRefresh:Bool = false
     @State var timerProgress: Double = 0 // 슬라이더 값
     @State var timer: Timer? = nil // 타이머 객체
+    @ObservedObject var toastManager = ToastManager()
     var timeInterval:Double = 0.01 // 타이머 간격
    
    var filteredErrorItems: [ErrorCloudItem] {
@@ -84,8 +85,10 @@ struct ErrorSidebar: View {
                 Toggle("5초마다 자동 조회", isOn: $autoRefresh)
                 .onChange(of: autoRefresh) { _, newValue in
                     if newValue {
+                        toastManager.showToast(message: "자동 새로고침이 시작되었습니다.")
                         startAutoRefresh()
                     } else {
+                        toastManager.showToast(message: "자동 새로고침이 종료되었습니다.")
                         stopAutoRefresh()
                     }
                 }

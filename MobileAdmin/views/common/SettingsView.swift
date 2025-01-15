@@ -52,7 +52,7 @@ struct SettingsView: View {
         VStack{
             SettingsDetailsView(title:Settings.sync.rawValue )
         }
-        .padding()
+//        .padding()
         .navigationTitle(Settings.sync.rawValue)
     }
 }

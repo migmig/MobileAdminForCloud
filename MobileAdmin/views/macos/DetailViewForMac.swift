@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DetailViewForMac: View {
-    @ObservedObject var viewModel:ViewModel
+    @ObservedObject var viewModel:ViewModel = ViewModel()
     @ObservedObject var toastManager: ToastManager
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var selectedErrorItem : ErrorCloudItem?
@@ -18,16 +18,13 @@ struct DetailViewForMac: View {
         if(selectedSlidebarItem == SlidebarItem.errerlist){
             if let entry = selectedErrorItem{
                 ErrorCloudItemView(
-                    errorCloudItem: entry,
-                    toastManager: toastManager
+                    errorCloudItem: entry 
                 )
             }else{
                 Text("Select a row to view details.")
             }
         }else if(selectedSlidebarItem == SlidebarItem.toast){
-            ToastView(
-                viewModel: viewModel,
-                toastManager: toastManager,
+            ToastView( 
                 toastItem: $toast)
         }else if(selectedSlidebarItem == SlidebarItem.goodsInfo){
             if let entry = selectedGoods{

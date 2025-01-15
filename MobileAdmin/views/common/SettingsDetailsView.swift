@@ -7,36 +7,43 @@
 
 import SwiftUI
 import Logging
+import SwiftData
 
 struct SettingsDetailsView: View {
     let title : String
     @AppStorage("serverType") var serverType:EnvironmentType = .development
     @State private var isPresented = false
+    
     var body: some View {
         List {
-            if #available(iOS 17.0, *) {
-                Picker("환경설정변경", selection: $serverType) {
-                    Text("운영환경").tag(EnvironmentType.production)
-                    Text("개발환경").tag(EnvironmentType.development)
-                    Text("로컬환경").tag(EnvironmentType.local)
+            Picker("환경설정변경", selection: $serverType) {
+                VStack{
+                    Label("운영환경", systemImage: "network")
                 }
-                .onChange(of:serverType){oldvalue,newValue in
-                    EnvironmentConfig.current = newValue
-                    ViewModel.token = nil
-                }
-                .font(.title)
-                .pickerStyle(.inline)
-                .padding()
-            } else {
-                // Fallback on earlier versions
+                    .tag(EnvironmentType.production)
+                Label("개발환경", systemImage: "gearshape.2")
+                    .tag(EnvironmentType.development)
+                Label("로컬환경", systemImage: "gearshape")
+                    .tag(EnvironmentType.local)
             }
-            Button("URL 변경"){
+            .onChange(of:serverType){oldvalue,newValue in
+                EnvironmentConfig.current = newValue
+                ViewModel.token = nil
+            }
+            .font(.title)
+            .pickerStyle(.inline)
+            .padding()
+            Button("URL 변경",systemImage: "gearshape.2") {
                 isPresented = true
             }.sheet(isPresented: $isPresented, content: {
                 EnvSetView(isPresented: $isPresented)
             })
         } // List
+//        .ignoresSafeArea()
         .navigationTitle(title)
     }
 }
 
+#Preview{
+    SettingsDetailsView(title:"ServerSetting")
+}

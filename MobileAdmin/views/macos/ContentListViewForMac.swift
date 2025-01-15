@@ -4,10 +4,8 @@ struct ContentListViewForMac: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var toast:Toast
-//    @Binding var goodsinfos:[Goodsinfo]
     @Binding var selectedGoods:Goodsinfo?
     @Binding var selectedErrorItem:ErrorCloudItem?
-//    @Binding var errorItems:[ErrorCloudItem]
     @Binding var edcCrseCl:[EdcCrseCl]
     @Binding var selectedEdcCrseCl:EdcCrseCl?
     @Binding var groupCodes:[CmmnGroupCodeItem]?
@@ -41,7 +39,6 @@ struct ContentListViewForMac: View {
         switch item {
         case .errerlist:
             ErrorSidebar(
-//                errorItems: $errorItems,
                          selectedErrorItem: $selectedErrorItem)
             
         case .toast:
@@ -56,9 +53,7 @@ struct ContentListViewForMac: View {
             }
             
         case .goodsInfo:
-            GoodsSidebar(
-//                goodsItems: $goodsinfos,
-                         selectedGoods: $selectedGoods)
+            GoodsSidebar(selectedGoods: $selectedGoods)
             
         case .gcpClsList:
             EdcClsSidebar(viewModel: viewModel, edcCrseCl: $edcCrseCl, selectedEdcCrseCl: $selectedEdcCrseCl)
@@ -88,7 +83,6 @@ struct ContentListViewForMac: View {
                                useYn: "N")),
         selectedGoods: .constant(nil),
         selectedErrorItem: .constant(nil),
-//        errorItems: .constant([]),
         edcCrseCl: .constant([EdcCrseCl(
             "강의제목2",
             "강의내용 길게길게길게 "

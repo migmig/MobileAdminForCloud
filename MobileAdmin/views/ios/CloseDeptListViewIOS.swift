@@ -8,12 +8,10 @@
 import SwiftUI
 
 struct CloseDeptListViewIOS: View {
-    @ObservedObject var viewModel:ViewModel
+    @StateObject var viewModel:ViewModel = ViewModel()
     @State var list:[Detail1] = []
     @State var closeGb = "4"
-    init(viewModel:ViewModel){
-        self.viewModel = viewModel
-    }
+ 
     
     var filteredList: [Detail1] {
         closeGb == "4" ? list : list.filter{$0.closegb == closeGb}
@@ -37,7 +35,7 @@ struct CloseDeptListViewIOS: View {
                                          , ["미개시" : ""  ]
                                          , ["개시"   : "0" ]
                                          , ["가마감" : "1" ]
-                                         , ["마감"   : "2" ] 
+                                         , ["마감"   : "2" ]
                                         ]
     
     var body: some View {

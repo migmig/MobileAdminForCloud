@@ -11,7 +11,7 @@ struct CodeListViewIOS: View {
     @ObservedObject var viewModel:ViewModel
     @State var cmmnGroupCodeItems:[CmmnGroupCodeItem] = []
     var body: some View {
-        NavigationStack{
+        //NavigationStack{
             VStack{
                 List{
                     ForEach(cmmnGroupCodeItems,id:\.self){ item in
@@ -25,7 +25,8 @@ struct CodeListViewIOS: View {
                     }
                 }
             }
-        }
+            .navigationTitle("코드 조회")
+       // }
         .onAppear(){
             Task{
                 cmmnGroupCodeItems = await viewModel.fetchGroupCodeLists()

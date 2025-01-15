@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SourceBuildListViewIOS: View {
     @ObservedObject var viewModel:ViewModel
-    @ObservedObject var toastManager:ToastManager
     @State var selectedSourceBuildProject:SourceBuildProject?
     @State var searchText:String = ""
     var filteredList:[SourceBuildProject] {
@@ -25,25 +24,25 @@ struct SourceBuildListViewIOS: View {
         }
     }
     var body: some View {
-        NavigationStack{
+        //NavigationStack{
             VStack{
                 StageButtonViewCommon(searchText: $searchText)
                 List(filteredList){ item in
-                    NavigationLink(value:item){
+                    NavigationLink(destination:{
+                        SourceBuildDetail(viewModel:viewModel,
+                                          selectedProject: item)
+                    }){
                         HStack{
-                            Image(systemName: item.name.contains("prod") ? "antenna.radiowaves.left.and.right" :"wrench.and.screwdriver")
+                            Image(systemName: item.name.contains("prod") ? "antenna.radiowaves.left.and.right" :"gearshape.2")
                                 .foregroundColor(item.name.contains("prod") ? .red : .blue)
                             Text("[\(item.id.description)] \(item.name)")
                         }
                     }
-                }
-                .navigationDestination(for: SourceBuildProject.self){item in
-                    SourceBuildDetail(viewModel:viewModel,
-                                      selectedProject: item)
-                }
+                } 
             }
             .navigationTitle("소스빌드목록")
             .onAppear(){
+                print("SourceBuildListViewIOS.onAppear()")
                 if viewModel.buildProjects.isEmpty {
                     Task{
                         let projects = await viewModel.fetchSourceBuildList()
@@ -55,13 +54,7 @@ struct SourceBuildListViewIOS: View {
                     }
                 }
             }
-        }
+        //}
     }
 }
-
-#Preview {
-    SourceBuildListViewIOS(
-        viewModel: ViewModel(),
-        toastManager: ToastManager()
-    )
-}
+ 

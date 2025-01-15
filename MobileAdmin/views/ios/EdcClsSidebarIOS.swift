@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct EdcClsSidebarIOS: View {
-    @ObservedObject var viewModel:ViewModel = ViewModel()
+    @ObservedObject var viewModel:ViewModel
     @State var edcCrseCl:[EdcCrseCl] = []
     @State var selectedEdcCrseCl:EdcCrseCl? = nil
     @State var isLoading:Bool = false
@@ -33,7 +33,7 @@ struct EdcClsSidebarIOS: View {
                 }
             }
         }
-         .navigationTitle("강의목록 조회")
+         .navigationTitle("교육 조회")
          .onAppear(){
              Task{
                  isLoading = true

@@ -3,9 +3,8 @@ import SwiftUI
 import Logging
 
 struct ToastView: View {
-    @ObservedObject var viewModel : ViewModel
-    @ObservedObject var toastManager: ToastManager
-    //var viewModel : ViewModel = ViewModel()
+    @StateObject var viewModel:ViewModel = ViewModel()
+    @StateObject var toastManager: ToastManager = ToastManager()
     @Binding var toastItem:Toast
     @State var isLoading: Bool = false // 로딩중
     @State private var useYn: Bool = false
@@ -76,10 +75,7 @@ struct ToastView: View {
                                 .onChange(of: useYn) {
                                     Task{
                                         toastItem.useYn = useYn ? "Y" : "N"
-                                        await viewModel
-                                            .setNoticeVisible(
-                                                toastData: toastItem
-                                            )
+                                        await viewModel.setNoticeVisible(toastData: toastItem)
                                         toastItem = await viewModel.fetchToasts()
                                         DispatchQueue.main.async{
                                             useYn = (
@@ -158,18 +154,4 @@ struct ToastView: View {
     }//body
       
 }//struct
-
-#Preview{
-    ToastView(
-        viewModel: ViewModel(),
-        toastManager: ToastManager(),
-        toastItem: .constant(Toast(
-            applcBeginDt: Date(),
-            applcEndDt: Date(),
-            noticeHder: "제목",
-            noticeSj: "제목",
-            noticeCn: "내용\n\n 내용  내용\n\n 내용내용\n\n 내용내용\n\n 내용",
-            useYn: "N"
-        ))
-    )
-}
+ 

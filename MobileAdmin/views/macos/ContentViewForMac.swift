@@ -1,11 +1,10 @@
 import SwiftUI
 
 struct ContentViewForMac: View {
-    @ObservedObject var viewModel:ViewModel
+    //@ObservedObject var viewModel:ViewModel
     @ObservedObject var toastManager: ToastManager
     @State var selectedErrorItem:ErrorCloudItem? = .init()
-    @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
-//    @State var goodsItems:[Goodsinfo] = []
+    @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N") 
     @State var selectedGoods:Goodsinfo? = nil
     @State var edcCrseCl:[EdcCrseCl] = []
     @State var selectedEdcCrseCl:EdcCrseCl? = nil
@@ -20,25 +19,24 @@ struct ContentViewForMac: View {
         NavigationSplitView{
             SlidebarViewForMac(selection: $selectedSidebarItem)
         }content:{
-                ContentListViewForMac(
-                    viewModel : viewModel,
-                    selectedSlidebarItem: $selectedSidebarItem,
-                    toast: $toast,
-//                    goodsinfos: $goodsItems,
-                    selectedGoods: $selectedGoods,
-                    selectedErrorItem: $selectedErrorItem,
-                    edcCrseCl: $edcCrseCl,
-                    selectedEdcCrseCl: $selectedEdcCrseCl,
-                    groupCodes: $groupCodes,
-                    selectedGroupCode: $selectedGroupCode,
-                    closeDeptList: $closeDeptList,
-                    selectedCloseDept: $selectedCloseDept,
-                    selectedSourceBuildProject: $selectedSourceBuildProject
-                )
+            ContentListViewForMac(
+               // viewModel : viewModel,
+                selectedSlidebarItem: $selectedSidebarItem,
+                toast: $toast,
+                selectedGoods: $selectedGoods,
+                selectedErrorItem: $selectedErrorItem,
+                edcCrseCl: $edcCrseCl,
+                selectedEdcCrseCl: $selectedEdcCrseCl,
+                groupCodes: $groupCodes,
+                selectedGroupCode: $selectedGroupCode,
+                closeDeptList: $closeDeptList,
+                selectedCloseDept: $selectedCloseDept,
+                selectedSourceBuildProject: $selectedSourceBuildProject
+            )
         }detail:{
             NavigationStack{
                 DetailViewForMac(
-                    viewModel : viewModel,
+                   // viewModel : viewModel,
                     toastManager: toastManager,
                     selectedSlidebarItem: $selectedSidebarItem,
                     selectedErrorItem: $selectedErrorItem,

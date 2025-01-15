@@ -1,8 +1,3 @@
-// This file was generated from JSON Schema using quicktype, do not modify it directly.
-// To parse the JSON, add this file to your project and do:
-//
-//   let sourceBuildInfo = try? JSONDecoder().decode(SourceBuildInfo.self, from: jsonData)
-
 import Foundation
 
 // MARK: - SourceBuildInfo
@@ -13,106 +8,107 @@ struct SourceBuildInfo: Codable {
 // MARK: - Result
 struct SourceBuildInfoResult: Codable {
     let id: Int?
-    let name, description: String?
-    let created: Created?
-    let source: Source?
-    let env: Env?
-    let cmd: Cmd?
-    let artifact: Artifact?
-    let cache: Cache?
-    let linked: Linked?
-    let lastBuild: LastBuild?
+    let name: String?
+    let description: String?
+    let created: SourceBuildInfoCreated?
+    let source: SourceBuildInfoSource?
+    let env: SourceBuildInfoEnv?
+    let cmd: SourceBuildInfoCmd?
+    let artifact: SourceBuildInfoArtifact?
+    let cache: SourceBuildInfoCache?
+    let linked: SourceBuildInfoLinked?
+    let lastBuild: SourceBuildInfoLastBuild?
 }
 
 // MARK: - Artifact
-struct Artifact: Codable {
+struct SourceBuildInfoArtifact: Codable {
     let use: Bool?
     let path: [String]?
-    let storage: Storage?
+    let storage: SourceBuildInfoStorage?
     let backup: Bool?
 }
 
 // MARK: - Storage
-struct Storage: Codable {
+struct SourceBuildInfoStorage: Codable {
     let bucket, path, filename: String?
 }
 
 // MARK: - Cache
-struct Cache: Codable {
+struct SourceBuildInfoCache: Codable {
     let use: Bool?
 }
 
 // MARK: - Cmd
-struct Cmd: Codable {
+struct SourceBuildInfoCmd: Codable {
     let pre, build, post: [String]?
-    let dockerbuild: Cache?
+    let dockerbuild: SourceBuildInfoCache?
 }
 
 // MARK: - Created
-struct Created: Codable {
+struct SourceBuildInfoCreated: Codable {
     let timestamp: Int?
     let user: String?
 }
 
 // MARK: - Env
-struct Env: Codable {
+struct SourceBuildInfoEnv: Codable {
     let timeout: Int?
-    let envVars: [EnvVar]?
-    let compute: Compute?
-    let platform: Platform?
-    let docker: Cache?
+    let envVars: [SourceBuildInfoEnvVar]?
+    let compute: SourceBuildInfoCompute?
+    let platform: SourceBuildInfoPlatform?
+    let docker: SourceBuildInfoCache?
 }
 
 // MARK: - Compute
-struct Compute: Codable {
+struct SourceBuildInfoCompute: Codable {
     let id, cpu, mem: Int?
 }
 
 // MARK: - EnvVar
-struct EnvVar: Codable {
+struct SourceBuildInfoEnvVar: Codable {
     let key, value: String?
 }
 
 // MARK: - Platform
-struct Platform: Codable {
+struct SourceBuildInfoPlatform: Codable {
     let type: String?
-    let config: PlatformConfig?
+    let config: SourceBuildInfoPlatformConfig?
 }
 
 // MARK: - PlatformConfig
-struct PlatformConfig: Codable {
-    let os: OS?
-    let runtime: Runtime?
+struct SourceBuildInfoPlatformConfig: Codable {
+    let os: SourceBuildInfoOS?
+    let runtime: SourceBuildInfoRuntime?
 }
 
 // MARK: - OS
-struct OS: Codable {
+struct SourceBuildInfoOS: Codable {
     let id: Int?
     let name, version, archi: String?
 }
 
 // MARK: - Runtime
-struct Runtime: Codable {
+struct SourceBuildInfoRuntime: Codable {
     let id: Int?
     let name: String?
-    let version: Version?
+    let version: SourceBuildInfoVersion?
 }
 
 // MARK: - Version
-struct Version: Codable {
+struct SourceBuildInfoVersion: Codable {
     let id: Int?
     let name: String?
 }
 
 // MARK: - LastBuild
-struct LastBuild: Codable {
+struct SourceBuildInfoLastBuild: Codable {
     let id: String?
     let timestamp: Double?
     let status: String?
 }
 
 // MARK: - Linked
-struct Linked: Codable {
+struct SourceBuildInfoLinked: Codable {
     let fileSafer, cloudLogAnalytics: Bool?
 
     enum CodingKeys: String, CodingKey {
@@ -122,13 +118,13 @@ struct Linked: Codable {
 }
 
 // MARK: - Source
-struct Source: Codable {
+struct SourceBuildInfoSource: Codable {
     let type: String?
-    let config: SourceConfig?
+    let config: SourceBuildInfoSourceConfig?
 }
 
 // MARK: - SourceConfig
-struct SourceConfig: Codable {
+struct SourceBuildInfoSourceConfig: Codable {
     let repository, branch: String?
 }
 

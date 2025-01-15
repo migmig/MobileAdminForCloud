@@ -3,13 +3,12 @@ import SwiftUI
 
 struct ErrorCloudItemView: View {
     let errorCloudItem: ErrorCloudItem
-    @ObservedObject var toastManager: ToastManager
-    
+    @State private var isSheetPresented:Bool = false
     var body: some View {
         ScrollView {
             VStack{
                 Section(header: Text("상세 정보").font(.headline)) {
-                    InfoRow(title: "User ID:", value: errorCloudItem.userId ?? "") 
+                    InfoRow(title: "User ID:", value: errorCloudItem.userId ?? "")
                     Divider()
                     InfoRow(title: "Code:", value: errorCloudItem.code ?? "")
                     Divider()
@@ -20,22 +19,14 @@ struct ErrorCloudItemView: View {
                     HStack{
                         Text("Trace")
                         Spacer()
-                        NavigationLink(value:errorCloudItem.traceCn){
-                            Text(errorCloudItem.traceCn ?? "")
-                                .foregroundColor(.gray)
-                                .lineLimit(1)
-                        }
-                        .frame(width:200)
-                        .navigationDestination(for: String.self){value in
-                            ScrollView([.horizontal, .vertical]){
-                                VStack(alignment:.leading){
-                                    Text(value)
-                                        .padding()
-                                }
+                        Text(errorCloudItem.traceCn ?? "")
+                            .foregroundColor(.gray)
+                            .lineLimit(1)
+                            .onTapGesture {
+                                isSheetPresented = true
                             }
-                        }
+                        .frame(width:200)
                     }
-//                    InfoRow(title: "Trace", value: errorCloudItem.traceCn ?? "")
                     Divider()
                     InfoRow(title: "Reqest URL", value: errorCloudItem.restUrl ?? "")
                     Divider()
@@ -43,6 +34,15 @@ struct ErrorCloudItemView: View {
                     Divider()
                     InfoRow(title: "Request Info", value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
                     Divider()
+                }
+                .sheet(isPresented: $isSheetPresented){
+                    CloseButton(isPresented: $isSheetPresented)
+                    ScrollView([.horizontal, .vertical]){
+                        VStack(alignment:.leading){
+                            Text(errorCloudItem.traceCn ?? "")
+                                .padding()
+                        }
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -54,7 +54,4 @@ struct ErrorCloudItemView: View {
         .navigationSubtitle(Util.formatDateTime(errorCloudItem.registerDt))
 #endif
     }
-}
-#Preview{
-    ErrorCloudItemView(errorCloudItem: ErrorCloudItem(), toastManager: ToastManager())
 }
