@@ -30,7 +30,7 @@ struct SourceBuildSidebar: View {
             List(filteredList, selection: $selectedSourceBuildProject){ item in
                 NavigationLink(value:item){
                     HStack{
-                        Image(systemName:"hammer")
+                        Image(systemName:item.name.contains("prod") ? "antenna.radiowaves.left.and.right" :"wrench.and.screwdriver")
                             .foregroundColor(item.name.contains("prod") ? .red : .blue)
                         Text("[\(item.id.description)] \(item.name)")
                     }

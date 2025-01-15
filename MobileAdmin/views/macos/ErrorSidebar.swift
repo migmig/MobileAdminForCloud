@@ -15,7 +15,10 @@ struct ErrorSidebar: View {
     @State var isLoading:Bool = false
     @State var dateFrom:Date = Date()
     @State var dateTo:Date = Date()
-    
+    @State var autoRefresh:Bool = false
+    @State var timerProgress: Double = 0 // 슬라이더 값
+    @State var timer: Timer? = nil // 타이머 객체
+    var timeInterval:Double = 0.01 // 타이머 간격
    
    var filteredErrorItems: [ErrorCloudItem] {
        if searchText.isEmpty {
@@ -27,6 +30,7 @@ struct ErrorSidebar: View {
     
     var body: some View {
         VStack{
+            
             SearchArea(dateFrom: $dateFrom,
                        dateTo: $dateTo,
                        isLoading: $isLoading,
@@ -38,65 +42,114 @@ struct ErrorSidebar: View {
                 }
             }
             .padding()
-            // 검색창 추가
-//            HStack(spacing:1) {
-//
-//               Image(systemName: "magnifyingglass")
-//                   .foregroundColor(.gray) // 아이콘 색상
-//                   //.padding(.leading, 1) // 아이콘 왼쪽 패딩
-//
-//               TextField("검색어 입력...", text: $searchText)
-//                   .padding(10)
-////                       .background(Color(UIColor.systemGray6)) // 배경 색상
-//                   .cornerRadius(10) // 모서리 둥글게
-//                   .font(.system(size: 16)) // 폰트 크기
-//               //Text("\(filteredErrorItems.count)개의 오류")
-//           }
-           .padding(.horizontal) // 전체 HStack의 패딩
+//            .padding(.horizontal) // 전체 HStack의 패딩
             .searchable(text: $searchText , placement: .automatic)
-            List(filteredErrorItems,selection:$selectedErrorItem){entry in
-                NavigationLink(value:entry){
-                    ErrorCloudListItem(errorCloudItem: entry)
+            HStack{
+                if autoRefresh{
+                    HStack {
+                        GeometryReader { geometry in
+                            ZStack {
+//                                // 슬라이더 배경
+//                                RoundedRectangle(cornerRadius: 10)
+//                                    .fill(Color.gray.opacity(0.2))
+//                                    .frame(height: 12)
+                                
+                                // 진행도 바
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(LinearGradient(
+                                        gradient: Gradient(colors: [.blue, .green]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ))
+                                    .frame(
+                                        width: CGFloat(timerProgress / 5) * geometry.size.width * 0.8,
+                                        height: 12
+                                    )
+                            }
+                            .frame(height: 12)
+                            .padding(.horizontal)
+                        }
+                        .frame(height: 12) // 고정된 높이 설정
+                        
+                        // 슬라이더 설명 텍스트
+                        Text("자동 새로고침 진행: \(Int((timerProgress / 5) * 100))%")
+                            .font(.caption.monospacedDigit())
+                            .foregroundColor(.gray)
+                            .padding(.top, 4)
+                    }
+                    .padding(.horizontal)
+                }else{
+                    Spacer()
                 }
+                Toggle("5초마다 자동 조회", isOn: $autoRefresh)
+                .onChange(of: autoRefresh) { _, newValue in
+                    if newValue {
+                        startAutoRefresh()
+                    } else {
+                        stopAutoRefresh()
+                    }
+                }
+                .padding(.horizontal)
             }
-            .navigationTitle("오류 조회")
-            #if os(macOS)
-            .navigationSubtitle("  \(filteredErrorItems.count)개의 오류")
-            #endif
-            .navigationSplitViewColumnWidth(min:200,ideal: 200)
-#if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-#endif
-            .onAppear()
-            {
-                Task{
-                    isLoading = true;
-                    print("start")
-                    let errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
-                                                             endTo:  dateTo) ?? []
-                    viewModel.errorItems = errorItems 
-                    print("end")
-                    isLoading = false;
+            ScrollViewReader { proxy in
+                List(filteredErrorItems,selection:$selectedErrorItem){entry in
+                    NavigationLink(value:entry){
+                        ErrorCloudListItem(errorCloudItem: entry)
+                    }
+                }
+                .navigationTitle("오류 조회")
+                #if os(macOS)
+                .navigationSubtitle("  \(filteredErrorItems.count)개의 오류")
+                #endif
+                .navigationSplitViewColumnWidth(min:200,ideal: 200)
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .onAppear()
+                {
+                    Task{
+                        isLoading = true;
+                        print("start")
+                        let errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
+                                                                 endTo:  dateTo) ?? []
+                        viewModel.errorItems = errorItems
+                        print("end")
+                        isLoading = false;
+                    }
+                }
+                .onChange(of:viewModel.errorItems){_ in
+                    proxy.scrollTo(viewModel.errorItems.first, anchor: .top)
                 }
             }
         }
     }
+    
+    private func startAutoRefresh() {
+        timerProgress = 0
+        timer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { timer in
+            timerProgress += timeInterval
+            if timerProgress >= 5 {
+                Task {
+                    DispatchQueue.main.async {
+                        timerProgress = 0
+                    }
+                    let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
+                    DispatchQueue.main.async {
+                        viewModel.errorItems = errorItems
+                    }
+                }
+            }
+        }
+    }
+    
+    private func stopAutoRefresh() {
+        timer?.invalidate()
+        timer = nil
+        timerProgress = 0
+    }
 }
  #Preview {
     ErrorSidebar(
-//        errorItems: .constant([
-//            ErrorCloudItem(
-//                code: "code",
-//                description: "description",
-//                id:1,
-//                msg: "msg",
-//                registerDt: "20241108",
-//                requestInfo: "requestInfo",
-//                restUrl: "restUrl",
-//                traceCn: "traceCn",
-//                userId: "userId"
-//            )
-//        ]),
         selectedErrorItem: .constant(nil
         )
     )
