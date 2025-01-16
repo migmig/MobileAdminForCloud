@@ -17,13 +17,11 @@ struct SettingsDetailsView: View {
     var body: some View {
         List {
             Picker("환경설정변경", selection: $serverType) {
-                VStack{
-                    Label("운영환경", systemImage: "network")
-                }
+                Label("운영환경", systemImage: Util.getDevTypeImg("prod")) 
                     .tag(EnvironmentType.production)
-                Label("개발환경", systemImage: "gearshape.2")
+                Label("개발환경", systemImage: Util.getDevTypeImg("dev"))
                     .tag(EnvironmentType.development)
-                Label("로컬환경", systemImage: "gearshape")
+                Label("로컬환경", systemImage: Util.getDevTypeImg("local"))
                     .tag(EnvironmentType.local)
             }
             .onChange(of:serverType){oldvalue,newValue in

@@ -186,5 +186,17 @@ class Util{
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         return dateFormatter.string(from: Date(timeIntervalSince1970: timeInterval))
     }
-     
+    
+    static func getDevTypeImg(_ type:String) -> String{
+        switch type {
+        case "local":
+            return "gearshape.fill"
+        case "dev":
+            return "wrench.and.screwdriver"
+        case "prod":
+            return "antenna.radiowaves.left.and.right"
+        default:
+            return "network"
+        }
+    }
 }

@@ -55,6 +55,7 @@ struct CloseDeptDetail: View {
                 Divider()
             }
         }
+        .navigationBarTitle(closeDetail?.deptprtnm ?? "부서코드")
         .padding()
     }
 }

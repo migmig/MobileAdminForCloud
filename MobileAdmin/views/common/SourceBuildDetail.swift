@@ -121,7 +121,7 @@ struct SourceBuildDetail: View {
             #endif
             //.padding()
         }
-        .navigationTitle("[\(selectedProject!.id.description)]\(selectedProject!.name)")
+        .navigationTitle(sourceBuildInfoResult?.description ?? selectedProject!.name)
     }
 }
  

@@ -11,34 +11,54 @@ struct SourceBuildListViewIOS: View {
     @ObservedObject var viewModel:ViewModel
     @State var selectedSourceBuildProject:SourceBuildProject?
     @State var searchText:String = ""
-    var filteredList:[SourceBuildProject] {
-        searchText.isEmpty ? viewModel.buildProjects :
+    var prodList:[SourceBuildProject] {
         viewModel.buildProjects.filter{
-            if searchText == "prod" {
-                return $0.name.localizedStandardContains("prod")
-            } else if searchText == "dev" {
-                return !$0.name.localizedStandardContains("prod")
-            } else {
-                return true
-            }
+            return $0.name.localizedStandardContains("prod")
         }
+        .sorted(by: {$0.name < $1.name})
+    }
+    
+    var devList:[SourceBuildProject] {
+        viewModel.buildProjects.filter{
+            return !$0.name.localizedStandardContains("prod")
+        }
+        .sorted(by: {$0.name < $1.name})
     }
     var body: some View {
         //NavigationStack{
             VStack{
-                StageButtonViewCommon(searchText: $searchText)
-                List(filteredList){ item in
-                    NavigationLink(destination:{
-                        SourceBuildDetail(viewModel:viewModel,
-                                          selectedProject: item)
-                    }){
-                        HStack{
-                            Image(systemName: item.name.contains("prod") ? "antenna.radiowaves.left.and.right" :"gearshape.2")
-                                .foregroundColor(item.name.contains("prod") ? .red : .blue)
-                            Text("[\(item.id.description)] \(item.name)")
+//                StageButtonViewCommon(searchText: $searchText)
+                List{
+                    Section("운영"){
+                        ForEach(prodList, id:\.id){ item in
+                            NavigationLink(destination:{
+                                SourceBuildDetail(viewModel:viewModel,
+                                                  selectedProject: item)
+                            }){
+                                HStack{
+                                    Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
+                                        .foregroundColor(item.name.contains("prod") ? .red : .blue)
+                                    Text(item.name)
+                                }
+                            }
+                        }
+                    }
+                    Section("개발"){
+                        ForEach(devList, id:\.id){ item in
+                            NavigationLink(destination:{
+                                SourceBuildDetail(viewModel:viewModel,
+                                                  selectedProject: item)
+                            }){
+                                HStack{
+                                    Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
+                                        .foregroundColor(item.name.contains("prod") ? .red : .blue)
+                                    Text(item.name)
+                                }
+                            }
                         }
                     }
                 }
+                 
             }
             .navigationTitle("소스빌드목록")
             .onAppear(){
@@ -59,5 +79,5 @@ struct SourceBuildListViewIOS: View {
 }
 
 #Preview{
-    SourceBuildListViewIOS(viewModel: ViewModel()) 
+    SourceBuildListViewIOS(viewModel: ViewModel())
 }

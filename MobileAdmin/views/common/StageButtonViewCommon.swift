@@ -12,17 +12,17 @@ struct StageButtonViewCommon: View {
     var body: some View {
         HStack{
            Button(action:{searchText = ""}){
-               Label("전체", systemImage:"network")
+               Label("전체", systemImage: Util.getDevTypeImg("ALL"))
                    .foregroundColor(searchText.isEmpty ? .accentColor : .gray)
            }
            .buttonStyle(.bordered)
            Button(action:{searchText = "prod"}){
-               Label("운영", systemImage:"antenna.radiowaves.left.and.right")
-                   .foregroundColor(searchText == "prod" ? .accentColor : .gray) 
+               Label("운영", systemImage: Util.getDevTypeImg("prod"))
+                   .foregroundColor(searchText == "prod" ? .accentColor : .gray)
            }
            .buttonStyle(.bordered)
            Button(action:{searchText = "dev"}){
-               Label("개발", systemImage:"wrench.and.screwdriver")
+               Label("개발", systemImage: Util.getDevTypeImg("dev"))
                    .foregroundColor(searchText == "dev" ? .accentColor : .gray)
            }
            .buttonStyle(.bordered)

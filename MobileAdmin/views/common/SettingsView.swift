@@ -39,7 +39,7 @@ struct SettingsView: View {
                     
                 }
                 .tabItem{
-                    Label(item.rawValue, systemImage:item.image)
+                    Label(item.rawValue, systemImage: item.image)
                 }
                 .tag(item)
             }
