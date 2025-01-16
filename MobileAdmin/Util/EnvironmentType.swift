@@ -30,7 +30,7 @@ struct EnvironmentConfig {
        }
 
     static var baseUrl: String {
-        return environmentUrls[current] ?? "http://default.url" // 기본 URL 설정
+        return environmentUrls[current] ?? "http://192.168.0.3:8080"  // 기본 URL 설정
     }
     #if DEBUG
     static var current: EnvironmentType = .production

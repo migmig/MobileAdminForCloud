@@ -6,6 +6,7 @@ class ViewModel: ObservableObject {
     @Published var buildProjects : [SourceBuildProject] = []
     @Published var errorItems    : [ErrorCloudItem] = []
     @Published var goodsItems    : [Goodsinfo] = []
+    @Published var edcCrseCllist : [EdcCrseCl] = []
 
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
@@ -13,7 +14,7 @@ class ViewModel: ObservableObject {
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
 
     private var baseUrl: String {
-        return EnvironmentConfig.baseUrl
+        return EnvironmentConfig.baseUrl  
     }
 
     func setToken(token:String?){

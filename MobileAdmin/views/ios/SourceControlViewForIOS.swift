@@ -12,18 +12,19 @@ struct SourceControlViewForIOS: View {
     var body: some View {
         NavigationStack{
             List{
-                Label("SourceCommit", systemImage: "arrow.up.arrow.down.circle")
+                Label(SlidebarItem.sourceCommit.title, systemImage: SlidebarItem.sourceCommit.img)
                 NavigationLink(destination: SourceBuildListViewIOS(viewModel: viewModel)){
-                    Label("SourceBuild" , systemImage: "gearshape.2")
+                    Label(SlidebarItem.sourceBuild.title , systemImage: SlidebarItem.sourceBuild.img)
                 }
-                Label("SourceDeploy", systemImage: "arrow.up.circle")
-                Label("SourcePipeline", systemImage: "rectangle.connected.to.line.below")
+                Label(SlidebarItem.sourceDeploy.title,   systemImage: SlidebarItem.sourceDeploy.img)
+                Label(SlidebarItem.sourcePipeline.title, systemImage: SlidebarItem.sourcePipeline.img)
             }
             .navigationTitle("빌드관련")
         }
     }
 }
 
-#Preview {
+#Preview(
+) {
     SourceControlViewForIOS(viewModel: ViewModel() )
 }

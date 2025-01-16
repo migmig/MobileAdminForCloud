@@ -38,7 +38,7 @@ struct SourceBuildListViewIOS: View {
                             Text("[\(item.id.description)] \(item.name)")
                         }
                     }
-                } 
+                }
             }
             .navigationTitle("소스빌드목록")
             .onAppear(){
@@ -57,4 +57,7 @@ struct SourceBuildListViewIOS: View {
         //}
     }
 }
- 
+
+#Preview{
+    SourceBuildListViewIOS(viewModel: ViewModel()) 
+}

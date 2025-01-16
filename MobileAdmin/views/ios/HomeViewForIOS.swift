@@ -13,16 +13,16 @@ struct HomeViewForIOS: View {
         NavigationStack{
             List{
                 NavigationLink(destination: ErrorListViewForIOS(viewModel: viewModel)){
-                    Label("오류 조회" , systemImage: "cloud")
+                    Label(SlidebarItem.errerlist.title , systemImage: SlidebarItem.errerlist.img)
                 }
                 NavigationLink(destination: GoodsListViewIOS(viewModel: viewModel)){
-                    Label("상품 조회" , systemImage: "cart")
+                    Label(SlidebarItem.goodsInfo.title , systemImage: SlidebarItem.goodsInfo.img)
                 }
-                NavigationLink(destination: CodeListViewIOS(viewModel: viewModel)){
-                    Label("코드 조회" , systemImage: "list.bullet")
+                NavigationLink(destination: CodeListViewIOS(viewModel: viewModel)){ 
+                    Label(SlidebarItem.codeList.title  , systemImage: SlidebarItem.codeList.img)
                 }
                 NavigationLink(destination: EdcClsSidebarIOS(viewModel: viewModel)){
-                    Label("교육 조회" , systemImage: "book")
+                    Label(SlidebarItem.gcpClsList.title , systemImage: SlidebarItem.gcpClsList.img)
                 }
             }
             .navigationTitle("Home")

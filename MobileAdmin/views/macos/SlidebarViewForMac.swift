@@ -19,27 +19,68 @@ enum SlidebarItem: Hashable,CaseIterable{
                 .sourceBuild
         ]
     }
+    static var CloudTools: [SlidebarItem]{
+        return [
+            .errerlist,
+            .toast,
+            .gcpClsList,
+            .codeList,
+        ]
+    }
+    
+    static var InnerSystems: [SlidebarItem]{
+        return [
+            .goodsInfo,
+            .closeDeptList
+        ]
+    }
+    
+    static var DeveloperTools: [SlidebarItem]{
+        return [
+            .sourceCommit,
+                .sourceBuild,
+                .sourceDeploy,
+                .sourcePipeline
+        ]
+    }
     // Hashable 프로토콜을 준수하도록 변경
 
-    case errerlist,toast,goodsInfo,gcpClsList,codeList,closeDeptList,sourceBuild
+    case errerlist,
+         toast,
+         goodsInfo,
+         gcpClsList,
+         codeList,
+         closeDeptList,
+         sourceCommit,
+         sourceBuild,
+         sourceDeploy,
+         sourcePipeline
+         
+    
     case collection(String)
     
     var title: String{
         switch self{
         case .errerlist:
-            return "에러이력"
+            return "오류 조회"
         case .toast:
             return "토스트관리"
         case .goodsInfo:
-            return "상품이력"
+            return "상품 이력"
         case .gcpClsList:
-            return "강의목록"
+            return "교육 조회"
         case .codeList:
             return "코드목록"
         case .closeDeptList:
-            return "개시마감정보"
+            return "개시여부"
+        case .sourceCommit:
+            return "Source Commit"
         case .sourceBuild:
-            return "소스빌드"
+            return "Source Build"
+        case .sourceDeploy:
+            return "Source Deploy"
+        case .sourcePipeline:
+            return "Source Pipeline"
         case .collection(let title):
             return title
         }
@@ -47,9 +88,9 @@ enum SlidebarItem: Hashable,CaseIterable{
     var img: String{
         switch self{
         case .errerlist:
-            return "list.bullet"
+            return "cloud"
         case .toast:
-            return "list.bullet.rectangle.portrait"
+            return "bell"
         case .goodsInfo:
             return "cart"
         case .gcpClsList:
@@ -57,9 +98,15 @@ enum SlidebarItem: Hashable,CaseIterable{
         case .codeList:
             return "doc.text"
         case .closeDeptList:
-            return "door.sliding.left.hand.open"
+            return "square.and.pencil"
+        case .sourceCommit:
+            return "arrow.up.arrow.down.circle"
+        case .sourceDeploy:
+            return "arrow.up.circle"
+        case .sourcePipeline:
+            return "rectangle.connected.to.line.below"
         case .sourceBuild:
-            return "hammer"
+            return "gearshape.2"
         case .collection(let title):
             return title
         }
@@ -71,8 +118,26 @@ struct SlidebarViewForMac: View {
     @Binding var selection: SlidebarItem?
     var body: some View {
         List(selection:$selection){
-            Section(header:Text("화면목록")){
-                ForEach(SlidebarItem.allCases, id: \.self){ item in
+            Section(header:Text("클라우드")){
+                ForEach(SlidebarItem.CloudTools, id: \.self){ item in
+                    NavigationLink(value:item){
+                        //Text(item.title)
+                        Label(" [ \(item.title) ] ", systemImage: item.img)
+                            .font(.title2)
+                    }
+                }
+            }
+            Section(header:Text("내부시스템")){
+                ForEach(SlidebarItem.InnerSystems, id: \.self){ item in
+                    NavigationLink(value:item){
+                        //Text(item.title)
+                        Label(" [ \(item.title) ] ", systemImage: item.img)
+                            .font(.title2)
+                    }
+                }
+            }
+            Section(header:Text("개발도구")){
+                ForEach(SlidebarItem.DeveloperTools, id: \.self){ item in
                     NavigationLink(value:item){
                         //Text(item.title)
                         Label(" [ \(item.title) ] ", systemImage: item.img)

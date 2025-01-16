@@ -54,3 +54,21 @@ struct ContentViewForMac: View {
     }
 }
 
+
+#Preview(
+    traits: .fixedLayout(width: 1500, height: 1200)
+){
+    
+    ContentViewForMac(
+        //viewModel:ViewModel(),
+        toastManager: ToastManager()
+    )
+    .toolbar{
+        ToolbarItem{
+            Button(action: {
+            }) {
+                Label("새로고침", systemImage: "arrow.clockwise")
+            }
+        }
+    }
+}

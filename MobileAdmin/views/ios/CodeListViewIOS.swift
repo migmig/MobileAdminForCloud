@@ -28,8 +28,10 @@ struct CodeListViewIOS: View {
             .navigationTitle("코드 조회")
        // }
         .onAppear(){
-            Task{
-                cmmnGroupCodeItems = await viewModel.fetchGroupCodeLists()
+            if cmmnGroupCodeItems.isEmpty{
+                Task{
+                    cmmnGroupCodeItems = await viewModel.fetchGroupCodeLists()
+                }
             }
         }
     }

@@ -55,15 +55,12 @@ struct MySceneForIOS: Scene {
                        authenticateUser()
                    }
                }else{
-                   let tabItems: [(Int, String, String, AnyView)] = [
-                       (0, "홈"      , "house"             , AnyView(HomeViewForIOS())),
-                       (1, "토스트"  , "bell"              , AnyView(ToastView(toastItem: $toast))),
-                       (2, "개시여부", "square.and.pencil" , AnyView(CloseDeptListViewIOS())),
-                       (3, "개발도구", "hammer"            , AnyView(SourceControlViewForIOS())),
-//                        (4, "상품"    , "cart"              , AnyView(GoodsListViewIOS(goodsItems: $goodsItems))),
-//                        (5, "코드"    , "list.bullet"       , AnyView(CodeListViewIOS())),
-//                        (6, "교육"    , "book"              , AnyView(EdcClsSidebarIOS())),
-                       (4, "Settings", "gear"              , AnyView(SettingsView()))
+                   let tabItems: [(UUID, String, String, AnyView)] = [
+                       (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS())),
+                       (UUID(), SlidebarItem.toast.title        , SlidebarItem.toast.img         , AnyView(ToastView(toastItem: $toast))),
+                       (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS())),
+                       (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS())),
+                       (UUID(), "환경설정"                      , "gear"                         , AnyView(SettingsView()))
                    ]
                    
                    TabView(selection: $selectedTab) {
@@ -123,4 +120,24 @@ struct MySceneForIOS: Scene {
            }
        }
    }
+}
+
+#Preview{
+    
+        let tabItems: [(UUID, String, String, AnyView)] = [
+            (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS())),
+            (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS())),
+            (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS())),
+            (UUID(), "환경설정"                      , "gear"                         , AnyView(SettingsView()))
+        ]
+        
+        TabView() {
+            ForEach(tabItems, id: \.0) { tabItem in
+                tabItem.3
+                    .tabItem {
+                        Label(tabItem.1, systemImage: tabItem.2)
+                    }
+                    .tag(tabItem.0)
+            }
+        } 
 }

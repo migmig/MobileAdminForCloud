@@ -15,8 +15,7 @@ struct CodeDetailView:View{
     fileprivate func fnSearch()  {
         Task{
             isLoading = true;
-            cmmnCodeItems = await viewModel
-                .fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
+            cmmnCodeItems = await viewModel.fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
             isLoading = false;
         }
     }
@@ -66,121 +65,125 @@ struct CodeDetailView:View{
                 fnSearch()
             }
             Divider()
-#if os(iOS)
-            ScrollView(.horizontal, showsIndicators: true){
-                
-                HStack{
-                    VStack{
-                        Text("코드")
-                    }
-                    .frame(width:100)
-                    VStack{
-                        Text("코드명")
-                    }
-                    .frame(width:200)
-                    VStack{
-                        Text("사용여부")
-                    }
-                    .frame(width:80)
-                    VStack{
-                        Text(cmmnGroupCodeItem.groupEstbs1Value ?? "기타항목1")
-                    }
-                    .frame(width:150)
-                    VStack{
-                        Text(cmmnGroupCodeItem.groupEstbs2Value ?? "기타항목2")
-                    }
-                    .frame(width:150)
-                    VStack{
-                        Text(cmmnGroupCodeItem.groupEstbs3Value ?? "기타항목3")
-                    }
-                    .frame(width:150)
-                    VStack{
-                        Text(cmmnGroupCodeItem.groupEstbs4Value ?? "기타항목4")
-                    }
-                    .frame(width:150)
-                    VStack{
-                        Text(cmmnGroupCodeItem.groupEstbs5Value ?? "기타항목5")
-                    }
-                    .frame(width:150)
-                    VStack{
-                        Text(cmmnGroupCodeItem.groupEstbs6Value ?? "기타항목6")
-                    }
-                    .frame(width:150)
-                    VStack{
-                        Text(cmmnGroupCodeItem.groupEstbs7Value ?? "기타항목7")
-                    }
-                    .frame(width:150)
-                }
-                .fontWeight(.bold)
-                Divider()
-                ForEach(cmmnCodeItems){item in
+//#if os(macOS)
+//            Table(cmmnCodeItems){
+//                TableColumn("코드"     , value:\.cmmnCode )
+//                TableColumn("코드명"   , value:\.cmmnCodeNm)
+//                TableColumn("사용여부" , value:\.useAt)
+//                TableColumn(cmmnGroupCodeItem.groupEstbs1Value ?? "기타항목1", value:\.cmmnEstbs1Value)
+//                TableColumn(cmmnGroupCodeItem.groupEstbs2Value ?? "기타항목2", value:\.cmmnEstbs2Value)
+//                TableColumn(cmmnGroupCodeItem.groupEstbs3Value ?? "기타항목3", value:\.cmmnEstbs3Value)
+//                TableColumn(cmmnGroupCodeItem.groupEstbs4Value ?? "기타항목4", value:\.cmmnEstbs4Value)
+//                TableColumn(cmmnGroupCodeItem.groupEstbs5Value ?? "기타항목5", value:\.cmmnEstbs5Value)
+//                TableColumn(cmmnGroupCodeItem.groupEstbs6Value ?? "기타항목6", value:\.cmmnEstbs6Value)
+//                TableColumn(cmmnGroupCodeItem.groupEstbs7Value ?? "기타항목7", value:\.cmmnEstbs7Value)
+//            }
+//#endif
+//#if os(iOS)
+            if(isLoading){
+                ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
+            }else{
+                ScrollView(.horizontal, showsIndicators: true){
+                    
                     HStack{
                         VStack{
-                            Text(item.cmmnCode)
+                            Text("코드")
                         }
                         .frame(width:100)
                         VStack{
-                            Text(item.cmmnCodeNm)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text("코드명")
                         }
                         .frame(width:200)
                         VStack{
-                            Toggle(isOn: .constant(item.useAt == "Y")){}
+                            Text("사용여부")
                         }
                         .frame(width:80)
                         VStack{
-                            Text(item.cmmnEstbs1Value)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text(cmmnGroupCodeItem.groupEstbs1Value ?? "기타항목1")
                         }
                         .frame(width:150)
                         VStack{
-                            Text(item.cmmnEstbs1Value)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text(cmmnGroupCodeItem.groupEstbs2Value ?? "기타항목2")
                         }
                         .frame(width:150)
                         VStack{
-                            Text(item.cmmnEstbs3Value)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text(cmmnGroupCodeItem.groupEstbs3Value ?? "기타항목3")
                         }
                         .frame(width:150)
                         VStack{
-                            Text(item.cmmnEstbs4Value)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text(cmmnGroupCodeItem.groupEstbs4Value ?? "기타항목4")
                         }
                         .frame(width:150)
                         VStack{
-                            Text(item.cmmnEstbs5Value)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text(cmmnGroupCodeItem.groupEstbs5Value ?? "기타항목5")
                         }
                         .frame(width:150)
                         VStack{
-                            Text(item.cmmnEstbs6Value)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text(cmmnGroupCodeItem.groupEstbs6Value ?? "기타항목6")
                         }
                         .frame(width:150)
                         VStack{
-                            Text(item.cmmnEstbs7Value)
-                               // .fixedSize(horizontal: true, vertical: false)
+                            Text(cmmnGroupCodeItem.groupEstbs7Value ?? "기타항목7")
                         }
                         .frame(width:150)
                     }
+                    .fontWeight(.bold)
+                    Divider()
+                    ForEach(cmmnCodeItems){item in
+                        HStack{
+                            VStack{
+                                Text(item.cmmnCode)
+                            }
+                            .frame(width:100)
+                            VStack{
+                                Text(item.cmmnCodeNm)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:200)
+                            VStack{
+                                Toggle(isOn: .constant(item.useAt == "Y")){}
+                            }
+                            .frame(width:80)
+                            VStack{
+                                Text(item.cmmnEstbs1Value)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:150)
+                            VStack{
+                                Text(item.cmmnEstbs1Value)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:150)
+                            VStack{
+                                Text(item.cmmnEstbs3Value)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:150)
+                            VStack{
+                                Text(item.cmmnEstbs4Value)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:150)
+                            VStack{
+                                Text(item.cmmnEstbs5Value)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:150)
+                            VStack{
+                                Text(item.cmmnEstbs6Value)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:150)
+                            VStack{
+                                Text(item.cmmnEstbs7Value)
+                                // .fixedSize(horizontal: true, vertical: false)
+                            }
+                            .frame(width:150)
+                        }
+                    }
                 }
             }
-#endif
-#if os(macOS)
-            Table(cmmnCodeItems){
-                TableColumn("코드"     , value:\.cmmnCode )
-                TableColumn("코드명"   , value:\.cmmnCodeNm)
-                TableColumn("사용여부" , value:\.useAt)
-                TableColumn(cmmnGroupCodeItem.groupEstbs1Value ?? "기타항목1", value:\.cmmnEstbs1Value)
-                TableColumn(cmmnGroupCodeItem.groupEstbs2Value ?? "기타항목2", value:\.cmmnEstbs2Value)
-                TableColumn(cmmnGroupCodeItem.groupEstbs3Value ?? "기타항목3", value:\.cmmnEstbs3Value)
-                TableColumn(cmmnGroupCodeItem.groupEstbs4Value ?? "기타항목4", value:\.cmmnEstbs4Value)
-                TableColumn(cmmnGroupCodeItem.groupEstbs5Value ?? "기타항목5", value:\.cmmnEstbs5Value)
-                TableColumn(cmmnGroupCodeItem.groupEstbs6Value ?? "기타항목6", value:\.cmmnEstbs6Value)
-                TableColumn(cmmnGroupCodeItem.groupEstbs7Value ?? "기타항목7", value:\.cmmnEstbs7Value)
-            }
-#endif
+//#endif
         }
         .navigationTitle("코드상세조회")
             
