@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CloseDeptListViewIOS: View {
-    @StateObject var viewModel:ViewModel = ViewModel()
+    @EnvironmentObject var viewModel:ViewModel 
     @State var list:[Detail1] = []
     @State var closeGb = "4"
  
@@ -98,7 +98,4 @@ struct ButtonView: View {
         .buttonStyle(BorderedButtonStyle())
     }
 }
-
-#Preview {
-    CloseDeptListViewIOS(viewModel: ViewModel())
-}
+ 

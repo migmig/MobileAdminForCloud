@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentListViewForMac: View {
-    @ObservedObject var viewModel:ViewModel = ViewModel()
+    @ObservedObject var viewModel:ViewModel 
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var toast:Toast
     @Binding var selectedGoods:Goodsinfo?
@@ -74,6 +74,7 @@ struct ContentListViewForMac: View {
 
 #Preview{
     ContentListViewForMac(
+        viewModel:ViewModel(),
         selectedSlidebarItem: .constant(SlidebarItem.sourceBuild),
         toast: .constant(Toast(applcBeginDt: Date(),
                                applcEndDt: Date(),

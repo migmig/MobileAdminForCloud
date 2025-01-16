@@ -8,14 +8,14 @@ struct MySceneForIOS: Scene {
    let logger = Logger(label:"com.migmig.MobileAdmin.MyScene")
   // @StateObject private var toastManager: ToastManager = ToastManager()
    @AppStorage("serverType") var serverType:EnvironmentType = .local
-   //@StateObject private var viewModel = ViewModel()
+   @StateObject private var viewModel = ViewModel()
    @State var toast:Toast = Toast(applcBeginDt: nil, applcEndDt: nil, noticeHder: "", noticeSj: "", noticeCn: "", useYn: "")
 //    @State var goodsItems:[Goodsinfo] = []
    @State var edcCrseCl:[EdcCrseCl] = []
    @State var selectedEdcCrseCl:EdcCrseCl = .init()
    @State private var isLoading: Bool = false
    @State private var selectedTab: Int = 0 // 현재 선택된 탭
-   @State private var isAuthenticated = true
+   var isAuthenticated = true
    @State private var authenticationMessage = ""
    @Query var allEnvironment: [EnvironmentModel]
 
@@ -55,24 +55,27 @@ struct MySceneForIOS: Scene {
                        authenticateUser()
                    }
                }else{
-                   let tabItems: [(UUID, String, String, AnyView)] = [
-                       (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS())),
-                       (UUID(), SlidebarItem.toast.title        , SlidebarItem.toast.img         , AnyView(ToastView(toastItem: $toast))),
-                       (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS())),
-                       (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS())),
-                       (UUID(), "환경설정"                      , "gear"                         , AnyView(SettingsView()))
+                   let tabItems: [(Int, String, String, AnyView)] = [
+                       (0,"홈"                            ,"house"                          , AnyView(HomeViewForIOS())),
+                       (1, SlidebarItem.toast.title        , SlidebarItem.toast.img         , AnyView(ToastView(toastItem: $toast))),
+                       (2, SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS())),
+                       (3, "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS())),
+                       (4, "환경설정"                      , "gear"                         , AnyView(SettingsView()))
                    ]
                    
-                   TabView(selection: $selectedTab) {
-                       ForEach(tabItems, id: \.0) { tabItem in
-                           tabItem.3
-                               .tabItem {
-                                   Label(tabItem.1, systemImage: tabItem.2)
-                               }
-                               .tag(tabItem.0)
+                   
+                       TabView(selection: $selectedTab) {
+                           ForEach(tabItems, id: \.0) { tabItem in
+                               tabItem.3
+                                   .tabItem {
+                                       Label(tabItem.1, systemImage: tabItem.2)
+                                   }
+                                   .tag(tabItem.0)
+                                   .environmentObject(viewModel)                               
+                           }
                        }
-                   }
-                   .ignoresSafeArea()
+                       .ignoresSafeArea()
+                    
                    
                   // .toastManager(toastManager:toastManager)
                    .onAppear{
@@ -81,13 +84,13 @@ struct MySceneForIOS: Scene {
                        logger.info("serverType:\(serverType)")
                        EnvironmentConfig.current = serverType
                    }
-                   .onChange(of: selectedTab){oldValue,newValue in
-                       withAnimation(.spring()){
-                           selectedTab = newValue
-                           print(newValue)
-                           print(selectedTab)
-                       }
-                   }
+//                   .onChange(of: selectedTab){oldValue,newValue in
+//                       withAnimation(.spring()){
+//                           selectedTab = newValue
+//                           print(newValue)
+//                           print(selectedTab)
+//                       }
+//                   }
                }
            }
        }
@@ -105,10 +108,10 @@ struct MySceneForIOS: Scene {
            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
                DispatchQueue.main.async {
                    if success {
-                       self.isAuthenticated = true
+                       //self.isAuthenticated = true
                        self.authenticationMessage = "인증에 성공했습니다!"
                    } else {
-                       self.isAuthenticated = false
+                       //self.isAuthenticated = false
                        self.authenticationMessage = "인증에 실패했습니다."
                    }
                }
@@ -123,11 +126,11 @@ struct MySceneForIOS: Scene {
 }
 
 #Preview{
-    
+    var viewModel:ViewModel = ViewModel()
         let tabItems: [(UUID, String, String, AnyView)] = [
-            (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS())),
-            (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS())),
-            (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS())),
+            (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS( ))),
+            (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS( ))),
+            (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS( ))),
             (UUID(), "환경설정"                      , "gear"                         , AnyView(SettingsView()))
         ]
         
@@ -138,6 +141,7 @@ struct MySceneForIOS: Scene {
                         Label(tabItem.1, systemImage: tabItem.2)
                     }
                     .tag(tabItem.0)
+                    .environmentObject(viewModel)      
             }
-        } 
+        }
 }

@@ -7,6 +7,7 @@ class ViewModel: ObservableObject {
     @Published var errorItems    : [ErrorCloudItem] = []
     @Published var goodsItems    : [Goodsinfo] = []
     @Published var edcCrseCllist : [EdcCrseCl] = []
+    @Published var sourceCommitInfoRepository : [SourceCommitInfoRepository] = []
 
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
@@ -14,7 +15,7 @@ class ViewModel: ObservableObject {
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
 
     private var baseUrl: String {
-        return EnvironmentConfig.baseUrl  
+        return EnvironmentConfig.baseUrl
     }
 
     func setToken(token:String?){
@@ -397,5 +398,17 @@ class ViewModel: ObservableObject {
             print("Error fetchSourcePipelineList: \(error)")
         }
         return SourcePipelineInfo()
+    }
+    
+    //commit-repository-list
+    func fetchSourceCommitList() async -> SourceCommitInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/commit-repository-list"
+            let result: SourceCommitInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceCommitInfo()
+        }catch{
+            print("Error fetchSourceCommitList: \(error)")
+        }
+        return SourceCommitInfo()
     }
 }

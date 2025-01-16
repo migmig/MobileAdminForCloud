@@ -14,20 +14,39 @@
 import Foundation
 
 // MARK: - SourceCommitInfo
-struct SourceCommitInfo: Hashable {
-    let result: SourceCommitInfoResult?
+struct SourceCommitInfo: Codable,Hashable {
+    let result: SourceCommitInfoResult
+    init(){
+        self.result = SourceCommitInfoResult()
+    }
 }
 
 // MARK: - SourceCommitInfoResult
-struct SourceCommitInfoResult: Hashable {
-    let total: Int?
-    let repository: [SourceCommitInfoRepository]?
+struct SourceCommitInfoResult: Codable,Hashable {
+    let total: Int
+    let repository: [SourceCommitInfoRepository]
+    init(){
+        total = 0
+        repository = []
+    }
 }
 
 // MARK: - SourceCommitInfoRepository
-struct SourceCommitInfoRepository: Hashable {
-    let id: Int?
-    let name: String?
+struct SourceCommitInfoRepository: Codable,Hashable {
+    let id: Int
+    let name: String
     let permission: String?
     let actionName: String?
+    init(){
+        id = 0
+        name = ""
+        permission = ""
+        actionName = ""
+    }
+    init(id:Int,name:String,permission:String,actionName:String){
+        self.id = id
+        self.name = name
+        self.permission = permission
+        self.actionName = actionName
+    }
 }

@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct SourceControlViewForIOS: View {
-    @StateObject var viewModel:ViewModel = ViewModel()
+    @EnvironmentObject var viewModel:ViewModel
     var body: some View {
         NavigationStack{
             List{
-                Label(SlidebarItem.sourceCommit.title, systemImage: SlidebarItem.sourceCommit.img)
+                NavigationLink(destination: SourceCommitListViewIOS(viewModel: viewModel)){
+                    Label(SlidebarItem.sourceCommit.title, systemImage: SlidebarItem.sourceCommit.img)
+                }
                 NavigationLink(destination: SourceBuildListViewIOS(viewModel: viewModel)){
                     Label(SlidebarItem.sourceBuild.title , systemImage: SlidebarItem.sourceBuild.img)
                 }
@@ -23,8 +25,4 @@ struct SourceControlViewForIOS: View {
         }
     }
 }
-
-#Preview(
-) {
-    SourceControlViewForIOS(viewModel: ViewModel() )
-}
+ 

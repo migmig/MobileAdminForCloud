@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct ContentViewForMac: View {
-    //@ObservedObject var viewModel:ViewModel
+    @StateObject var viewModel:ViewModel = ViewModel()
     @ObservedObject var toastManager: ToastManager
     @State var selectedErrorItem:ErrorCloudItem? = .init()
-    @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N") 
+    @State var toast:Toast = Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
     @State var selectedGoods:Goodsinfo? = nil
     @State var edcCrseCl:[EdcCrseCl] = []
     @State var selectedEdcCrseCl:EdcCrseCl? = nil
@@ -20,7 +20,7 @@ struct ContentViewForMac: View {
             SlidebarViewForMac(selection: $selectedSidebarItem)
         }content:{
             ContentListViewForMac(
-               // viewModel : viewModel,
+                viewModel : viewModel,
                 selectedSlidebarItem: $selectedSidebarItem,
                 toast: $toast,
                 selectedGoods: $selectedGoods,
@@ -36,7 +36,7 @@ struct ContentViewForMac: View {
         }detail:{
             NavigationStack{
                 DetailViewForMac(
-                   // viewModel : viewModel,
+                    viewModel : viewModel,
                     toastManager: toastManager,
                     selectedSlidebarItem: $selectedSidebarItem,
                     selectedErrorItem: $selectedErrorItem,

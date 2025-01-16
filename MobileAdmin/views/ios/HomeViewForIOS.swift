@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeViewForIOS: View {
-    @StateObject var viewModel:ViewModel = ViewModel()
+    @EnvironmentObject var viewModel:ViewModel
     var body: some View {
         NavigationStack{
             List{
@@ -18,7 +18,7 @@ struct HomeViewForIOS: View {
                 NavigationLink(destination: GoodsListViewIOS(viewModel: viewModel)){
                     Label(SlidebarItem.goodsInfo.title , systemImage: SlidebarItem.goodsInfo.img)
                 }
-                NavigationLink(destination: CodeListViewIOS(viewModel: viewModel)){ 
+                NavigationLink(destination: CodeListViewIOS(viewModel: viewModel)){
                     Label(SlidebarItem.codeList.title  , systemImage: SlidebarItem.codeList.img)
                 }
                 NavigationLink(destination: EdcClsSidebarIOS(viewModel: viewModel)){
@@ -29,7 +29,4 @@ struct HomeViewForIOS: View {
         }
     }
 }
-
-#Preview {
-    HomeViewForIOS(viewModel: ViewModel())
-}
+ 

@@ -3,7 +3,7 @@ import SwiftUI
 import Logging
 
 struct ToastView: View {
-    @StateObject var viewModel:ViewModel = ViewModel()
+    @EnvironmentObject var viewModel:ViewModel 
     @StateObject var toastManager: ToastManager = ToastManager()
     @Binding var toastItem:Toast
     @State var isLoading: Bool = false // 로딩중
