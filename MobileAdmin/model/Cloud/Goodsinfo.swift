@@ -158,6 +158,26 @@ struct Good :Codable,Identifiable,Hashable{
         self.popDispYn = ""
         self.inrstMin = 0.0
     }
+    
+    init(_ goodsCd:String, _ goodsNm:String, _ maxLmt:Int, _ treatmentList:[TreatmentList]){
+        self.goodsNm = goodsNm
+        self.goodsCd = goodsCd
+        self.maxLmt = maxLmt
+        self.finProdType = ""
+        self.userAlertYn = ""
+        self.treatmentList = treatmentList
+        self.msgDispYn = ""
+        self.feeRate = 0.0
+        self.inrstMax = 0.0
+        self.autoRptYn = ""
+        self.goodsContList = []
+        self.userAlertMsg = ""
+        self.scrinSepratAt = ""
+        self.bankIemList = []
+        self.dispMsg = ""
+        self.popDispYn = ""
+        self.inrstMin = 0.0
+    }
 }
 
 // MARK: - BankIemList
@@ -185,10 +205,19 @@ struct TreatmentList :Codable,Identifiable,Hashable{
     let useYn: String?
     let treatmentNm: String?
     init(){
+        self.id = UUID()
         self.sortNo = ""
         self.goodsCd = ""
         self.treatmentCd = ""
         self.useYn = ""
         self.treatmentNm = ""
+    }
+    init(_ sortNo:String,_ goodsCd:String,_ treatmentCd:String,_ useYn:String,_ treatmentNm:String){
+        self.id = UUID()
+        self.sortNo = sortNo
+        self.goodsCd = goodsCd
+        self.treatmentCd = treatmentCd
+        self.useYn = useYn
+        self.treatmentNm = treatmentNm
     }
 }

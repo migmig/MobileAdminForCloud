@@ -40,43 +40,46 @@ struct GoodsDetailView: View {
     }
     
     var body: some View {
-        ScrollView{
-            LazyVStack{
-                Section(header: Text("상세 정보").font(.headline)) {
-                    
-                    InfoRow(title: "사용자아이디", value: goodsinfo.userId ?? "")
-                    Divider()
-                    InfoRow(
-                        title: "접수일자",
-                        value: Util.convertToFormattedDate(goodsinfo.rdt)
-                    )
-                    Divider()
-                    InfoRow(
-                        title: "보증번호",
-                        value: getGnoWithDash(gno: goodsinfo.gno)
-                    )
-                    Divider()
-                    InfoRow(title: "접수구분", value: goodsinfo.kindGb ?? "")
-                    Divider()
-                    InfoRow(
-                        title: "등록일자",
-                        value: Util.convertToFormattedDate(goodsinfo.registerDt)
-                    )
-                    Divider()
-                    
-                    HStack{
-                        Text("상품정보")
-                        Spacer()
+        List{
+            Section(header: Text("상세 정보").font(.headline)) {
+                InfoRow3(title: "사용자아이디", value: goodsinfo.userId ?? "")
+                InfoRow3(
+                    title: "접수일자",
+                    value: Util.convertToFormattedDate(goodsinfo.rdt)
+                )
+                InfoRow3(
+                    title: "보증번호",
+                    value: getGnoWithDash(gno: goodsinfo.gno)
+                )
+                InfoRow3(title: "접수구분", value: goodsinfo.kindGb ?? "")
+                InfoRow3(
+                    title: "등록일자",
+                    value: Util.formatDateTime(goodsinfo.registerDt)
+//                        value:goodsinfo.registerDt
+                )
+                HStack{
+                    Text("상품정보")
+                    Spacer()
+                }
+                //goodsDetailOfDetail()
+            }
+            Section("상품정보"){
+                ForEach(goodsinfo.goods, id: \.self) { item in
+                    NavigationLink(destination: SelectedGoodsDetailView(goodsItem: item)) {
+                        HStack{
+                            Image(systemName:"cart.circle")
+                            Text("\(item.goodsCd)")
+                                .font(.headline)
+                            Spacer()
+                            Text("\(item.goodsNm)")
+                                .font(.subheadline)
+                        }
+                        .foregroundColor(item.maxLmt > 0 && item.msgDispYn != "Y" ? .blue : .secondary)
                     }
-                    
-                     
-                    goodsDetailOfDetail()
-                    
-                    Divider()
                 }
             }
-            .padding()
         }
+        .listStyle(GroupedListStyle())
 //        .navigationDestination(for:Good.self){item2 in
 //            SelectedGoodsDetailView(goodsItem:item2)
 //        }
@@ -84,7 +87,7 @@ struct GoodsDetailView: View {
         }
         
 #if os(iOS)
-        .navigationTitle(Util.formatDateTime(goodsinfo.registerDt))
+        .navigationTitle("상세정보")
 #elseif os(macOS)
         .navigationSubtitle(Util.formatDateTime(goodsinfo.registerDt))
 #endif

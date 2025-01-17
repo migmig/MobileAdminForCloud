@@ -161,8 +161,8 @@ class ViewModel: ObservableObject {
             throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
         }
 
-//        let stringfromdata = String(data: data, encoding: .utf8)
-//        print("data:\(String(describing: String(data: data, encoding: .utf8)))")
+       // let stringfromdata = String(data: data, encoding: .utf8)
+       // print("data:\(String(describing: String(data: data, encoding: .utf8)))")
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -410,5 +410,17 @@ class ViewModel: ObservableObject {
             print("Error fetchSourceCommitList: \(error)")
         }
         return SourceCommitInfo()
+    }
+    
+    //commit-repository-branch-list
+    func fetchSourceCommitBranchList(_ repositoryName:String) async -> SourceCommitBranchInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/commit-repository-branch-list/\(repositoryName)"
+            let result: SourceCommitBranchInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceCommitBranchInfo()
+        }catch{
+            print("Error fetchSourceCommitList: \(error)")
+        }
+        return SourceCommitBranchInfo()
     }
 }

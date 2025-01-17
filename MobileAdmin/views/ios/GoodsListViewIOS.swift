@@ -24,51 +24,42 @@ struct GoodsListViewIOS: View {
     }
     
     var body: some View {
-        NavigationStack{
-            VStack{
-            
-                Section{
-                    SearchArea(dateFrom: $dateFrom,
-                               dateTo: $dateTo,
-                               isLoading: $isLoading,
-                               clearAction:{
-                                    selectedGoodsCd.removeAll()
-                                searchText = ""
-                                }){
-                        goodsItems = await viewModel.fetchGoods(dateFrom, dateTo) ?? []
-                        let arr  = Set(goodsItems.flatMap{item in
-                            item.goods.map{$0.goodsCd}
-                        })
-                        arrGoods = Array(arr)
-                        filteredGoodsItems = goodsItems
-                    }
-                    
-                    FilteredGoodsItem(
-                        arrGoods: $arrGoods,
-                        selectedGoodsCd: $selectedGoodsCd,
-                        filteredGoodsItems: $filteredGoodsItems,
-                        goodsItems: $goodsItems
-                    )
-                    
-                    if selectedGoodsCd.count > 0{
-                        HStack{
-                            Text("count:\(filteredGoodsItems.count)")
-                            Button("Clear"){
-                                selectedGoodsCd = []
-                                filteredGoodsItems = goodsItems
-                            }
-                            .font(.caption)
-                            .buttonStyle(.bordered)
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                if isLoading {
-                    ProgressView(" ")
-                        .progressViewStyle(CircularProgressViewStyle())
+        List{
+            Section("상품 조회"){
+                SearchArea(dateFrom: $dateFrom,
+                           dateTo: $dateTo,
+                           isLoading: $isLoading,
+                           clearAction:{
+                                selectedGoodsCd.removeAll()
+                            searchText = ""
+                            }){
+                    goodsItems = await viewModel.fetchGoods(dateFrom, dateTo) ?? []
+                    let arr  = Set(goodsItems.flatMap{item in
+                        item.goods.map{$0.goodsCd}
+                    })
+                    arrGoods = Array(arr)
+                    filteredGoodsItems = goodsItems
                 }
                 
-                List(filteredGoods){ entry in
+                FilteredGoodsItem(
+                    arrGoods: $arrGoods,
+                    selectedGoodsCd: $selectedGoodsCd,
+                    filteredGoodsItems: $filteredGoodsItems,
+                    goodsItems: $goodsItems
+                )
+                
+                if selectedGoodsCd.count > 0{
+                    HStack{
+                        Text("count:\(filteredGoodsItems.count)")
+                        Button("Clear"){
+                            selectedGoodsCd = []
+                            filteredGoodsItems = goodsItems
+                        }
+                        .font(.caption)
+                        .buttonStyle(.bordered)
+                    }
+                }
+                ForEach(filteredGoods){ entry in
                     NavigationLink(destination:{
                         GoodsDetailView(goodsinfo: entry)
                     }){
@@ -77,13 +68,70 @@ struct GoodsListViewIOS: View {
                                 selectedGoodsCd: selectedGoodsCd
                             )
                         }
-                    .searchable(text: $searchText, placement: .automatic)
-                    
-                    
                 }
-                .navigationTitle("상품 조회")
             }
         }
+        .searchable(text: $searchText, placement: .automatic)
+//        NavigationStack{
+//            VStack{
+//
+//                Section{
+//                    SearchArea(dateFrom: $dateFrom,
+//                               dateTo: $dateTo,
+//                               isLoading: $isLoading,
+//                               clearAction:{
+//                                    selectedGoodsCd.removeAll()
+//                                searchText = ""
+//                                }){
+//                        goodsItems = await viewModel.fetchGoods(dateFrom, dateTo) ?? []
+//                        let arr  = Set(goodsItems.flatMap{item in
+//                            item.goods.map{$0.goodsCd}
+//                        })
+//                        arrGoods = Array(arr)
+//                        filteredGoodsItems = goodsItems
+//                    }
+//
+//                    FilteredGoodsItem(
+//                        arrGoods: $arrGoods,
+//                        selectedGoodsCd: $selectedGoodsCd,
+//                        filteredGoodsItems: $filteredGoodsItems,
+//                        goodsItems: $goodsItems
+//                    )
+//
+//                    if selectedGoodsCd.count > 0{
+//                        HStack{
+//                            Text("count:\(filteredGoodsItems.count)")
+//                            Button("Clear"){
+//                                selectedGoodsCd = []
+//                                filteredGoodsItems = goodsItems
+//                            }
+//                            .font(.caption)
+//                            .buttonStyle(.bordered)
+//                        }
+//                    }
+//                }
+//                .padding(.horizontal)
+//                if isLoading {
+//                    ProgressView(" ")
+//                        .progressViewStyle(CircularProgressViewStyle())
+//                }
+//
+//                List(filteredGoods){ entry in
+//                    NavigationLink(destination:{
+//                        GoodsDetailView(goodsinfo: entry)
+//                    }){
+//                            GoodsItemListItem(
+//                                goodsItem: entry,
+//                                selectedGoodsCd: selectedGoodsCd
+//                            )
+//                        }
+//                    .searchable(text: $searchText, placement: .automatic)
+//
+//
+//                }
+//                .navigationTitle("상품 조회")
+//            }
+//        }
         .onAppear()
         {
             Task{

@@ -10,6 +10,7 @@ import SwiftUI
 struct SourceCommitDetail: View {
     @ObservedObject var viewModel:ViewModel
     var selectedSourceCommitInfoRepository:SourceCommitInfoRepository
+    @State var branchList:[String] = []
     var body: some View {
         List{
             Section("Repository"){
@@ -33,15 +34,20 @@ struct SourceCommitDetail: View {
                 }
             }
             Section("Branch"){
-                HStack{
-                    Text("Name")
-                    Spacer()
-                    Text(selectedSourceCommitInfoRepository.name)
-                        .font(.subheadline)
+                ForEach(branchList, id: \.self){ branch in
+                    HStack{
+                        Text(branch)
+                    }
                 }
             }
         }
-            .navigationTitle(selectedSourceCommitInfoRepository.name)
+        .onAppear(){
+            Task{
+                let sourceCommitBranchInfo = await viewModel.fetchSourceCommitBranchList(selectedSourceCommitInfoRepository.name)
+                branchList = sourceCommitBranchInfo.result.branch;
+            }
+        }
+        .navigationTitle(selectedSourceCommitInfoRepository.name)
     }
 }
  
@@ -49,7 +55,7 @@ struct SourceCommitDetail: View {
     SourceCommitDetail(viewModel: ViewModel(),
                        selectedSourceCommitInfoRepository: SourceCommitInfoRepository(
                         id: 11,
-                        name: "name",
+                        name: "back-end-git",
                         permission: "permission",
                         actionName: "actionName"
                        ))

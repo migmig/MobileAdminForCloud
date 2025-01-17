@@ -25,4 +25,9 @@ struct SourceControlViewForIOS: View {
         }
     }
 }
+
+#Preview(
+) {
+    SourceControlViewForIOS().environmentObject(ViewModel() )
+}
  
