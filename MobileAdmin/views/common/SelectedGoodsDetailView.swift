@@ -72,7 +72,9 @@ struct SelectedGoodsDetailView:View{
                 }
             } //if
         } //List
+#if os(iOS)
         .listStyle(GroupedListStyle())
+#endif
         .navigationTitle("상품정보")
         #if os(macOS)
         .navigationSubtitle("상품정보")

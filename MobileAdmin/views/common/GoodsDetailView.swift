@@ -79,7 +79,9 @@ struct GoodsDetailView: View {
                 }
             }
         }
+#if os(iOS)
         .listStyle(GroupedListStyle())
+#endif
 //        .navigationDestination(for:Good.self){item2 in
 //            SelectedGoodsDetailView(goodsItem:item2)
 //        }

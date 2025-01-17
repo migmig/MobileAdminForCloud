@@ -71,26 +71,26 @@ struct MySceneForIOS: Scene {
                                        Label(tabItem.1, systemImage: tabItem.2)
                                    }
                                    .tag(tabItem.0)
-                                   .environmentObject(viewModel)                               
+                                   .environmentObject(viewModel)
                            }
                        }
                        .ignoresSafeArea()
                     
                    
-                  // .toastManager(toastManager:toastManager)
+//                   .toastManager(toastManager:toastManager)
                    .onAppear{
                        print(allEnvironment)
                        EnvironmentConfig.initializeUrls(from: allEnvironment)
                        logger.info("serverType:\(serverType)")
                        EnvironmentConfig.current = serverType
                    }
-//                   .onChange(of: selectedTab){oldValue,newValue in
-//                       withAnimation(.spring()){
-//                           selectedTab = newValue
-//                           print(newValue)
-//                           print(selectedTab)
-//                       }
-//                   }
+                   .onChange(of: selectedTab){oldValue,newValue in
+                       withAnimation(.easeInOut(duration: 0.5)) {
+                           selectedTab = newValue
+                           print(newValue)
+                           print(selectedTab)
+                       }
+                   }
                }
            }
        }
@@ -141,7 +141,7 @@ struct MySceneForIOS: Scene {
                         Label(tabItem.1, systemImage: tabItem.2)
                     }
                     .tag(tabItem.0)
-                    .environmentObject(viewModel)      
+                    .environmentObject(viewModel)
             }
         }
 }

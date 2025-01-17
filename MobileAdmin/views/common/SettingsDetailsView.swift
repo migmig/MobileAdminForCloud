@@ -16,26 +16,53 @@ struct SettingsDetailsView: View {
     
     var body: some View {
         List {
-            Picker("환경설정변경", selection: $serverType) {
-                Label("운영환경", systemImage: Util.getDevTypeImg("prod")) 
+            Section("설정"){
+                Picker("환경설정변경", selection: $serverType) {
+                    HStack{
+                        Image(systemName: Util.getDevTypeImg("prod"))
+                            .foregroundColor(Util.getDevTypeColor("prod"))
+                        Spacer()
+                        Text("운영환경")
+                        Spacer()
+                    }
                     .tag(EnvironmentType.production)
-                Label("개발환경", systemImage: Util.getDevTypeImg("dev"))
+                    HStack{
+                        Image(systemName: Util.getDevTypeImg("dev"))
+                            .foregroundColor(Util.getDevTypeColor("dev"))
+                        Spacer()
+                        Text("개발환경")
+                        Spacer()
+                    }
                     .tag(EnvironmentType.development)
-                Label("로컬환경", systemImage: Util.getDevTypeImg("local"))
+                    HStack{
+                        Image(systemName: Util.getDevTypeImg("local"))
+                            .foregroundColor(Util.getDevTypeColor("local"))
+                        Spacer()
+                        Text("로컬환경")
+                        Spacer()
+                    }
                     .tag(EnvironmentType.local)
+                }
+                .onChange(of:serverType){oldvalue,newValue in
+                    EnvironmentConfig.current = newValue
+                    ViewModel.token = nil
+                }
+                .font(.title)
+                .pickerStyle(.inline)
+                .padding()
             }
-            .onChange(of:serverType){oldvalue,newValue in
-                EnvironmentConfig.current = newValue
-                ViewModel.token = nil
+            Section("URL"){
+                Button(action:{ isPresented = true}){
+                    HStack{
+                        Image(systemName: "gearshape.2")
+                        Spacer()
+                        Text("URL 변경")
+                        Spacer()
+                    }
+                }.sheet(isPresented: $isPresented, content: {
+                    EnvSetView(isPresented: $isPresented)
+                })
             }
-            .font(.title)
-            .pickerStyle(.inline)
-            .padding()
-            Button("URL 변경",systemImage: "gearshape.2") {
-                isPresented = true
-            }.sheet(isPresented: $isPresented, content: {
-                EnvSetView(isPresented: $isPresented)
-            })
         } // List
 //        .ignoresSafeArea()
         .navigationTitle(title)

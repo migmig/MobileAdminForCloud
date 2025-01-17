@@ -56,7 +56,7 @@ struct EdcCrseDetailView: View {
                 Divider()
                 InfoRow(title: "학습기간 (월)", value: String(edcCrseClinfo.edcPDMonth ?? 0))
                 Divider()
-                InfoRow(title: "학습인정시간(시)", value: String(edcCrseClinfo.lrnRcognTime ?? 0) + "분")
+                InfoRow(title: "학습인정시간(시)", value: String(edcCrseClinfo.lrnRcognTime ?? 0) + "시간")
                 Divider()
                 InfoRow(title: "강의 소개", value: edcCrseClinfo.lctreIntrcn)
                 Divider()

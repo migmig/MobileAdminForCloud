@@ -194,9 +194,22 @@ class Util{
         case "dev":
             return "wrench.and.screwdriver"
         case "prod":
-            return "antenna.radiowaves.left.and.right"
+            return "airplane"
         default:
             return "network"
+        }
+    }
+    
+    static func getDevTypeColor(_ type:String) -> Color{
+        switch type {
+        case "local":
+            return .green
+        case "dev":
+            return .blue
+        case "prod":
+            return .purple
+        default:
+            return .secondary
         }
     }
 }

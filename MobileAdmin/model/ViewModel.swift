@@ -8,6 +8,8 @@ class ViewModel: ObservableObject {
     @Published var goodsItems    : [Goodsinfo] = []
     @Published var edcCrseCllist : [EdcCrseCl] = []
     @Published var sourceCommitInfoRepository : [SourceCommitInfoRepository] = []
+    @Published var sourcePipelineList : [SourcePipelineInfoProjectList] = []
+    @Published var sourcePipelineHistoryList: [SourcePipelineHistoryInfoHistoryList] = []
 
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
@@ -422,5 +424,38 @@ class ViewModel: ObservableObject {
             print("Error fetchSourceCommitList: \(error)")
         }
         return SourceCommitBranchInfo()
+    }
+    
+    //SourcePipelineHistoryInfo
+    func fetchSourcePipelineHistoryInfo(_ projectId:Int) async -> SourcePipelineHistoryInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/pipeline-history-info/\(projectId)"
+            let result: SourcePipelineHistoryInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourcePipelineHistoryInfo()
+        }catch{
+            print("Error fetchSourcePipelineHistoryInfo: \(error)")
+        }
+        return SourcePipelineHistoryInfo()
+    }
+    func runSourcePipeline(_ projectId:Int) async -> SourcePipelineExecResult {
+        do{
+            let url = "\(baseUrl)/admin/cloud/exec-pipeline-project/\(projectId)"
+            let result: SourcePipelineExecResult? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourcePipelineExecResult()
+        }catch{
+            print("Error runSourcePipeline: \(error)")
+        }
+        return SourcePipelineExecResult()
+    }
+    
+    func cancelSourcePipeline(_ projectId:Int, _ historyId:Int) async -> SourcePipelineExecResult {
+        do{
+            let url = "\(baseUrl)/admin/cloud/cancel-pipeline-project/\(projectId)/\(historyId)"
+            let result: SourcePipelineExecResult? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourcePipelineExecResult()
+        }catch{
+            print("Error cancelSourcePipeline: \(error)")
+        }
+        return SourcePipelineExecResult()
     }
 }

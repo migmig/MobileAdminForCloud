@@ -37,7 +37,7 @@ struct SourceBuildListViewIOS: View {
                             }){
                                 HStack{
                                     Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
-                                        .foregroundColor(item.name.contains("prod") ? .red : .blue)
+                                        .foregroundColor(item.name.contains("prod") ? Util.getDevTypeColor("prod") : Util.getDevTypeColor("dev"))
                                     Text(item.name)
                                 }
                             }
@@ -51,7 +51,7 @@ struct SourceBuildListViewIOS: View {
                             }){
                                 HStack{
                                     Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
-                                        .foregroundColor(item.name.contains("prod") ? .red : .blue)
+                                        .foregroundColor(item.name.contains("prod") ? Util.getDevTypeColor("prod") : Util.getDevTypeColor("dev"))
                                     Text(item.name)
                                 }
                             }

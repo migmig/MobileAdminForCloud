@@ -39,7 +39,7 @@ struct EdcClsSidebar: View {
                  print(
                      "\n\n\(String(describing: edcCrseClListResponse.edcCrseClAllList))\n\n"
                  )
-                 edcCrseCl = edcCrseClListResponse.edcCrseClAllList ?? []
+                 edcCrseCl = edcCrseClListResponse.edcCrseClAllList?.sorted(by:{$0.edcCrseId ?? 0 < $1.edcCrseId ?? 0}) ?? []
                  isLoading = false
              }
          }

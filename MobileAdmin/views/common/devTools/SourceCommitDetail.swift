@@ -15,23 +15,11 @@ struct SourceCommitDetail: View {
         List{
             Section("Repository"){
                 HStack{
-                    Text("Name")
+                    Text("명칭")
                     Spacer()
                     Text(selectedSourceCommitInfoRepository.name)
                         .font(.subheadline)
-                }
-                HStack{
-                    Text("Permission")
-                    Spacer()
-                    Text(selectedSourceCommitInfoRepository.permission ?? "")
-                        .font(.subheadline)
-                }
-                HStack{
-                    Text("ActionName")
-                    Spacer()
-                    Text(selectedSourceCommitInfoRepository.actionName ?? "")
-                        .font(.subheadline)
-                }
+                } 
             }
             Section("Branch"){
                 ForEach(branchList, id: \.self){ branch in
