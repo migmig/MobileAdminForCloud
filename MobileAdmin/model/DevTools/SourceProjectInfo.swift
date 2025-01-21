@@ -2,7 +2,7 @@
 import Foundation
 
 // MARK: - SourcePipelineInfo
-struct SourcePipelineInfo :Codable{
+struct SourceProjectInfo :Codable{
    let result: SourcePipelineInfoResult
    init(){
        result = SourcePipelineInfoResult()
@@ -11,14 +11,14 @@ struct SourcePipelineInfo :Codable{
 
 // MARK: - SourcePipelineInfoResult
 struct SourcePipelineInfoResult :Codable{
-   let projectList: [SourcePipelineInfoProjectList]
+   let projectList: [SourceInfoProjectInfo]
     init(){
         projectList = []
     }
 }
 
 // MARK: - SourcePipelineInfoProjectList
-struct SourcePipelineInfoProjectList :Codable,Hashable{
+struct SourceInfoProjectInfo :Codable,Hashable{
    let id: Int
    let name: String
     init(){

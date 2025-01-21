@@ -11,7 +11,7 @@ struct DetailViewForMac: View {
     @Binding var selectedEdcCrseCl : EdcCrseCl?
     @Binding var selectedGroupCode: CmmnGroupCodeItem?
     @Binding var selectedCloseDept: Detail1?
-    @Binding var selectedSourceBuildProject: SourceBuildProject?
+//    @Binding var selectedSourceBuildProject: SourceBuildProject?
      
     
     var body: some View {
@@ -59,12 +59,12 @@ struct DetailViewForMac: View {
                 Text("Select a row to view details.")
             }
         }else if(selectedSlidebarItem == SlidebarItem.sourceBuild){
-            if let sourceBuildProject = selectedSourceBuildProject{
-                SourceBuildDetail(viewModel : viewModel,
-                                  selectedProject : sourceBuildProject)
-            }else{
-                Text("Select a row to view details.")
-            }
+//            if let sourceBuildProject = selectedSourceBuildProject{
+//                SourceBuildDetail(viewModel : viewModel,
+//                                  selectedProject : sourceBuildProject)
+//            }else{
+//                Text("Select a row to view details.")
+//            }
             
         }else{
             Text(" ")
@@ -113,6 +113,7 @@ struct DetailViewForMac: View {
                     opentime: "",
                     deptcd: ""
                 )
-        ),selectedSourceBuildProject:.constant(nil)
+        )
+//        ,selectedSourceBuildProject:.constant(nil)
     )
 }

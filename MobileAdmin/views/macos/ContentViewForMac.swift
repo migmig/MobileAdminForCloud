@@ -12,7 +12,8 @@ struct ContentViewForMac: View {
     @State var selectedGroupCode:CmmnGroupCodeItem?
     @State var closeDeptList:[Detail1] = []
     @State var selectedCloseDept:Detail1? = nil
-    @State var selectedSourceBuildProject:SourceBuildProject?
+//    @State var selectedSourceBuildProject:SourceBuildProject?
+//    @State var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
     
     @State private var selectedSidebarItem: SlidebarItem? = nil
     var body: some View {
@@ -30,8 +31,9 @@ struct ContentViewForMac: View {
                 groupCodes: $groupCodes,
                 selectedGroupCode: $selectedGroupCode,
                 closeDeptList: $closeDeptList,
-                selectedCloseDept: $selectedCloseDept,
-                selectedSourceBuildProject: $selectedSourceBuildProject
+                selectedCloseDept: $selectedCloseDept
+//                selectedSourceBuildProject: $selectedSourceBuildProject,
+//                selectedSourceCommitInfoRepository: $selectedSourceCommitInfoRepository
             )
         }detail:{
             NavigationStack{
@@ -45,11 +47,11 @@ struct ContentViewForMac: View {
                     edcCrseCl: $edcCrseCl,
                     selectedEdcCrseCl: $selectedEdcCrseCl,
                     selectedGroupCode: $selectedGroupCode,
-                    selectedCloseDept: $selectedCloseDept,
-                    selectedSourceBuildProject: $selectedSourceBuildProject
+                    selectedCloseDept: $selectedCloseDept
+//                    selectedSourceBuildProject: $selectedSourceBuildProject
                 )
             }
-        }
+        } 
         
     }
 }

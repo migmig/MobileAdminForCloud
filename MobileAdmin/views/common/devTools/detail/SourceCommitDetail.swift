@@ -11,6 +11,7 @@ struct SourceCommitDetail: View {
     @ObservedObject var viewModel:ViewModel
     var selectedSourceCommitInfoRepository:SourceCommitInfoRepository
     @State var branchList:[String] = []
+    @State var isListLoading:Bool = false
     var body: some View {
         List{
             Section("Repository"){
@@ -19,20 +20,51 @@ struct SourceCommitDetail: View {
                     Spacer()
                     Text(selectedSourceCommitInfoRepository.name)
                         .font(.subheadline)
-                } 
+                }
             }
+#if os(macOS)
+.font(.title2)
+#endif
             Section("Branch"){
-                ForEach(branchList, id: \.self){ branch in
-                    HStack{
-                        Text(branch)
+                if isListLoading{
+                    ProgressView().progressViewStyle(CircularProgressViewStyle())
+                }else{
+                    ForEach(branchList, id: \.self){ branch in
+                        HStack{
+                            Image(systemName: SlidebarItem.sourceCommit.img)
+                                .foregroundColor(.blue)
+                            Text(branch)
+                                .transition(.blurAndFade)
+                        }
                     }
+                }
+            }
+        }
+#if os(macOS)
+.font(.title2)
+#endif
+        .onChange(of: selectedSourceCommitInfoRepository.name){_,  newValue in
+            Task{
+                withAnimation{
+                    isListLoading = true
+                }
+                let sourceCommitBranchInfo = await viewModel.fetchSourceCommitBranchList(selectedSourceCommitInfoRepository.name)
+                branchList = sourceCommitBranchInfo.result.branch;
+                withAnimation{
+                    isListLoading = false
                 }
             }
         }
         .onAppear(){
             Task{
+                withAnimation{
+                    isListLoading = true
+                }
                 let sourceCommitBranchInfo = await viewModel.fetchSourceCommitBranchList(selectedSourceCommitInfoRepository.name)
                 branchList = sourceCommitBranchInfo.result.branch;
+                withAnimation{
+                    isListLoading = false
+                }
             }
         }
         .navigationTitle(selectedSourceCommitInfoRepository.name)

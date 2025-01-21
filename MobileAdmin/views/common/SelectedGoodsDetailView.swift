@@ -81,15 +81,15 @@ struct SelectedGoodsDetailView:View{
         #endif
     }
 }
-#Preview(
-   traits: .fixedLayout(width: 500, height: 1200)
-){
-    var good = Good("N002","직접짐사",10000000,[
-        TreatmentList("1","1","1","Y","treatmentNm1"),
-        TreatmentList("1","1","1","Y","treatmentNm2"),
-        TreatmentList("1","1","1","Y","treatmentNm3"),
-        TreatmentList("1","1","1","Y","treatmentNm4"),
-        TreatmentList("1","1","1","Y","treatmentNm5")
-    ])
-    SelectedGoodsDetailView(goodsItem: good)
-}
+//#Preview(
+//   traits: .fixedLayout(width: 500, height: 1200)
+//){
+//    var good = Good("N002","직접짐사",10000000,[
+//        TreatmentList("1","1","1","Y","treatmentNm1"),
+//        TreatmentList("1","1","1","Y","treatmentNm2"),
+//        TreatmentList("1","1","1","Y","treatmentNm3"),
+//        TreatmentList("1","1","1","Y","treatmentNm4"),
+//        TreatmentList("1","1","1","Y","treatmentNm5")
+//    ])
+//    SelectedGoodsDetailView(goodsItem: good)
+//}

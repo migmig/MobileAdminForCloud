@@ -25,6 +25,7 @@ struct MySceneForMacOS: Scene {
                     logger.info("serverType:\(serverType)")
                     EnvironmentConfig.current = serverType
                 }
+                .frame(minWidth: 800, idealWidth: 800, maxWidth: .infinity, minHeight: 600, idealHeight: 600, maxHeight: .infinity)
             }
         }
         #if os(macOS)

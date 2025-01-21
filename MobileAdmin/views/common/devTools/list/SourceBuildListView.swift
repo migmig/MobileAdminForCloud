@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SourceBuildListViewIOS: View {
+struct SourceBuildListView: View {
     @ObservedObject var viewModel:ViewModel
     @State var selectedSourceBuildProject:SourceBuildProject?
     @State var searchText:String = ""
@@ -26,7 +26,7 @@ struct SourceBuildListViewIOS: View {
     }
     var body: some View {
         //NavigationStack{
-            VStack{
+        //    VStack{
 //                StageButtonViewCommon(searchText: $searchText)
                 List{
                     Section("운영"){
@@ -43,6 +43,9 @@ struct SourceBuildListViewIOS: View {
                             }
                         }
                     }
+#if os(macOS)
+.font(.title2)
+#endif
                     Section("개발"){
                         ForEach(devList, id:\.id){ item in
                             NavigationLink(destination:{
@@ -57,9 +60,12 @@ struct SourceBuildListViewIOS: View {
                             }
                         }
                     }
+#if os(macOS)
+.font(.title2)
+#endif
                 }
                  
-            }
+         //   }
             .navigationTitle("소스빌드목록")
             .onAppear(){
                 print("SourceBuildListViewIOS.onAppear()")
@@ -79,5 +85,5 @@ struct SourceBuildListViewIOS: View {
 }
 
 #Preview{
-    SourceBuildListViewIOS(viewModel: ViewModel())
+    SourceBuildListView(viewModel: ViewModel())
 }

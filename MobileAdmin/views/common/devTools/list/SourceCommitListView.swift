@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct SourceCommitListViewIOS: View {
+struct SourceCommitListView: View {
     @ObservedObject var viewModel:ViewModel
-   // @State var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
+    @State var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
     @State var searchText:String = ""
     var body: some View {
-            VStack{
+           // VStack{
                 List{
                     ForEach(viewModel.sourceCommitInfoRepository, id:\.id){ item in
                         NavigationLink(destination:{
@@ -26,10 +26,15 @@ struct SourceCommitListViewIOS: View {
                             }
                         }
                     }
+#if os(macOS)
+.font(.title2)
+#endif
                 }
                  
-            }
+            //}
             .navigationTitle("소스커밋목록")
+//            .onChange(of: selectedSourceCommitInfoRepository?.id) {_, newValue in
+//            }
             .onAppear(){
                 if viewModel.sourceCommitInfoRepository.isEmpty {
                     Task{
@@ -46,7 +51,4 @@ struct SourceCommitListViewIOS: View {
         //}
     }
 }
-
-#Preview{
-    SourceCommitListViewIOS(viewModel: ViewModel())
-}
+ 

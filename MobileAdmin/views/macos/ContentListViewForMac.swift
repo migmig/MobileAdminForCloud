@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentListViewForMac: View {
-    @ObservedObject var viewModel:ViewModel 
+    @ObservedObject var viewModel:ViewModel
     @Binding var selectedSlidebarItem:SlidebarItem?
     @Binding var toast:Toast
     @Binding var selectedGoods:Goodsinfo?
@@ -12,7 +12,8 @@ struct ContentListViewForMac: View {
     @Binding var selectedGroupCode:CmmnGroupCodeItem?
     @Binding var closeDeptList:[Detail1]
     @Binding var selectedCloseDept:Detail1?
-    @Binding var selectedSourceBuildProject:SourceBuildProject?
+//    @Binding var selectedSourceBuildProject:SourceBuildProject?
+//    @Binding var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
     @State private var isLoading:Bool = false
     @State private var searchText = ""
     
@@ -56,16 +57,32 @@ struct ContentListViewForMac: View {
             GoodsSidebar(selectedGoods: $selectedGoods)
             
         case .gcpClsList:
-            EdcClsSidebar(viewModel: viewModel, edcCrseCl: $edcCrseCl, selectedEdcCrseCl: $selectedEdcCrseCl)
+            EdcClsSidebar(viewModel: viewModel,
+                          edcCrseCl: $edcCrseCl,
+                          selectedEdcCrseCl: $selectedEdcCrseCl)
             
         case .codeList:
-            GroupCodesSidebar(viewModel: viewModel, groupCodes: $groupCodes, selectedGroupCode: $selectedGroupCode)
+            GroupCodesSidebar(viewModel: viewModel,
+                              groupCodes: $groupCodes,
+                              selectedGroupCode: $selectedGroupCode)
             
         case .closeDeptList:
-            CloseDeptSidebar(viewModel: viewModel, list: $closeDeptList, selectedCloseDept: $selectedCloseDept)
+            CloseDeptSidebar(viewModel: viewModel,
+                             list: $closeDeptList,
+                             selectedCloseDept: $selectedCloseDept)
+            
+        case .sourceCommit:
+            SourceCommitListView(viewModel: viewModel)
             
         case .sourceBuild:
-            SourceBuildSidebar(viewModel: viewModel, selectedSourceBuildProject: $selectedSourceBuildProject)
+            SourceBuildListView(viewModel: viewModel )
+            
+        case .sourceDeploy:
+            SourceDeployListView(viewModel: viewModel)
+        
+        case .sourcePipeline:
+            SourcePipelineListView(viewModel: viewModel)
+        
         default:
             Text("알 수 없는 항목입니다.")
         }
@@ -188,7 +205,9 @@ struct ContentListViewForMac: View {
                         opentime: "",
                         deptcd: "100"
                     )
-                ), selectedSourceBuildProject: .constant(nil)
+                )
+//        , selectedSourceBuildProject: .constant(nil)
+//        ,selectedSourceCommitInfoRepository:.constant(nil)
         
     )
 }

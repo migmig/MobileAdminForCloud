@@ -12,14 +12,16 @@ struct SourceControlViewForIOS: View {
     var body: some View {
         NavigationStack{
             List{
-                NavigationLink(destination: SourceCommitListViewIOS(viewModel: viewModel)){
+                NavigationLink(destination: SourceCommitListView(viewModel: viewModel)){
                     Label(SlidebarItem.sourceCommit.title, systemImage: SlidebarItem.sourceCommit.img)
                 }
-                NavigationLink(destination: SourceBuildListViewIOS(viewModel: viewModel)){
+                NavigationLink(destination: SourceBuildListView(viewModel: viewModel)){
                     Label(SlidebarItem.sourceBuild.title , systemImage: SlidebarItem.sourceBuild.img)
                 }
-                Label(SlidebarItem.sourceDeploy.title,   systemImage: SlidebarItem.sourceDeploy.img)
-                NavigationLink(destination: SourcePipelineListViewIOS(viewModel : viewModel)){
+                NavigationLink(destination: SourceDeployListView(viewModel: viewModel)){
+                    Label(SlidebarItem.sourceDeploy.title,   systemImage: SlidebarItem.sourceDeploy.img)
+                }
+                NavigationLink(destination: SourcePipelineListView(viewModel : viewModel)){
                     Label(SlidebarItem.sourcePipeline.title, systemImage: SlidebarItem.sourcePipeline.img)
                 }
             }

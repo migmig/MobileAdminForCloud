@@ -124,24 +124,24 @@ struct MySceneForIOS: Scene {
        }
    }
 }
-
-#Preview{
-    var viewModel:ViewModel = ViewModel()
-        let tabItems: [(UUID, String, String, AnyView)] = [
-            (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS( ))),
-            (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS( ))),
-            (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS( ))),
-            (UUID(), "환경설정"                      , "gear"                         , AnyView(SettingsView()))
-        ]
-        
-        TabView() {
-            ForEach(tabItems, id: \.0) { tabItem in
-                tabItem.3
-                    .tabItem {
-                        Label(tabItem.1, systemImage: tabItem.2)
-                    }
-                    .tag(tabItem.0)
-                    .environmentObject(viewModel)
-            }
-        }
-}
+//
+//#Preview{
+//    var viewModel:ViewModel = ViewModel()
+//        let tabItems: [(UUID, String, String, AnyView)] = [
+//            (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS( ))),
+//            (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS( ))),
+//            (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS( ))),
+//            (UUID(), "환경설정"                      , "gear"                         , AnyView(SettingsView()))
+//        ]
+//        
+//        TabView() {
+//            ForEach(tabItems, id: \.0) { tabItem in
+//                tabItem.3
+//                    .tabItem {
+//                        Label(tabItem.1, systemImage: tabItem.2)
+//                    }
+//                    .tag(tabItem.0)
+//                    .environmentObject(viewModel)
+//            }
+//        }
+//}

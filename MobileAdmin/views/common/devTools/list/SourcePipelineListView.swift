@@ -7,16 +7,16 @@
 
 import SwiftUI
 
-struct SourcePipelineListViewIOS: View {
+struct SourcePipelineListView: View {
     @ObservedObject var viewModel:ViewModel
-    var prodList:[SourcePipelineInfoProjectList] {
+    var prodList:[SourceInfoProjectInfo] {
         viewModel.sourcePipelineList.filter{
             return $0.name.localizedStandardContains("prod")
         }
         .sorted(by: {$0.name < $1.name})
     }
     
-    var devList:[SourcePipelineInfoProjectList] {
+    var devList:[SourceInfoProjectInfo] {
         viewModel.sourcePipelineList.filter{
             return !$0.name.localizedStandardContains("prod")
         }
@@ -38,6 +38,9 @@ struct SourcePipelineListViewIOS: View {
                     }
                 }
             }
+#if os(macOS)
+.font(.title2)
+#endif
             Section("개발"){
                 ForEach(devList, id:\.id){ item in
                     NavigationLink(destination:{
@@ -52,11 +55,14 @@ struct SourcePipelineListViewIOS: View {
                     }
                 }
             }
+#if os(macOS)
+.font(.title2)
+#endif
         }
         .navigationTitle("파이프라인")
         .onAppear{
             Task{
-                let response = await viewModel.fetchSourcePipelineList()
+                let response = await viewModel.fetchSourcePipelineList() 
                 viewModel.sourcePipelineList = response.result.projectList.sorted(by: {$0.id < $1.id})
             }
         }
@@ -64,5 +70,5 @@ struct SourcePipelineListViewIOS: View {
 }
 
 #Preview {
-    SourcePipelineListViewIOS(viewModel: ViewModel())
+    SourcePipelineListView(viewModel: ViewModel())
 }

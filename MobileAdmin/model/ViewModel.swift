@@ -8,8 +8,10 @@ class ViewModel: ObservableObject {
     @Published var goodsItems    : [Goodsinfo] = []
     @Published var edcCrseCllist : [EdcCrseCl] = []
     @Published var sourceCommitInfoRepository : [SourceCommitInfoRepository] = []
-    @Published var sourcePipelineList : [SourcePipelineInfoProjectList] = []
+    @Published var sourcePipelineList : [SourceInfoProjectInfo] = []
     @Published var sourcePipelineHistoryList: [SourcePipelineHistoryInfoHistoryList] = []
+    @Published var sourceDeployList : [SourceInfoProjectInfo] = []
+    @Published var sourceDeployHistoryList : [SourceDeployHistoryInfoHistoryList] = []
 
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
@@ -391,15 +393,15 @@ class ViewModel: ObservableObject {
         return nil
     }
     
-    func fetchSourcePipelineList() async -> SourcePipelineInfo {
+    func fetchSourcePipelineList() async -> SourceProjectInfo {
         do{
             let url = "\(baseUrl)/admin/cloud/pipeline-project-list"
-            let result: SourcePipelineInfo? = try await makeRequestNoRequestData(url:url)
-            return result ?? SourcePipelineInfo()
+            let result: SourceProjectInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceProjectInfo()
         }catch{
             print("Error fetchSourcePipelineList: \(error)")
         }
-        return SourcePipelineInfo()
+        return SourceProjectInfo()
     }
     
     //commit-repository-list
@@ -457,5 +459,64 @@ class ViewModel: ObservableObject {
             print("Error cancelSourcePipeline: \(error)")
         }
         return SourcePipelineExecResult()
+    }
+    
+    
+    func fetchSourceDeployList() async -> SourceProjectInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/deploy-project-list"
+            let result: SourceProjectInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceProjectInfo()
+        }catch{
+            print("Error fetchSourceDeployList: \(error)")
+        }
+        return SourceProjectInfo()
+    }
+    
+     
+    func fetchSourceDeployHistoryInfo(_ projectId:Int) async -> SourceDeployHistoryInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/deploy-project-history-list/\(projectId)"
+            let result: SourceDeployHistoryInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceDeployHistoryInfo()
+        }catch{
+            print("Error fetchSourceDeployHistoryInfo: \(error)")
+        }
+        return SourceDeployHistoryInfo()
+    }
+    
+    
+   func fetchSourceDeployStageInfo(_ projectId:Int) async -> SourceDeployStageInfo {
+       do{
+           let url = "\(baseUrl)/admin/cloud/deploy-project-stage/\(projectId)"
+           let result: SourceDeployStageInfo? = try await makeRequestNoRequestData(url:url)
+           return result ?? SourceDeployStageInfo()
+       }catch{
+           print("Error fetchSourceDeployStageInfo: \(error)")
+       }
+       return SourceDeployStageInfo()
+   }
+    
+    //deploy-project-scenario
+    func fetchSourceDeployScenarioInfo(_ projectId:Int,_ stageId:Int) async -> SourceDeployScenarioInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/deploy-project-scenario/\(projectId)/\(stageId)"
+            let result: SourceDeployScenarioInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceDeployScenarioInfo()
+        }catch{
+            print("Error fetchSourceDeployScenarioInfo: \(error)")
+        }
+        return SourceDeployScenarioInfo()
+    }
+
+    func runSourceDeploy(_ projectId:Int,_ stageId:Int,_ scenarioId:Int) async -> SourceDeployExecResult {
+        do{
+            let url = "\(baseUrl)/admin/cloud/exec-deploy/\(projectId)/\(stageId)/\(scenarioId)"
+            let result: SourceDeployExecResult? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceDeployExecResult()
+        }catch{
+            print("Error runSourceDeploy: \(error)")
+        }
+        return SourceDeployExecResult()
     }
 }
