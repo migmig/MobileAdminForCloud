@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SourceDeployListView: View {
     @ObservedObject var viewModel:ViewModel
+    @Binding var selectedDeploy:SourceInfoProjectInfo?
     var prodList:[SourceInfoProjectInfo] {
         viewModel.sourceDeployList.filter{
             return $0.name.localizedStandardContains("prod")
@@ -23,19 +24,22 @@ struct SourceDeployListView: View {
         .sorted(by: {$0.name < $1.name})
     }
     var body: some View {
-        List{
+        List(selection: $selectedDeploy){
             Section("운영"){
                 ForEach(prodList, id:\.id){ item in
+                    #if os(iOS)
                     NavigationLink(destination:{
                         SourceDeployDetail(viewModel:viewModel,
-                                             selectedBuildInfo: item)
+                                             selectedDeploy: item)
                     }){
-                        HStack{
-                            Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
-                                .foregroundColor(item.name.contains("prod") ? Util.getDevTypeColor("prod") : Util.getDevTypeColor("dev"))
-                            Text(item.name)
-                        }
+                        SourcelineListSubView(itemNm:item.name)
                     }
+                    #endif
+                    #if os(macOS)
+                    NavigationLink(value:item){
+                        SourcelineListSubView(itemNm:item.name)
+                    }
+                    #endif
                 }
             }
 #if os(macOS)
@@ -43,16 +47,19 @@ struct SourceDeployListView: View {
 #endif
             Section("개발"){
                 ForEach(devList, id:\.id){ item in
+                    #if os(iOS)
                     NavigationLink(destination:{
                         SourceDeployDetail(viewModel:viewModel,
-                                             selectedBuildInfo: item)
+                                             selectedDeploy: item)
                     }){
-                        HStack{
-                            Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
-                                .foregroundColor(item.name.contains("prod") ? Util.getDevTypeColor("prod") : Util.getDevTypeColor("dev"))
-                            Text(item.name)
-                        }
+                        SourcelineListSubView(itemNm:item.name)
                     }
+                    #endif
+                    #if os(macOS)
+                    NavigationLink(value:item){
+                        SourcelineListSubView(itemNm:item.name)
+                    }
+                    #endif
                 }
                 
             }
@@ -71,5 +78,8 @@ struct SourceDeployListView: View {
 }
   
 #Preview{
-        SourceDeployListView(viewModel: ViewModel())
+    NavigationStack{
+        SourceDeployListView(viewModel: ViewModel()
+                             , selectedDeploy: .constant(nil))
+    }
 }

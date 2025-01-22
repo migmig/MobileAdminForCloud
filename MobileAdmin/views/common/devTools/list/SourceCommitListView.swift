@@ -9,23 +9,34 @@ import SwiftUI
 
 struct SourceCommitListView: View {
     @ObservedObject var viewModel:ViewModel
-    @State var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
+    @Binding var selectedCommit:SourceCommitInfoRepository?
     @State var searchText:String = ""
     var body: some View {
            // VStack{
-                List{
-                    ForEach(viewModel.sourceCommitInfoRepository, id:\.id){ item in
-                        NavigationLink(destination:{
-                            SourceCommitDetail(viewModel:viewModel,
-                                               selectedSourceCommitInfoRepository: item)
-                        }){
-                            HStack{
-                                Image(systemName: SlidebarItem.sourceCommit.img)
-                                    .foregroundColor(.blue)
-                                Text(item.name)
-                            }
-                        }
+        List(selection: $selectedCommit){
+            ForEach(viewModel.sourceCommitInfoRepository, id:\.id){ item in
+                #if os(iOS)
+                NavigationLink(destination:{
+                    SourceCommitDetail(viewModel:viewModel,
+                                       selectedSourceCommit: item)
+                }){
+                    HStack{
+                        Image(systemName: SlidebarItem.sourceCommit.img)
+                            .foregroundColor(.blue)
+                        Text(item.name)
                     }
+                }
+                #endif
+                #if os(macOS)
+                NavigationLink(value: item){
+                    HStack{
+                        Image(systemName: SlidebarItem.sourceCommit.img)
+                            .foregroundColor(.blue)
+                        Text(item.name)
+                    }
+                }
+                #endif
+            }
 #if os(macOS)
 .font(.title2)
 #endif
@@ -52,3 +63,8 @@ struct SourceCommitListView: View {
     }
 }
  
+#Preview{
+    NavigationStack{
+        SourceCommitListView(viewModel: ViewModel(), selectedCommit: .constant(nil))
+    }
+}

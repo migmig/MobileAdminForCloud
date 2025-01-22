@@ -96,12 +96,12 @@ struct ErrorSidebar: View {
             }
             ScrollViewReader { proxy in
                 List(filteredErrorItems,selection:$selectedErrorItem){entry in
-//                    NavigationLink(value:entry){
-//                        ErrorCloudListItem(errorCloudItem: entry)
-//                    }
-                    NavigationLink(destination: ErrorCloudItemView(errorCloudItem: entry)){
+                    NavigationLink(value:entry){
                         ErrorCloudListItem(errorCloudItem: entry)
                     }
+//                    NavigationLink(destination: ErrorCloudItemView(errorCloudItem: entry)){
+//                        ErrorCloudListItem(errorCloudItem: entry)
+//                    }
                 }
                 .navigationTitle("오류 조회")
                 #if os(macOS)

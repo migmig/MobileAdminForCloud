@@ -9,19 +9,35 @@ import SwiftUI
 
 struct SourceControlViewForIOS: View {
     @EnvironmentObject var viewModel:ViewModel
+    @State var selectedPipeline:SourceInfoProjectInfo?
+    @State var selectedBuild:SourceBuildProject?
+    @State var selectedDeploy:SourceInfoProjectInfo?
+    @State var selectedCommit:SourceCommitInfoRepository?
     var body: some View {
         NavigationStack{
             List{
-                NavigationLink(destination: SourceCommitListView(viewModel: viewModel)){
+                NavigationLink(destination: SourceCommitListView(
+                    viewModel: viewModel,
+                    selectedCommit:$selectedCommit
+                )){
                     Label(SlidebarItem.sourceCommit.title, systemImage: SlidebarItem.sourceCommit.img)
                 }
-                NavigationLink(destination: SourceBuildListView(viewModel: viewModel)){
+                NavigationLink(destination: SourceBuildListView(
+                    viewModel: viewModel,
+                    selected : $selectedBuild
+                )){
                     Label(SlidebarItem.sourceBuild.title , systemImage: SlidebarItem.sourceBuild.img)
                 }
-                NavigationLink(destination: SourceDeployListView(viewModel: viewModel)){
+                NavigationLink(destination: SourceDeployListView(
+                    viewModel: viewModel,
+                    selectedDeploy: $selectedDeploy
+                )){
                     Label(SlidebarItem.sourceDeploy.title,   systemImage: SlidebarItem.sourceDeploy.img)
                 }
-                NavigationLink(destination: SourcePipelineListView(viewModel : viewModel)){
+                NavigationLink(destination: SourcePipelineListView(
+                    viewModel : viewModel,
+                    selectedPipeline: $selectedPipeline
+                )){
                     Label(SlidebarItem.sourcePipeline.title, systemImage: SlidebarItem.sourcePipeline.img)
                 }
             }

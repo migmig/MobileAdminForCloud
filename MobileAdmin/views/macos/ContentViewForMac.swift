@@ -12,6 +12,10 @@ struct ContentViewForMac: View {
     @State var selectedGroupCode:CmmnGroupCodeItem?
     @State var closeDeptList:[Detail1] = []
     @State var selectedCloseDept:Detail1? = nil
+    @State var selectedPipeline:SourceInfoProjectInfo?
+    @State var selectedBuild:SourceBuildProject?
+    @State var selectedCommit:SourceCommitInfoRepository?
+    @State var selectedDeploy:SourceInfoProjectInfo?
 //    @State var selectedSourceBuildProject:SourceBuildProject?
 //    @State var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
     
@@ -31,7 +35,11 @@ struct ContentViewForMac: View {
                 groupCodes: $groupCodes,
                 selectedGroupCode: $selectedGroupCode,
                 closeDeptList: $closeDeptList,
-                selectedCloseDept: $selectedCloseDept
+                selectedCloseDept: $selectedCloseDept,
+                selectedPipeline: $selectedPipeline,
+                selectedBuild: $selectedBuild,
+                selectedCommit : $selectedCommit,
+                selectedDeploy : $selectedDeploy
 //                selectedSourceBuildProject: $selectedSourceBuildProject,
 //                selectedSourceCommitInfoRepository: $selectedSourceCommitInfoRepository
             )
@@ -47,11 +55,15 @@ struct ContentViewForMac: View {
                     edcCrseCl: $edcCrseCl,
                     selectedEdcCrseCl: $selectedEdcCrseCl,
                     selectedGroupCode: $selectedGroupCode,
-                    selectedCloseDept: $selectedCloseDept
+                    selectedCloseDept: $selectedCloseDept,
+                    selectedPipeline: $selectedPipeline,
+                    selectedBuild: $selectedBuild,
+                    selectedCommit : $selectedCommit,
+                    selectedDeploy : $selectedDeploy
 //                    selectedSourceBuildProject: $selectedSourceBuildProject
                 )
             }
-        } 
+        }
         
     }
 }

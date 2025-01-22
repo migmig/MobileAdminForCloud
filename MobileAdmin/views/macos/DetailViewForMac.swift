@@ -11,61 +11,107 @@ struct DetailViewForMac: View {
     @Binding var selectedEdcCrseCl : EdcCrseCl?
     @Binding var selectedGroupCode: CmmnGroupCodeItem?
     @Binding var selectedCloseDept: Detail1?
-//    @Binding var selectedSourceBuildProject: SourceBuildProject?
-     
+    @Binding var selectedPipeline:SourceInfoProjectInfo?
+    @Binding var selectedBuild: SourceBuildProject?
+    @Binding var selectedCommit:SourceCommitInfoRepository?
+    @Binding var selectedDeploy:SourceInfoProjectInfo?
     
     var body: some View {
         if(selectedSlidebarItem == SlidebarItem.errerlist){
-//            if let entry = selectedErrorItem{
-//                ErrorCloudItemView(
-//                    errorCloudItem: (entry)
-//                )
-//            }else{
-//                Text("Select a row to view details.")
-//            }
+            //if let entry = selectedErrorItem{
+                ErrorCloudItemView(
+                    errorCloudItem: selectedErrorItem ?? ErrorCloudItem()
+                )
+           // }else{
+           //     Text("Select a row to view details.")
+           // }
         }else if(selectedSlidebarItem == SlidebarItem.toast){
             ToastView(
                 toastItem: $toast).environmentObject(viewModel)
         }else if(selectedSlidebarItem == SlidebarItem.goodsInfo){
-            if let entry = selectedGoods{
-                GoodsDetailView(goodsinfo: entry)
-            }else{
-                Text("Select a row to view details.")
-            }
+            //if let entry = selectedGoods{
+                GoodsDetailView(goodsinfo: selectedGoods ?? Goodsinfo())
+           // }else{
+           //     Text("Select a row to view details.")
+           // }
         }else if(selectedSlidebarItem == SlidebarItem.gcpClsList){
-            if let entry = selectedEdcCrseCl{
+           // if let entry = selectedEdcCrseCl{
                 EdcCrseDetailView(
                     viewModel: viewModel,
-                    edcCrseClinfo:entry
+                    edcCrseClinfo:selectedEdcCrseCl ?? EdcCrseCl("","")
                 )
-            }else{
-                Text("Select a row to view details.")
-            }
+            //}else{
+            //    Text("Select a row to view details.")
+            //}
         }else if(selectedSlidebarItem == SlidebarItem.codeList){
-            if let cmmnGroupCodeItem = selectedGroupCode{
+            //if let cmmnGroupCodeItem = selectedGroupCode{
                 CodeDetailView(
                     viewModel: viewModel,
-                    cmmnGroupCodeItem: cmmnGroupCodeItem)
+                    cmmnGroupCodeItem: selectedGroupCode ?? CmmnGroupCodeItem(
+                        cmmnGroupCode: "",
+                        cmmnGroupCodeNm: "",
+                        groupEstbs1Value: "",
+                        groupEstbs2Value: "",
+                        groupEstbs3Value: "",
+                        groupEstbs4Value: "",
+                        groupEstbs5Value: "",
+                        groupEstbs6Value: "",
+                        groupEstbs7Value: "",
+                        useAt: ""
+                    )
+                    )
                 
-            }else{
-                Text("Select a row to view details.")
-            }
+            //}else{
+            //    Text("Select a row to view details.")
+            //}
         }else if(selectedSlidebarItem == SlidebarItem.closeDeptList){
-            if let closeDeptDetail = selectedCloseDept{
+            //if let closeDeptDetail = selectedCloseDept{
                 CloseDeptDetail(
-                    closeDetail: closeDeptDetail)
+                    closeDetail: selectedCloseDept ?? Detail1(
+                        closeempno: "",
+                        rmk: "",
+                        deptprtnm: "",
+                        closegb: "",
+                        closetime: "",
+                        opentime: "",
+                        deptcd: ""
+                    )
+                    )
                 
+            //}else{
+            //    Text("Select a row to view details.")
+            //}
+        }else if(selectedSlidebarItem == SlidebarItem.sourceBuild){
+            if let sourceBuildProject = selectedBuild{
+                SourceBuildDetail(viewModel : viewModel,
+                                  selectedProject : sourceBuildProject)
             }else{
                 Text("Select a row to view details.")
             }
-        }else if(selectedSlidebarItem == SlidebarItem.sourceBuild){
-//            if let sourceBuildProject = selectedSourceBuildProject{
-//                SourceBuildDetail(viewModel : viewModel,
-//                                  selectedProject : sourceBuildProject)
-//            }else{
-//                Text("Select a row to view details.")
-//            }
-            
+        }else if(selectedSlidebarItem  == SlidebarItem.sourcePipeline){
+            if let sourcePipeline = selectedPipeline{
+                SourcePipelineDetail(
+                    viewModel: viewModel,
+                    selectedPipeline: sourcePipeline)
+            }else{
+                Text("Select a row to view details.")
+            }
+        }else if(selectedSlidebarItem  == SlidebarItem.sourceCommit){
+            if let sourceCommit = selectedCommit{
+                SourceCommitDetail(
+                    viewModel: viewModel,
+                    selectedSourceCommit: sourceCommit)
+            }else{
+                Text("Select a row to view details.")
+            }
+        }else if(selectedSlidebarItem  == SlidebarItem.sourceDeploy){
+            if let sourceDeploy = selectedDeploy{
+                SourceDeployDetail(
+                    viewModel: viewModel,
+                    selectedDeploy: sourceDeploy)
+            }else{
+                Text("Select a row to view details.")
+            }
         }else{
             Text(" ")
         }
@@ -114,6 +160,10 @@ struct DetailViewForMac: View {
                     deptcd: ""
                 )
         )
+        ,selectedPipeline: .constant(nil)
+        ,selectedBuild: .constant(nil)
+        ,selectedCommit:.constant(nil)
+        ,selectedDeploy:.constant(nil)
 //        ,selectedSourceBuildProject:.constant(nil)
     )
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SourceDeployDetail: View {
     @ObservedObject var viewModel:ViewModel
-    var selectedBuildInfo:SourceInfoProjectInfo
+    var selectedDeploy:SourceInfoProjectInfo
     @State private var stageList:[SourceDeployStageInfoProject] = []
     @State private var historyList : [SourceDeployHistoryInfoHistoryList] = []
     @State private var scenarioList : [SourceDeployScenarioInfoProject] = []
@@ -24,7 +24,7 @@ struct SourceDeployDetail: View {
                 HStack{
                     Text("명칭")
                     Spacer()
-                    Text(selectedBuildInfo.name)
+                    Text(selectedDeploy.name)
                         .font(.subheadline)
                 }
             }
@@ -96,8 +96,8 @@ struct SourceDeployDetail: View {
                 }
             }
         }
-        .navigationTitle(selectedBuildInfo.name)
-        .onChange(of: selectedBuildInfo.id){_, newValue in
+        .navigationTitle(selectedDeploy.name)
+        .onChange(of: selectedDeploy.id){_, newValue in
             getStage()
             getHistory()
         }
@@ -111,7 +111,7 @@ struct SourceDeployDetail: View {
             withAnimation{
                 isLoaded = true
             }
-            await viewModel.runSourceDeploy(selectedBuildInfo.id,stageId,scenarioId)
+            await viewModel.runSourceDeploy(selectedDeploy.id,stageId,scenarioId)
             isConfirm = false
             
             withAnimation{
@@ -124,7 +124,7 @@ struct SourceDeployDetail: View {
             withAnimation{
                 isLoaded = true
             }
-            let response = await viewModel.fetchSourceDeployStageInfo(selectedBuildInfo.id)
+            let response = await viewModel.fetchSourceDeployStageInfo(selectedDeploy.id)
             stageList = response.result?.stageList ?? []
             stageList.first.map{
                 stageId = $0.id
@@ -138,7 +138,7 @@ struct SourceDeployDetail: View {
     }
     func getScenario(){
         Task{
-            let response = await viewModel.fetchSourceDeployScenarioInfo(selectedBuildInfo.id, stageId)
+            let response = await viewModel.fetchSourceDeployScenarioInfo(selectedDeploy.id, stageId)
             scenarioList = response.result?.scenarioList ?? []
             scenarioList.first.map{
                 scenarioId = $0.id
@@ -151,7 +151,7 @@ struct SourceDeployDetail: View {
             withAnimation{
                 isLoaded = true
             }
-            let response = await viewModel.fetchSourceDeployHistoryInfo(selectedBuildInfo.id)
+            let response = await viewModel.fetchSourceDeployHistoryInfo(selectedDeploy.id)
             historyList = response.result?.historyList?.sorted(by: {$0.id > $1.id  }) ?? []
             
             withAnimation{
@@ -162,5 +162,5 @@ struct SourceDeployDetail: View {
 }
 
 #Preview {
-    SourceDeployDetail(viewModel: ViewModel(), selectedBuildInfo: SourceInfoProjectInfo(1138,"oauth-resource-server"))
+    SourceDeployDetail(viewModel: ViewModel(), selectedDeploy: SourceInfoProjectInfo(1138,"oauth-resource-server"))
 }

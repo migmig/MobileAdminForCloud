@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SourceCommitDetail: View {
     @ObservedObject var viewModel:ViewModel
-    var selectedSourceCommitInfoRepository:SourceCommitInfoRepository
+    var selectedSourceCommit:SourceCommitInfoRepository
     @State var branchList:[String] = []
     @State var isListLoading:Bool = false
     var body: some View {
@@ -18,7 +18,7 @@ struct SourceCommitDetail: View {
                 HStack{
                     Text("명칭")
                     Spacer()
-                    Text(selectedSourceCommitInfoRepository.name)
+                    Text(selectedSourceCommit.name)
                         .font(.subheadline)
                 }
             }
@@ -43,12 +43,12 @@ struct SourceCommitDetail: View {
 #if os(macOS)
 .font(.title2)
 #endif
-        .onChange(of: selectedSourceCommitInfoRepository.name){_,  newValue in
+        .onChange(of: selectedSourceCommit.name){_,  newValue in
             Task{
                 withAnimation{
                     isListLoading = true
                 }
-                let sourceCommitBranchInfo = await viewModel.fetchSourceCommitBranchList(selectedSourceCommitInfoRepository.name)
+                let sourceCommitBranchInfo = await viewModel.fetchSourceCommitBranchList(selectedSourceCommit.name)
                 branchList = sourceCommitBranchInfo.result.branch;
                 withAnimation{
                     isListLoading = false
@@ -60,20 +60,20 @@ struct SourceCommitDetail: View {
                 withAnimation{
                     isListLoading = true
                 }
-                let sourceCommitBranchInfo = await viewModel.fetchSourceCommitBranchList(selectedSourceCommitInfoRepository.name)
+                let sourceCommitBranchInfo = await viewModel.fetchSourceCommitBranchList(selectedSourceCommit.name)
                 branchList = sourceCommitBranchInfo.result.branch;
                 withAnimation{
                     isListLoading = false
                 }
             }
         }
-        .navigationTitle(selectedSourceCommitInfoRepository.name)
+        .navigationTitle(selectedSourceCommit.name)
     }
 }
  
 #Preview{
     SourceCommitDetail(viewModel: ViewModel(),
-                       selectedSourceCommitInfoRepository: SourceCommitInfoRepository(
+                       selectedSourceCommit: SourceCommitInfoRepository(
                         id: 11,
                         name: "back-end-git",
                         permission: "permission",

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SourcePipelineListView: View {
     @ObservedObject var viewModel:ViewModel
+    @Binding var selectedPipeline:SourceInfoProjectInfo?
     var prodList:[SourceInfoProjectInfo] {
         viewModel.sourcePipelineList.filter{
             return $0.name.localizedStandardContains("prod")
@@ -23,19 +24,23 @@ struct SourcePipelineListView: View {
         .sorted(by: {$0.name < $1.name})
     }
     var body: some View {
-        List{
+        List(selection: $selectedPipeline){
             Section("운영"){
                 ForEach(prodList, id:\.id){ item in
+                    #if os(iOS)
                     NavigationLink(destination:{
                         SourcePipelineDetail(viewModel:viewModel,
                                              selectedPipeline: item)
                     }){
-                        HStack{
-                            Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
-                                .foregroundColor(item.name.contains("prod") ? Util.getDevTypeColor("prod") : Util.getDevTypeColor("dev"))
-                            Text(item.name)
-                        }
+                        SourcelineListSubView(itemNm:item.name)
                     }
+                    #endif
+                    #if os(macOS)
+                    NavigationLink(value:item)
+                    {
+                        SourcelineListSubView(itemNm:item.name)
+                    }
+                    #endif
                 }
             }
 #if os(macOS)
@@ -43,16 +48,20 @@ struct SourcePipelineListView: View {
 #endif
             Section("개발"){
                 ForEach(devList, id:\.id){ item in
+                    #if os(iOS)
                     NavigationLink(destination:{
                         SourcePipelineDetail(viewModel:viewModel,
                                              selectedPipeline: item)
                     }){
-                        HStack{
-                            Image(systemName: item.name.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
-                                .foregroundColor(item.name.contains("prod") ? Util.getDevTypeColor("prod") : Util.getDevTypeColor("dev"))
-                            Text(item.name)
-                        }
+                        SourcelineListSubView(itemNm:item.name)
                     }
+                    #endif
+                    #if os(macOS)
+                    NavigationLink(value:item)
+                    {
+                        SourcelineListSubView(itemNm:item.name)
+                    }
+                    #endif
                 }
             }
 #if os(macOS)
@@ -62,13 +71,16 @@ struct SourcePipelineListView: View {
         .navigationTitle("파이프라인")
         .onAppear{
             Task{
-                let response = await viewModel.fetchSourcePipelineList() 
+                let response = await viewModel.fetchSourcePipelineList()
                 viewModel.sourcePipelineList = response.result.projectList.sorted(by: {$0.id < $1.id})
             }
         }
     }
 }
+ 
 
 #Preview {
-    SourcePipelineListView(viewModel: ViewModel())
+    NavigationStack{
+        SourcePipelineListView(viewModel: ViewModel(), selectedPipeline: .constant(nil))
+    }
 }

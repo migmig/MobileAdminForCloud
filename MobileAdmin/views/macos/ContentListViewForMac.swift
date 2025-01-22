@@ -12,6 +12,10 @@ struct ContentListViewForMac: View {
     @Binding var selectedGroupCode:CmmnGroupCodeItem?
     @Binding var closeDeptList:[Detail1]
     @Binding var selectedCloseDept:Detail1?
+    @Binding var selectedPipeline:SourceInfoProjectInfo?
+    @Binding var selectedBuild:SourceBuildProject?
+    @Binding var selectedCommit:SourceCommitInfoRepository?
+    @Binding var selectedDeploy:SourceInfoProjectInfo?
 //    @Binding var selectedSourceBuildProject:SourceBuildProject?
 //    @Binding var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
     @State private var isLoading:Bool = false
@@ -73,16 +77,28 @@ struct ContentListViewForMac: View {
                              selectedCloseDept: $selectedCloseDept)
             
         case .sourceCommit:
-            SourceCommitListView(viewModel: viewModel)
+            SourceCommitListView(
+                viewModel: viewModel,
+                selectedCommit:$selectedCommit
+            )
             
         case .sourceBuild:
-            SourceBuildListView(viewModel: viewModel )
+            SourceBuildListView(
+                viewModel: viewModel,
+                selected: $selectedBuild
+            )
             
         case .sourceDeploy:
-            SourceDeployListView(viewModel: viewModel)
+            SourceDeployListView(
+                viewModel: viewModel,
+                selectedDeploy: $selectedDeploy
+            )
         
         case .sourcePipeline:
-            SourcePipelineListView(viewModel: viewModel)
+            SourcePipelineListView(
+                viewModel: viewModel,
+                selectedPipeline: $selectedPipeline
+            )
         
         default:
             Text("알 수 없는 항목입니다.")
@@ -207,8 +223,10 @@ struct ContentListViewForMac: View {
                         deptcd: "100"
                     )
                 )
-//        , selectedSourceBuildProject: .constant(nil)
-//        ,selectedSourceCommitInfoRepository:.constant(nil)
+        ,selectedPipeline:.constant(nil)
+        ,selectedBuild:.constant(nil)
+        ,selectedCommit:.constant(nil)
+        ,selectedDeploy:.constant(nil)
         
     )
 }
