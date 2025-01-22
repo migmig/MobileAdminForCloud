@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CloseDeptListViewIOS: View {
-    @EnvironmentObject var viewModel:ViewModel 
+    @EnvironmentObject var viewModel:ViewModel
     @State var list:[Detail1] = []
     @State var closeGb = "4"
  
@@ -50,7 +50,9 @@ struct CloseDeptListViewIOS: View {
                                    , loadData: loadData)
                     }
                 }
+                #if os(macOS)
                 .padding()
+                #endif
                 List(filteredList){entry in
                     //ForEach(filteredList, id:\.self){
                     NavigationLink(destination: {
@@ -91,11 +93,18 @@ struct ButtonView: View {
     var body: some View {
         Button(txt, action: {
             Task{
-                closeGb = selectGb
+                withAnimation{
+                    closeGb = selectGb
+                }
                 await loadData()
             }
         })
+        .foregroundColor(closeGb == selectGb ? Color.blue : Color.gray)
         .buttonStyle(BorderedButtonStyle())
     }
 }
  
+#Preview{
+    CloseDeptListViewIOS()
+        .environmentObject(ViewModel())
+}

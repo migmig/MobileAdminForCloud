@@ -7,49 +7,28 @@
 
 import SwiftUI
 
-extension AnyTransition {
-    static var colorAndFade: AnyTransition {
-            .modifier(
-                active: ColorFadeModifier(color: .red, opacity: 0),
-                identity: ColorFadeModifier(color: .blue, opacity: 1)
-            )
-        }
-    static var rotateAndMove: AnyTransition {
-        .modifier(
-            active: RotateMoveModifier(angle: 180, offset: CGSize(width: 0, height: 300)),
-            identity: RotateMoveModifier(angle: 0, offset: .zero)
-        )
-    }
-    static var blurAndFade: AnyTransition {
-        .modifier(
-            active: BlurModifier(radius: 10, opacity: 0),
-            identity: BlurModifier(radius: 0, opacity: 1)
-        )
-    }
-    static var threeDRotate: AnyTransition {
-        .modifier(
-            active: ThreeDRotateModifier(angle: 90, axis: (x: 0, y: 1, z: 0)),
-            identity: ThreeDRotateModifier(angle: 0, axis: (x: 0, y: 1, z: 0))
-        )
-    }
-    static var slideAndScale: AnyTransition {
-        .modifier(
-            active: SlideScaleModifier(offset: CGSize(width: -300, height: 0), scale: 1),
-            identity: SlideScaleModifier(offset: .zero, scale: 1)
-        )
-    }
-    static var rotateAndFade: AnyTransition {
-        .modifier(
-            active: RotateModifier(angle: 360, opacity: 0),
-            identity: RotateModifier(angle: 0, opacity: 1)
-        )
-    }
-}
 
 struct Sample: View {
     
     @State var showView = false
     var body: some View {
+        ScrollView{
+            ParallaxBackground()
+                .frame(height: 500)
+                .clipped()
+                                //Spacer().frame(height: 100) // 배경과 내용 간 거리 조정
+                                ForEach(1...20, id: \.self) { i in
+                                    Text("Item \(i)")
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color.white)
+                                        .cornerRadius(8)
+                                        .shadow(radius: 2)
+                                        .padding(.horizontal)
+                                        .padding(.vertical, 5)
+                                }
+        }
+        .edgesIgnoringSafeArea(.all)
         Button("Hello") {
             print("Hello")
             withAnimation {
@@ -71,65 +50,28 @@ struct Sample: View {
         }
     }
 }
+struct ParallaxBackground: View {
+    @State private var offset: CGFloat = 0
 
-
-struct RotateModifier: ViewModifier {
-    let angle: Double
-    let opacity: Double
-
-    func body(content: Content) -> some View {
-        content
-            .rotationEffect(.degrees(angle))
-            .opacity(opacity)
+    var body: some View {
+        GeometryReader { geometry in
+            Image("backgroud") // 배경 이미지 이름
+                .resizable()
+                .scaledToFill()
+                .frame(width: geometry.size.width,
+                       height: geometry.size.height + calculateParallax(geometry: geometry))
+                .offset(y: calculateParallax(geometry: geometry) / -2) // 패럴랙스 효과
+                .blur(radius: 10-geometry.frame(in:.global).minY/10)
+                .onAppear {
+                    // 초기 offset 계산
+                    offset = geometry.frame(in: .global).minY
+                }
+        }
     }
-}
-struct SlideScaleModifier: ViewModifier {
-    let offset: CGSize
-    let scale: CGFloat
-
-    func body(content: Content) -> some View {
-        content
-            .offset(offset)
-            .scaleEffect(scale)
-    }
-}
-struct ThreeDRotateModifier: ViewModifier {
-    let angle: Double
-    let axis: (x: CGFloat, y: CGFloat, z: CGFloat)
-
-    func body(content: Content) -> some View {
-        content.rotation3DEffect(.degrees(angle), axis: axis)
-    }
-}
-struct BlurModifier: ViewModifier {
-    let radius: CGFloat
-    let opacity: Double
-
-    func body(content: Content) -> some View {
-        content
-            .blur(radius: radius)
-            .opacity(opacity)
-    }
-}
-
-struct RotateMoveModifier: ViewModifier {
-    let angle: Double
-    let offset: CGSize
-
-    func body(content: Content) -> some View {
-        content
-            .rotationEffect(.degrees(angle))
-            .offset(offset)
-    }
-}
-struct ColorFadeModifier: ViewModifier {
-    let color: Color
-    let opacity: Double
-
-    func body(content: Content) -> some View {
-        content
-            .background(color)
-            .opacity(opacity)
+    
+    private func calculateParallax(geometry: GeometryProxy) -> CGFloat {
+        let minY = geometry.frame(in: .global).minY
+        return -minY / 4 // 이동 속도 조절 (1보다 작은 값으로 느리게 이동)
     }
 }
 #Preview {

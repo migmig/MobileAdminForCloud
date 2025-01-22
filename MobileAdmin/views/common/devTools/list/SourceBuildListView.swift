@@ -68,8 +68,8 @@ struct SourceBuildListView: View {
 .font(.title2)
 #endif
         }
-                  
         .navigationTitle("소스빌드목록")
+                  
         .onAppear(){
             print("SourceBuildListViewIOS.onAppear()")
             if viewModel.buildProjects.isEmpty {

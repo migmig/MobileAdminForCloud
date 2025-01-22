@@ -15,8 +15,8 @@ struct SourceDeployDetail: View {
     @State private var scenarioList : [SourceDeployScenarioInfoProject] = []
     @State private var isConfirm:Bool = false
     @State private var isCancel:Bool = false
-    @State var isLoaded = false
-    @State var stageId:Int = 0
+    @State private var isLoaded:Bool = false
+    @State private var stageId:Int = 0
     @State var scenarioId:Int = 0
     var body: some View {
         List{
