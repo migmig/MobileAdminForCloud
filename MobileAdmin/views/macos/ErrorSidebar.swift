@@ -9,8 +9,8 @@ import SwiftUI
 
 struct ErrorSidebar: View {
 //    @Binding var errorItems:[ErrorCloudItem]
+    @ObservedObject var viewModel:ViewModel
     @Binding var selectedErrorItem:ErrorCloudItem?
-    @ObservedObject var viewModel:ViewModel = ViewModel()
     @State private var searchText = ""
     @State var isLoading:Bool = false
     @State var dateFrom:Date = Date()
@@ -96,7 +96,10 @@ struct ErrorSidebar: View {
             }
             ScrollViewReader { proxy in
                 List(filteredErrorItems,selection:$selectedErrorItem){entry in
-                    NavigationLink(value:entry){
+//                    NavigationLink(value:entry){
+//                        ErrorCloudListItem(errorCloudItem: entry)
+//                    }
+                    NavigationLink(destination: ErrorCloudItemView(errorCloudItem: entry)){
                         ErrorCloudListItem(errorCloudItem: entry)
                     }
                 }
@@ -153,6 +156,7 @@ struct ErrorSidebar: View {
 }
  #Preview {
     ErrorSidebar(
+        viewModel: ViewModel(),
         selectedErrorItem: .constant(nil
         )
     )

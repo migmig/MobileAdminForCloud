@@ -84,7 +84,7 @@ struct GoodsSidebar: View {
         }
         Section{
             List(filteredGoods,selection:$selectedGoods){ item in
-                NavigationLink(value:item){
+                NavigationLink(destination:GoodsDetailView(goodsinfo: item)){
                     GoodsItemListItem(
                         goodsItem: item
                         , selectedGoodsCd: selectedGoodsCd

@@ -39,7 +39,7 @@ struct ContentListViewForMac: View {
     private func makeSidebar(for item: SlidebarItem) -> some View {
         switch item {
         case .errerlist:
-            ErrorSidebar(
+            ErrorSidebar(viewModel: viewModel,
                          selectedErrorItem: $selectedErrorItem)
             
         case .toast:
@@ -48,8 +48,9 @@ struct ContentListViewForMac: View {
                     ProgressView("로딩 중...")
                         .progressViewStyle(CircularProgressViewStyle())
                 }
-                NavigationLink(value: toast) {
-                    Text(toast.noticeHder)
+                NavigationLink(destination: ToastView(toastItem: $toast)
+                                .environmentObject(viewModel)) {
+                    Text("토스트조회")
                 }
             }
             

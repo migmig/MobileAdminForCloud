@@ -14,9 +14,14 @@ struct CodeDetailView:View{
     
     fileprivate func fnSearch()  {
         Task{
-            isLoading = true;
+            withAnimation{
+                isLoading = true;
+            }
             cmmnCodeItems = await viewModel.fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
-            isLoading = false;
+            
+            withAnimation{
+                isLoading = false;
+            }
         }
     }
     var body : some View  {

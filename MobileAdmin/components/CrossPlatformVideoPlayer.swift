@@ -32,7 +32,7 @@ struct CrossPlatformVideoPlayer: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) { }
-    
+    	
     func makeCoordinator() -> some View {
         ZStack{
             VideoPlayerView(videoURL: videoURL)

@@ -18,11 +18,13 @@ struct EdcClsSidebar: View {
             }
             List(selection:$selectedEdcCrseCl){
                 ForEach(edcCrseCl, id:\.self){  entry in
-                    NavigationLink(value:entry){
+                    NavigationLink(destination : EdcCrseDetailView(
+                        viewModel: viewModel,
+                        edcCrseClinfo:entry)){
                         HStack {
                             Image(systemName: SlidebarItem.gcpClsList.img)
                                 .font(.caption)
-                            Text(entry.edcCrseName ?? "")
+                            Text("\(entry.id!) : \(entry.edcCrseName ?? "")")
                         }
                     }
                 }

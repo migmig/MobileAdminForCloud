@@ -16,13 +16,13 @@ struct DetailViewForMac: View {
     
     var body: some View {
         if(selectedSlidebarItem == SlidebarItem.errerlist){
-            if let entry = selectedErrorItem{
-                ErrorCloudItemView(
-                    errorCloudItem: entry
-                )
-            }else{
-                Text("Select a row to view details.")
-            }
+//            if let entry = selectedErrorItem{
+//                ErrorCloudItemView(
+//                    errorCloudItem: (entry)
+//                )
+//            }else{
+//                Text("Select a row to view details.")
+//            }
         }else if(selectedSlidebarItem == SlidebarItem.toast){
             ToastView(
                 toastItem: $toast).environmentObject(viewModel)

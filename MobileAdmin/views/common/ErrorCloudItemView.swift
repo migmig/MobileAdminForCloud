@@ -2,7 +2,7 @@ import SwiftUI
  
 
 struct ErrorCloudItemView: View {
-    let errorCloudItem: ErrorCloudItem
+    var errorCloudItem: ErrorCloudItem
     @State private var isSheetPresented:Bool = false
     var body: some View {
         ScrollView {
