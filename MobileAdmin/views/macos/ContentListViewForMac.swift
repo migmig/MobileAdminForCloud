@@ -52,8 +52,7 @@ struct ContentListViewForMac: View {
                     ProgressView("로딩 중...")
                         .progressViewStyle(CircularProgressViewStyle())
                 }
-                NavigationLink(destination: ToastView(toastItem: $toast)
-                                .environmentObject(viewModel)) {
+                NavigationLink(value:toast)  {
                     Text("토스트조회")
                 }
             }
