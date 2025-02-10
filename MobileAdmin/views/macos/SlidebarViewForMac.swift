@@ -74,13 +74,13 @@ enum SlidebarItem: Hashable,CaseIterable{
         case .closeDeptList:
             return "개시여부"
         case .sourceCommit:
-            return "Source Commit"
+            return "Src Commit"
         case .sourceBuild:
-            return "Source Build"
+            return "Src Build"
         case .sourceDeploy:
-            return "Source Deploy"
+            return "Src Deploy"
         case .sourcePipeline:
-            return "Source Pipeline"
+            return "Src Pipeline"
         case .collection(let title):
             return title
         }
@@ -88,13 +88,13 @@ enum SlidebarItem: Hashable,CaseIterable{
     var img: String{
         switch self{
         case .errerlist:
-            return "cloud"
+            return "exclamationmark.icloud"
         case .toast:
-            return "bell"
+            return "bell.badge"
         case .goodsInfo:
             return "cart"
         case .gcpClsList:
-            return "list.bullet.rectangle"
+            return "graduationcap"
         case .codeList:
             return "doc.text"
         case .closeDeptList:
@@ -111,6 +111,11 @@ enum SlidebarItem: Hashable,CaseIterable{
             return title
         }
     }
+    static let groups: [(String, [SlidebarItem])] = [
+           ("클라우드", [.errerlist, .toast, .gcpClsList, .codeList]),
+           ("내부시스템", [.goodsInfo, .closeDeptList]),
+           ("개발도구", [.sourceCommit, .sourceBuild, .sourceDeploy, .sourcePipeline])
+       ]
 }
 
 
@@ -118,33 +123,16 @@ struct SlidebarViewForMac: View {
     @Binding var selection: SlidebarItem?
     var body: some View {
         List(selection:$selection){
-            Section(header:Text("클라우드")){
-                ForEach(SlidebarItem.CloudTools, id: \.self){ item in
-                    NavigationLink(value:item){
-                        //Text(item.title)
-                        Label(" [ \(item.title) ] ", systemImage: item.img)
-                            .font(.title2)
-                    }
-                }
-            }
-            Section(header:Text("내부시스템")){
-                ForEach(SlidebarItem.InnerSystems, id: \.self){ item in
-                    NavigationLink(value:item){
-                        //Text(item.title)
-                        Label(" [ \(item.title) ] ", systemImage: item.img)
-                            .font(.title2)
-                    }
-                }
-            }
-            Section(header:Text("개발도구")){
-                ForEach(SlidebarItem.DeveloperTools, id: \.self){ item in
-                    NavigationLink(value:item){
-                        //Text(item.title)
-                        Label(" [ \(item.title) ] ", systemImage: item.img)
-                            .font(.title2)
-                    }
-                }
-            }
+            ForEach(SlidebarItem.groups, id: \.0) { (header, items) in
+               Section(header: Text(header)) {
+                   ForEach(items, id: \.self) { item in
+                       NavigationLink(value: item) {
+                           Label(" [ \(item.title) ] ", systemImage: item.img)
+                               .font(.title2)
+                       }
+                   }
+               }
+           }
         }
         .onChange(of: selection){old, newValue in
             print("Selected: \(newValue?.title ?? "nil")")
@@ -163,6 +151,8 @@ struct StatePreview: View {
     @State private var selected: SlidebarItem? = nil
 
     var body: some View {
-        SlidebarViewForMac(selection: $selected)
+        NavigationStack{
+            SlidebarViewForMac(selection: $selected)
+        }
     }
 }

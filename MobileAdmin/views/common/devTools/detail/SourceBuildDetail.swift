@@ -11,10 +11,25 @@ struct SourceBuildDetail: View {
     @ObservedObject var viewModel:ViewModel
     var selectedProject:SourceBuildProject?
     @State private var sourceBuildInfoResult:SourceBuildInfoResult?
+    @State var sourceBuildHistoryInfoHistory:[SourceBuildHistoryInfoHistory] = []
     @State private var isLoaded:Bool = false
     @State private var isConfirm:Bool = false
     @State private var isCancel:Bool = false
-        
+    
+    func getBuildColor(status:String) -> Color{
+        switch status {
+        case "success":
+            return .blue
+        case "fail":
+            return .red
+        case "upload":
+            return .purple
+        case "canceled":
+            return .pink
+        default:
+            return .gray
+        }
+    }
     var body: some View {
         List{
             Section("Info"){
@@ -53,39 +68,65 @@ struct SourceBuildDetail: View {
                     }
                 }
             }
-            Section("Source"){
-                InfoRow3(
-                    title:"Repository",
-                    value:sourceBuildInfoResult?.source?.config?.repository
-                )
-                
-                InfoRow3(
-                    title:"branch",
-                    value:sourceBuildInfoResult?.source?.config?.branch
-                )
-            }
-            if isLoaded {
-               // HStack{
+                Section("Source"){
+                    InfoRow3(
+                        title:"Repository",
+                        value:sourceBuildInfoResult?.source?.config?.repository
+                    )
+                    
+                    InfoRow3(
+                        title:"branch",
+                        value:sourceBuildInfoResult?.source?.config?.branch
+                    )
+                }
+                if isLoaded {
+                    // HStack{
                     ProgressView()//.progressViewStyle(CircularProgressViewStyle())
-               // }
-            }else{
-                Section("Last Build"){
-                    NavigationLink{
-                        SourceBuildHistory(viewModel:viewModel,
-                                           projectId: selectedProject?.id ?? 0)
-                    } label:{
+                    // }
+                }else{
+                    Section("Last Build"){
+                        //NavigationLink{
+                        //    SourceBuildHistory(viewModel:viewModel,
+                        //                       projectId: selectedProject?.id ?? 0)
+                        //} label:{
                             InfoRow3(
                                 title:"History ID",
                                 value:sourceBuildInfoResult?.lastBuild?.id?.description
                             )
                             .lineLimit(1)
+                       // }
+                        InfoRow3(
+                            title:"LastBuildTime",
+                            value:Util.convertFromDateIntoString(sourceBuildInfoResult?.lastBuild?.timestamp ?? 0)
+                        )
                     }
-                    InfoRow3(
-                        title:"LastBuildTime",
-                        value:Util.convertFromDateIntoString(sourceBuildInfoResult?.lastBuild?.timestamp ?? 0)
-                    )
                 }
-            }
+            
+            Section("History"){
+                ForEach(sourceBuildHistoryInfoHistory, id: \.self){item in
+                    VStack{
+                        HStack{
+                            Image(systemName:"hammer")
+                                .foregroundColor(getBuildColor(status: item.status ?? ""))
+                            Spacer()
+                            Text(item.userId ?? "")
+                                .font(.subheadline)
+                        }
+                        HStack{
+                            Text(Util.convertFromDateIntoString( item.begin ?? 0))
+                                .font(.system(size: 11))
+                            Spacer()
+                            Text(Util.convertFromDateIntoString( item.end ?? 0))
+                                .font(.system(size: 11))
+                        }
+                        HStack{
+                            Spacer()
+                            Text(item.status ?? "")
+                                .font(.subheadline)
+                                .foregroundColor(getBuildColor(status: item.status ?? ""))
+                        }
+                    }
+                }
                 Section("CMD"){
                     InfoRow3(
                         title:"pre",
@@ -100,16 +141,28 @@ struct SourceBuildDetail: View {
                         value:sourceBuildInfoResult?.cmd?.post?.joined(separator: "\n")
                     )
                 }
-        }
-        .navigationTitle(sourceBuildInfoResult?.description ?? selectedProject!.name)
-        .onChange(of: selectedProject!.id ){oldvalue,newValue in
-            getBuildInfo()
-        }
-        .onAppear(){
-            getBuildInfo()
-               
+            }
+            .navigationTitle(sourceBuildInfoResult?.description ?? selectedProject!.name)
+            .onChange(of: selectedProject!.id ){oldvalue,newValue in
+                getBuildInfo()
+                getBuildHistory()
+            }
+            .onAppear(){
+                getBuildInfo()
+                getBuildHistory()
+                
+            }
         }
     }
+    func getBuildHistory(){
+        Task{
+            let response = await viewModel.fetchSourceBuildHistory(
+                selectedProject?.id ?? 0
+            )
+            sourceBuildHistoryInfoHistory = response?.result?.history ?? []
+        }
+    }
+        
     func getBuildInfo(){
         Task{
             withAnimation{

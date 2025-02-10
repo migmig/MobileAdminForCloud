@@ -16,3 +16,7 @@ struct SourcelineListSubView: View {
         }
     }
 }
+
+#Preview{
+    SourcelineListSubView(itemNm:"itemName")
+}
