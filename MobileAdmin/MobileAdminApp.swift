@@ -10,6 +10,9 @@ import SwiftData
 import LocalAuthentication
 import Foundation
 
+/**
+ 빌드시작용
+ */
 @main
 struct MobileAdminApp: App {
 

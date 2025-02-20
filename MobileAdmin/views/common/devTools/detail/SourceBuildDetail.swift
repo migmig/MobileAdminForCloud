@@ -159,7 +159,7 @@ struct SourceBuildDetail: View {
             let response = await viewModel.fetchSourceBuildHistory(
                 selectedProject?.id ?? 0
             )
-            sourceBuildHistoryInfoHistory = response?.result?.history ?? []
+            sourceBuildHistoryInfoHistory = Array((response?.result?.history  ?? []).prefix(5))
         }
     }
         

@@ -3,7 +3,7 @@ import SwiftUI
 import Logging
 
 struct ToastView: View {
-    @EnvironmentObject var viewModel:ViewModel 
+    @EnvironmentObject var viewModel:ViewModel
     @StateObject var toastManager: ToastManager = ToastManager()
     @Binding var toastItem:Toast
     @State var isLoading: Bool = false // 로딩중
@@ -131,7 +131,10 @@ struct ToastView: View {
 #if os(iOS)
                 UIApplication.shared.endEditing()// 키보드 내리기
 #endif
-            }//VStack
+              //insert webview
+              
+                
+            }//VStack 
         }//ScrollView
         .toolbar{
             ToolbarItem(placement: .automatic) {
@@ -155,3 +158,17 @@ struct ToastView: View {
       
 }//struct
  
+#Preview(
+    traits: .fixedLayout(width: 600, height: 1200)
+){
+    ToastView(toastItem: .constant(Toast(
+        applcBeginDt: nil,
+        applcEndDt: nil,
+        noticeHder: "제목",
+        noticeSj: "제목",
+        noticeCn: "내용",
+        useYn: "Y"
+    )))
+        .environmentObject(ViewModel())
+}
+

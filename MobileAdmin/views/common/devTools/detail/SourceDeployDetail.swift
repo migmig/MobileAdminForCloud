@@ -152,7 +152,7 @@ struct SourceDeployDetail: View {
                 isLoaded = true
             }
             let response = await viewModel.fetchSourceDeployHistoryInfo(selectedDeploy.id)
-            historyList = response.result?.historyList?.sorted(by: {$0.id > $1.id  }) ?? []
+            historyList = Array((response.result?.historyList?.sorted(by: {$0.id > $1.id  }) ?? []).prefix(5))
             
             withAnimation{
                 isLoaded = false

@@ -127,7 +127,7 @@ struct SourcePipelineDetail: View {
                 isLoaded = true
             }
             let response = await viewModel.fetchSourcePipelineHistoryInfo(selectedPipeline.id)
-            viewModel.sourcePipelineHistoryList = response.result.historyList.sorted(by: {$0.id > $1.id})
+            viewModel.sourcePipelineHistoryList = Array((response.result.historyList.sorted(by: {$0.id > $1.id})).prefix(5))
             
             withAnimation{
                 isLoaded = false
