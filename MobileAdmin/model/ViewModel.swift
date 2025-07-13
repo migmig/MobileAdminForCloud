@@ -228,8 +228,8 @@ class ViewModel: ObservableObject {
     func fetchToasts() async  -> Toast{
         do {
             let url = "\(baseUrl)/admin/toastNotice"
-            let toast: Toast? = try await makeRequestNoRequestData(url: url)
-            return toast ?? Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
+            //let toast: Toast? = nil//try await makeRequestNoRequestData(url: url)
+            return Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
         } catch {
             print("Error fetching toasts: \(error)")
         }
