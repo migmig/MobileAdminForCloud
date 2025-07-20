@@ -16,12 +16,7 @@ struct SourceControlViewForIOS: View {
     var body: some View {
         NavigationStack{
             List{
-                NavigationLink(destination: SourceCommitListView(
-                    viewModel: viewModel,
-                    selectedCommit:$selectedCommit
-                )){
-                    Label(SlidebarItem.sourceCommit.title, systemImage: SlidebarItem.sourceCommit.img)
-                }
+                
                 NavigationLink(destination: SourceBuildListView(
                     viewModel: viewModel,
                     selected : $selectedBuild
