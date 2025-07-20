@@ -21,9 +21,7 @@ struct HomeViewForIOS: View {
                 NavigationLink(destination: CodeListViewIOS(viewModel: viewModel)){
                     Label(SlidebarItem.codeList.title  , systemImage: SlidebarItem.codeList.img)
                 }
-                NavigationLink(destination: EdcClsSidebarIOS(viewModel: viewModel)){
-                    Label(SlidebarItem.gcpClsList.title , systemImage: SlidebarItem.gcpClsList.img)
-                }
+                
             }
             .navigationTitle("Home")
         }
