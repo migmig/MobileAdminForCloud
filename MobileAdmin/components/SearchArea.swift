@@ -20,7 +20,7 @@ struct SearchArea: View {
                 KorDatePicker("종료일", selection: $dateTo, displayedComponents: .date)
             }
             VStack(alignment:.leading){
-                Button("조  회",systemImage:"magnifyingglass"){
+                Button("조  회",systemImage:"doc.text.magnifyingglass"){
                     Task{
                         isLoading = true;
                         await escaping()
@@ -29,7 +29,7 @@ struct SearchArea: View {
                 }
 //                .font(.caption)
                 .buttonStyle(.bordered)
-                Button("초기화", systemImage:"arrow.clockwise"){
+                Button("초기화", systemImage:"gobackward"){
                     dateFrom = Date()
                     dateTo = Date()
                     clearAction()
