@@ -88,7 +88,7 @@ enum SlidebarItem: Hashable,CaseIterable{
     var img: String{
         switch self{
         case .errerlist:
-            return "exclamationmark.icloud"
+            return "exclamationmark.triangle.fill"
         case .toast:
             return "bell.badge"
         case .goodsInfo:
