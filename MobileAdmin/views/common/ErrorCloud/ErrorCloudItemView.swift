@@ -72,8 +72,7 @@ struct ErrorCloudItemView: View {
         
         // MARK: - Navigation Bar Title/Subtitle
         #if os(iOS)
-        .navigationTitle("에러 상세")
-        .navigationSubtitle(Util.formatDateTime(errorCloudItem.registerDt))
+        .navigationTitle("에러 상세") 
         #elseif os(macOS)
         .navigationTitle(Util.formatDateTime(errorCloudItem.registerDt))
         #endif
