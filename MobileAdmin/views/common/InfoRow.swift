@@ -16,7 +16,7 @@ struct InfoRow: View {
         .contextMenu{
             Button("Copy"){
                 Util.copyToClipboard(value ?? "")
-            }
+            } 
         }
     }
 }

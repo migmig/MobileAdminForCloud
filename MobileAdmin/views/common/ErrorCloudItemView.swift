@@ -1,14 +1,36 @@
 import SwiftUI
- 
+#if os(macOS)
+import AppKit
+#endif
 
 struct ErrorCloudItemView: View {
+    @ObservedObject var viewModel : ViewModel
     var errorCloudItem: ErrorCloudItem
     @State private var isSheetPresented:Bool = false
     var body: some View {
         ScrollView {
             VStack{
                 Section(header: Text("상세 정보").font(.headline)) {
-                    InfoRow(title: "User ID:", value: errorCloudItem.userId ?? "")
+                    HStack {
+                        Text("사용자 아이디:")
+                        Spacer()
+                        Text(errorCloudItem.userId ?? "")
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 10)
+                    .contextMenu{
+                        Button("Copy"){
+                            Util.copyToClipboard(errorCloudItem.userId ?? "")
+                        }
+                        Button("Log Download"){
+                            Task{
+                                let fileURL = try await viewModel.downloadUserLog(errorCloudItem.userId ?? "")
+                                #if os(macOS)
+                                NSWorkspace.shared.open(fileURL)
+                                #endif
+                            }
+                        }
+                    }
                     Divider()
                     InfoRow(title: "Code:", value: errorCloudItem.code ?? "")
                     Divider()

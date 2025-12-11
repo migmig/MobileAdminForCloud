@@ -50,7 +50,8 @@ struct ErrorListViewForIOS: View {
                     }
                     .searchable(text: $searchText , placement: .automatic)
                     ForEach(filteredErrorItems,id:\.id){entry in
-                        NavigationLink(destination: ErrorCloudItemView(errorCloudItem: entry)){
+                        NavigationLink(destination: ErrorCloudItemView(viewModel:viewModel,
+                                                                       errorCloudItem: entry)){
                             ErrorCloudListItem(errorCloudItem: entry)
                         }
                         

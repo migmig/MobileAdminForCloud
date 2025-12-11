@@ -20,6 +20,7 @@ struct DetailViewForMac: View {
         if(selectedSlidebarItem == SlidebarItem.errerlist){
             //if let entry = selectedErrorItem{
                 ErrorCloudItemView(
+                    viewModel: viewModel,
                     errorCloudItem: selectedErrorItem ?? ErrorCloudItem()
                 )
            // }else{

@@ -519,4 +519,83 @@ class ViewModel: ObservableObject {
         }
         return SourceDeployExecResult()
     }
+    
+    // UT번호에서 앞의 "UT" 제거 + 숫자만 남기는 유틸
+    private func normalizeUserLogNo(_ sno: String) -> String {
+        if sno.hasPrefix("UT") {
+            let index = sno.index(sno.startIndex, offsetBy: 2)
+            return String(sno[index...])   // "UT00000000001" -> "00000000001"
+        } else {
+            return sno
+        }
+    }
+
+    // 번호를 UT + 11자리로 패딩해서 파일명 만드는 유틸
+    private func makeUserLogFileName(no: String) -> String {
+        // 숫자만 추출
+        let digits = no.filter { $0.isNumber }
+        let padded = String(repeating: "0", count: max(0, 11 - digits.count)) + digits
+        return "UT\(padded).log"
+    }
+
+    /// 사용자 로그를 다운로드해서 파일 URL을 반환
+    /// - Parameter sno: "0", "123", "UT00000000123" 어떤 형식이든 가능
+    /// - Returns: 저장된 파일의 URL
+    func downloadUserLog(_ sno: String) async throws -> URL {
+        // 1) 토큰 유효성 체크
+        if ViewModel.token == nil {
+            try await fetchToken()
+        } else if let expirationDate = ViewModel.tokenExpirationDate,
+                  expirationDate <= Date() {
+            try await fetchToken()
+        }
+
+        // 2) 번호 정규화
+        let no = normalizeUserLogNo(sno)
+        let urlString = "\(baseUrl)/admin/getUserLog/\(no)"
+
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: 0, userInfo: nil)
+        }
+
+        // 3) 요청 구성
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-type")
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
+        if let token = ViewModel.token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        // 4) 요청 전송
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw NSError(domain: "Invalid Response", code: 0, userInfo: [
+                "statusCode": (response as? HTTPURLResponse)?.statusCode ?? -1
+            ])
+        }
+
+        // 5) 파일 저장 경로 (macOS면 .downloadsDirectory, iOS면 .documentDirectory 같은 거 골라서)
+        #if os(macOS)
+        let directory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+        #else
+        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        #endif
+
+        guard let saveDir = directory else {
+            throw NSError(domain: "Directory not found", code: 0, userInfo: nil)
+        }
+
+        let fileName = makeUserLogFileName(no: no)
+        let fileURL = saveDir.appendingPathComponent(fileName)
+
+        // 6) 파일 저장
+        try data.write(to: fileURL, options: .atomic)
+
+        logger.info("User log downloaded: \(fileURL.path)")
+
+        return fileURL
+    }
 }
