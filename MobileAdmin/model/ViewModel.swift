@@ -134,7 +134,7 @@ class ViewModel: ObservableObject {
 
     }
 
-    // 모든 요청을 처리하는 비동기 함수
+    // 파일처리를 제외한 요청을 처리하는 비동기 함수
     private func makeRequestNoRequestData<T: Codable>(
         url: String
     ) async throws -> T {
@@ -246,6 +246,17 @@ class ViewModel: ObservableObject {
             print("Error fetching errors: \(error)")
         }
         return nil
+    }
+    
+    // Error 데이터 삭제 함수
+    func deleteError(id:Int) async{
+        do{
+            let urlPath = "/admin/cloud/error/delete/\(id)"
+            print(urlPath)
+            let errorItems:[ErrorCloudItem] = try await makeRequestNoRequestData(url: "\(baseUrl)\(urlPath)")
+        }catch {
+            print("Error fetching errors: \(error)")
+        }
     }
 
     // Error 데이터를 가져오는 비동기 함수

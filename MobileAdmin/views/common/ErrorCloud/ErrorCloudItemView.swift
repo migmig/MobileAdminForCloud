@@ -39,6 +39,25 @@ struct ErrorCloudItemView: View {
                     InfoRowIcon(iconName: "link", title: "Request URL", value: errorCloudItem.restUrl)
                     InfoRowIcon(iconName: "calendar", title: "Register DT", value: Util.formatDateTime(errorCloudItem.registerDt))
                     InfoRowIcon(iconName: "info.circle", title: "Request Info", value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
+                    Divider()
+                    HStack{
+                        Spacer()
+                        Button{
+                            if errorCloudItem.id  != nil {
+                                Task {
+                                    print(errorCloudItem.id!)
+                                    await viewModel.deleteError(id: errorCloudItem.id!) 
+                                }
+                            }
+                            
+                        }label:{
+                            Image(systemName: "trash.fill")
+                            Text("Delete Data")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red) // 버튼 배경색을 빨간색으로 변경하여 삭제 액션 강조
+                        .controlSize(.large) // 중요한 버튼이므로 크기 키우기 (선택 사항)
+                    }
                 }
                 .padding()                
                 .cornerRadius(12)
