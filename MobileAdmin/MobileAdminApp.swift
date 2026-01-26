@@ -11,6 +11,9 @@ import SwiftUI
 import SwiftData
 import LocalAuthentication
 import Foundation
+#if os(macOS)
+import AppKit
+#endif
 
 /**
  빌드시작용
@@ -41,6 +44,8 @@ struct MobileAdminApp: App {
     
     #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #elseif os(macOS)
+    @NSApplicationDelegateAdaptor(MacAppDelegate.self) var appDelegate
     #endif
 
     var body: some Scene {
@@ -84,6 +89,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // APNs 등록
         UIApplication.shared.registerForRemoteNotifications()
+        
+        // 앱 실행 중 화면 꺼짐 방지 (Prevent screen from turning off)
+        UIApplication.shared.isIdleTimerDisabled = true
+        
         return true
     }
 
@@ -118,6 +127,26 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     ) {
         print("알림 클릭: \(response.notification.request.content.userInfo)")
         completionHandler()
+    }
+}
+#endif
+
+#if os(macOS)
+class MacAppDelegate: NSObject, NSApplicationDelegate {
+    var activity: NSObjectProtocol?
+    
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // macOS에서 앱 실행 중 화면 잠금(절전) 방지
+        activity = ProcessInfo.processInfo.beginActivity(
+            options: .idleDisplaySleepDisabled,
+            reason: "App requires screen to stay on"
+        )
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        if let activity = activity {
+            ProcessInfo.processInfo.endActivity(activity)
+        }
     }
 }
 #endif
