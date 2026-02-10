@@ -1,22 +1,7 @@
 import SwiftUI
 
-struct InfoRow2<Content: View>: View {
-    var title: String
-    var content: Content
-
-    init(title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-
-    var body: some View {
-        InfoRow4(title: title) {
-            content
-        }
-        .padding(.vertical, 10)
-    }
-}
-struct InfoRow4<Content: View>: View {
+// MARK: - ViewBuilder 기반 커스텀 콘텐츠 Row
+struct InfoRowCustom<Content: View>: View {
     var title: String
     var content: Content
 
@@ -28,20 +13,22 @@ struct InfoRow4<Content: View>: View {
     var body: some View {
         HStack {
             Text(title)
+                .foregroundColor(.secondary)
+                .font(AppFont.caption)
             Spacer()
             content
         }
+        .padding(.vertical, AppSpacing.xs)
     }
 }
 
+// 하위호환을 위해 기존 이름 유지
+typealias InfoRow2 = InfoRowCustom
+typealias InfoRow4 = InfoRowCustom
 
-struct InfoRow2_Previews: PreviewProvider {
-    static var previews: some View {
-        InfoRow2(title: "User ID:") {
-            Spacer()
-            Divider()
-            Text("123456")
-        }
-        .previewLayout(.sizeThatFits)
+#Preview {
+    InfoRowCustom(title: "User ID:") {
+        Text("123456")
     }
+    .previewLayout(.sizeThatFits)
 }

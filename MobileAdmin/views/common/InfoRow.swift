@@ -4,19 +4,21 @@ import SwiftUI
 struct InfoRow: View {
     var title: String
     var value: String?
-    
+
     var body: some View {
         HStack {
             Text(title)
+                .foregroundColor(.secondary)
+                .font(AppFont.caption)
             Spacer()
             Text(value ?? "")
-                .foregroundColor(.secondary)
+                .fontWeight(.medium)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, AppSpacing.xs)
         .contextMenu{
             Button("Copy"){
                 Util.copyToClipboard(value ?? "")
-            } 
+            }
         }
     }
 }
