@@ -9,22 +9,88 @@ import SwiftUI
 
 struct HomeViewForIOS: View {
     @EnvironmentObject var viewModel:ViewModel
+
+    private let menuItems: [(SlidebarItem, String, Color)] = [
+        (.errerlist,    "서비스 오류 로그를 조회합니다",   .red),
+        (.goodsInfo,    "상품 정보 이력을 조회합니다",     .orange),
+        (.codeList,     "공통코드 목록을 조회합니다",      .blue),
+    ]
+
     var body: some View {
         NavigationStack{
-            List{
-                NavigationLink(destination: ErrorListViewForIOS(viewModel: viewModel)){
-                    Label(SlidebarItem.errerlist.title , systemImage: SlidebarItem.errerlist.img)
+            ScrollView {
+                VStack(spacing: AppSpacing.md) {
+                    ForEach(menuItems, id: \.0) { item, desc, color in
+                        NavigationLink(destination: destinationView(for: item)) {
+                            HomeMenuCard(
+                                title: item.title,
+                                systemImage: item.img,
+                                description: desc,
+                                accentColor: color
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                NavigationLink(destination: GoodsListViewIOS(viewModel: viewModel)){
-                    Label(SlidebarItem.goodsInfo.title , systemImage: SlidebarItem.goodsInfo.img)
-                }
-                NavigationLink(destination: CodeListViewIOS(viewModel: viewModel)){
-                    Label(SlidebarItem.codeList.title  , systemImage: SlidebarItem.codeList.img)
-                }
-                
+                .padding(AppSpacing.lg)
             }
+            #if os(iOS)
+            .background(Color(.systemGroupedBackground))
+            #endif
             .navigationTitle("Home")
         }
+    }
+
+    @ViewBuilder
+    private func destinationView(for item: SlidebarItem) -> some View {
+        switch item {
+        case .errerlist: ErrorListViewForIOS(viewModel: viewModel)
+        case .goodsInfo: GoodsListViewIOS(viewModel: viewModel)
+        case .codeList:  CodeListViewIOS(viewModel: viewModel)
+        default: EmptyView()
+        }
+    }
+}
+
+// MARK: - 홈 메뉴 카드
+struct HomeMenuCard: View {
+    var title: String
+    var systemImage: String
+    var description: String
+    var accentColor: Color
+
+    var body: some View {
+        HStack(spacing: AppSpacing.lg) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundColor(.white)
+                .frame(width: 44, height: 44)
+                .background(accentColor.gradient)
+                .cornerRadius(10)
+
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                Text(title)
+                    .font(AppFont.listTitle)
+                    .foregroundColor(.primary)
+                Text(description)
+                    .font(AppFont.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(AppFont.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(AppSpacing.lg)
+        #if os(iOS)
+        .background(Color(.secondarySystemGroupedBackground))
+        #else
+        .background(Color(.controlBackgroundColor))
+        #endif
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
     }
 }
  

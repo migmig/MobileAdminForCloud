@@ -25,32 +25,41 @@ struct MySceneForIOS: Scene {
                EnvSetView(isPresented:.constant(false))
            }else{
                if !isAuthenticated {
-                   VStack {
-                       if isAuthenticated {
-                           Text("🎉 인증 성공!")
-                               .font(.largeTitle)
-                               .padding()
-                       } else {
-                           Text("🔒 잠긴 상태")
-                               .font(.largeTitle)
-                               .padding()
-                           Button(action: authenticateUser) {
-                               Text("생체 인증 시도")
-                                   .padding()
-                                   .background(Color.blue)
-                                   .foregroundColor(.white)
-                                   .cornerRadius(10)
-                           }
-                           .padding()
-                           
-                           if !authenticationMessage.isEmpty {
-                               Text(authenticationMessage)
-                                   .foregroundColor(.red)
-                                   .padding()
-                           }
+                   VStack(spacing: AppSpacing.xl) {
+                       Spacer()
+
+                       Image(systemName: "lock.shield")
+                           .font(.system(size: 56))
+                           .foregroundStyle(.secondary)
+
+                       VStack(spacing: AppSpacing.sm) {
+                           Text("인증이 필요합니다")
+                               .font(.title2)
+                               .fontWeight(.bold)
+                           Text("생체 인증으로 앱에 접근하세요")
+                               .font(AppFont.caption)
+                               .foregroundColor(.secondary)
                        }
+
+                       Button(action: authenticateUser) {
+                           Label("생체 인증 시도", systemImage: "faceid")
+                               .fontWeight(.semibold)
+                               .frame(maxWidth: 240)
+                               .padding(.vertical, AppSpacing.md)
+                       }
+                       .buttonStyle(.borderedProminent)
+                       .controlSize(.large)
+
+                       if !authenticationMessage.isEmpty {
+                           Text(authenticationMessage)
+                               .font(AppFont.caption)
+                               .foregroundColor(.red)
+                               .padding(.horizontal, AppSpacing.xl)
+                       }
+
+                       Spacer()
                    }
-                   .padding()
+                   .frame(maxWidth: .infinity, maxHeight: .infinity)
                    .onAppear(){
                        authenticateUser()
                    }

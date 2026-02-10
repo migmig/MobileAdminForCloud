@@ -14,30 +14,63 @@ struct SearchArea: View {
     var clearAction:()->Void
     var escaping:()  async  -> Void = {}
     var body: some View {
-        HStack{
-            VStack(alignment:.trailing){
-                KorDatePicker("시작일", selection: $dateFrom, displayedComponents: .date)
-                KorDatePicker("종료일", selection: $dateTo, displayedComponents: .date)
+        VStack(spacing: AppSpacing.sm) {
+            HStack(spacing: AppSpacing.sm) {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("시작일")
+                        .font(AppFont.caption)
+                        .foregroundColor(.secondary)
+                    KorDatePicker("", selection: $dateFrom, displayedComponents: .date)
+                        .labelsHidden()
+                }
+
+                Image(systemName: "arrow.right")
+                    .font(AppFont.caption)
+                    .foregroundColor(.secondary)
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("종료일")
+                        .font(AppFont.caption)
+                        .foregroundColor(.secondary)
+                    KorDatePicker("", selection: $dateTo, displayedComponents: .date)
+                        .labelsHidden()
+                }
             }
-            VStack(alignment:.leading){
-                Button("조  회",systemImage:"doc.text.magnifyingglass"){
+
+            HStack(spacing: AppSpacing.sm) {
+                Button(action: {
                     Task{
                         isLoading = true;
                         await escaping()
                         isLoading = false;
                     }
+                }) {
+                    Label("조회", systemImage: "magnifyingglass")
+                        .frame(maxWidth: .infinity)
                 }
-//                .font(.caption)
-                .buttonStyle(.bordered)
-                Button("초기화", systemImage:"gobackward"){
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+
+                Button(action: {
                     dateFrom = Date()
                     dateTo = Date()
                     clearAction()
+                }) {
+                    Label("초기화", systemImage: "gobackward")
                 }
-               // .font(.caption)
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
             }
         }
+        .padding(AppSpacing.md)
+        #if os(iOS)
+        .background(Color(.secondarySystemGroupedBackground))
+        #else
+        .background(Color(.controlBackgroundColor))
+        #endif
+        .cornerRadius(12)
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.vertical, AppSpacing.sm)
     }
 }
 
