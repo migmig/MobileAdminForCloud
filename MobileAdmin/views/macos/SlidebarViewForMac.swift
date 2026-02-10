@@ -133,7 +133,7 @@ struct SlidebarViewForMac: View {
                    ForEach(items, id: \.self) { item in
                        NavigationLink(value: item) {
                            Label(" [ \(item.title) ] ", systemImage: item.img)
-                               .font(.title2)
+                               .font(AppFont.sidebarItem)
                        }
                    }
                }

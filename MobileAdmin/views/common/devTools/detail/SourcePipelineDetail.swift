@@ -51,9 +51,7 @@ struct SourcePipelineDetail: View {
                         VStack {
                             HStack{
                                 Image(systemName:"hammer")
-                                    .foregroundColor(item.status == "success" ? .blue
-                                                     : item.status == "running" ? .yellow
-                                                     : .red )
+                                    .foregroundColor(AppColor.pipelineStatus(item.status))
                                 Spacer()
                                 VStack{
                                     HStack{
@@ -61,7 +59,7 @@ struct SourcePipelineDetail: View {
                                         Text(item.requestId)
                                     }
 #if os(iOS)
-                                    .font(.system(size: 11))
+                                    .font(AppFont.timestamp)
 #endif
                                     HStack{
                                         Text(Util.convertFromDateIntoString( item.begin))
@@ -69,17 +67,15 @@ struct SourcePipelineDetail: View {
                                         Text(item.end == 0 ? "" : Util.convertFromDateIntoString( item.end))
                                     }
 #if os(iOS)
-                                            .font(.system(size: 11))
+                                            .font(AppFont.timestamp)
 #endif
                                     HStack{
                                         Spacer()
                                         Text(item.status)
                                         #if os(iOS)
-                                            .font(.subheadline)
+                                            .font(AppFont.listSubtitle)
                                         #endif
-                                            .foregroundColor(item.status == "success" ? .blue
-                                                             : item.status == "running" ? .yellow
-                                                             : .red )
+                                            .foregroundColor(AppColor.pipelineStatus(item.status))
                                         if item.status == "running" {
                                             Button("cancel"){
                                                 isCancel = true

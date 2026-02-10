@@ -23,12 +23,7 @@ struct CloseDeptListViewIOS: View {
    }
     
     private func colorForCloseGb(_ closeGb: String?) -> Color {
-        switch closeGb {
-        case "1": return .purple
-        case "2": return .red
-        case "3": return .green
-        default: return .blue
-        }
+        return AppColor.closeDeptStatus(closeGb)
     }
     var buttonsArr : [[String:String]] = [
                                            ["전체"   : "4" ]
@@ -99,7 +94,7 @@ struct ButtonView: View {
                 await loadData()
             }
         })
-        .foregroundColor(closeGb == selectGb ? Color.blue : Color.gray)
+        .foregroundColor(closeGb == selectGb ? AppColor.selected : AppColor.deselected)
         .buttonStyle(BorderedButtonStyle())
     }
 }

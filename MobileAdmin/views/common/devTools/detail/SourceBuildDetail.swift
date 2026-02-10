@@ -17,18 +17,7 @@ struct SourceBuildDetail: View {
     @State private var isCancel:Bool = false
     
     func getBuildColor(status:String) -> Color{
-        switch status {
-        case "success":
-            return .blue
-        case "fail":
-            return .red
-        case "upload":
-            return .purple
-        case "canceled":
-            return .pink
-        default:
-            return .gray
-        }
+        return AppColor.buildStatus(status)
     }
     var body: some View {
         List{
@@ -114,10 +103,10 @@ struct SourceBuildDetail: View {
                         }
                         HStack{
                             Text(Util.convertFromDateIntoString( item.begin ?? 0))
-                                .font(.system(size: 11))
+                                .font(AppFont.timestamp)
                             Spacer()
                             Text(Util.convertFromDateIntoString( item.end ?? 0))
-                                .font(.system(size: 11))
+                                .font(AppFont.timestamp)
                         }
                         HStack{
                             Spacer()

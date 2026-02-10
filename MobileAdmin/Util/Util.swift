@@ -202,15 +202,6 @@ class Util{
     }
     
     static func getDevTypeColor(_ type:String) -> Color{
-        switch type {
-        case "local":
-            return .green
-        case "dev":
-            return .blue
-        case "prod":
-            return .purple
-        default:
-            return .secondary
-        }
+        return AppColor.envType(type)
     }
 }

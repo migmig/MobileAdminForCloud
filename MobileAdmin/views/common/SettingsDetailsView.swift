@@ -20,7 +20,7 @@ struct SettingsDetailsView: View {
                 Picker("환경설정변경", selection: $serverType) {
                     HStack{
                         Image(systemName: Util.getDevTypeImg("prod"))
-                            .foregroundColor(Util.getDevTypeColor("prod"))
+                            .foregroundColor(AppColor.envType("prod"))
                         Spacer()
                         Text("운영환경")
                         Spacer()
@@ -28,7 +28,7 @@ struct SettingsDetailsView: View {
                     .tag(EnvironmentType.production)
                     HStack{
                         Image(systemName: Util.getDevTypeImg("dev"))
-                            .foregroundColor(Util.getDevTypeColor("dev"))
+                            .foregroundColor(AppColor.envType("dev"))
                         Spacer()
                         Text("개발환경")
                         Spacer()
@@ -36,7 +36,7 @@ struct SettingsDetailsView: View {
                     .tag(EnvironmentType.development)
                     HStack{
                         Image(systemName: Util.getDevTypeImg("local"))
-                            .foregroundColor(Util.getDevTypeColor("local"))
+                            .foregroundColor(AppColor.envType("local"))
                         Spacer()
                         Text("로컬환경")
                         Spacer()

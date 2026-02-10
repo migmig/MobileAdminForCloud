@@ -11,7 +11,7 @@ struct SourcelineListSubView: View {
     var body: some View {
         HStack{
             Image(systemName: itemNm.contains("prod") ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
-                .foregroundColor(itemNm.contains("prod") ? Util.getDevTypeColor("prod") : Util.getDevTypeColor("dev"))
+                .foregroundColor(itemNm.contains("prod") ? AppColor.envType("prod") : AppColor.envType("dev"))
             Text(itemNm)
         }
     }

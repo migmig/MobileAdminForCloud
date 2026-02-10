@@ -75,19 +75,15 @@ struct SourceDeployDetail: View {
                         VStack{
                             HStack{
                                 Image(systemName:"hammer")
-                                    .foregroundColor(item.status == "success" ? .blue
-                                                     : item.status == "inprogress" ? .purple
-                                                     : .red )
+                                    .foregroundColor(AppColor.deployStatus(item.status))
                                 Text(Util.convertFromDateIntoString(item.startTime) )
                                 Spacer()
                                 VStack{
-                                    
+
                                     HStack{
                                         Spacer()
                                         Text(item.status  )
-                                            .foregroundColor(item.status == "success" ? .blue
-                                                             : item.status == "inprogress" ? .purple
-                                                             : .red )
+                                            .foregroundColor(AppColor.deployStatus(item.status))
                                     }
                                 }
                             }

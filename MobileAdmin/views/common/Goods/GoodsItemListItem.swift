@@ -43,7 +43,7 @@ struct GoodsItemListItem: View {
                                     
                                     Text("\(index == 0 ? "" : ",")\(good.goodsCd)")
                                         .font(.caption)
-                                        .foregroundColor(selectedGoodsCd.contains(good.goodsCd) ? .blue : .gray)
+                                        .foregroundColor(selectedGoodsCd.contains(good.goodsCd) ? AppColor.selected : AppColor.deselected)
                                     
                                 }
                                 //                            Text(goodsItem.goods.map({$0.goodsCd}).joined(separator:","))

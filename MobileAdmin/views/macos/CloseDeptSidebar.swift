@@ -31,12 +31,7 @@ struct CloseDeptSidebar: View {
    }
     
     private func colorForCloseGb(_ closeGb: String?) -> Color {
-        switch closeGb {
-        case "1": return .purple
-        case "2": return .red
-        case "3": return .green
-        default: return .blue
-        }
+        return AppColor.closeDeptStatus(closeGb)
     }
      
      var buttonsArr : [[String:String]] = [

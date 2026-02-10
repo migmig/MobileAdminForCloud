@@ -22,7 +22,7 @@ struct SourceCommitListView: View {
                 }){
                     HStack{
                         Image(systemName: SlidebarItem.sourceCommit.img)
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppColor.link)
                         Text(item.name)
                     }
                 }
@@ -31,14 +31,14 @@ struct SourceCommitListView: View {
                 NavigationLink(value: item){
                     HStack{
                         Image(systemName: SlidebarItem.sourceCommit.img)
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppColor.link)
                         Text(item.name)
                     }
                 }
                 #endif
             }
 #if os(macOS)
-.font(.title2)
+.font(AppFont.sidebarItem)
 #endif
                 }
                  

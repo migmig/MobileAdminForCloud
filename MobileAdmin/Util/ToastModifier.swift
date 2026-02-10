@@ -21,9 +21,7 @@ struct ToastModifier: ViewModifier {
                         Spacer()
                     }
                     .padding()
-                    .background(
-                        LinearGradient(gradient: Gradient(colors: [Color.purple, Color.blue]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                    )
+                    .background(AppColor.toastGradient)
                     .cornerRadius(12)
                     .shadow(radius: 10)
                     .padding(40)

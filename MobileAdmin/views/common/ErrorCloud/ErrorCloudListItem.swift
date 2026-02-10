@@ -10,13 +10,13 @@ struct ErrorCloudListItem: View {
             HStack(alignment: .top, spacing: 10) {
                 // 에러 아이콘 강조 (빨간색 또는 .secondary)
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.red) // 에러 강조
-                    .font(.title3) // 아이콘 크기
+                    .foregroundColor(AppColor.error) // 에러 강조
+                    .font(AppFont.sectionTitle) // 아이콘 크기
                     .accessibilityHidden(true) // VoiceOver 중복 방지
                 
                 // 에러 메시지 (가장 중요)
                 Text(errorCloudItem.description ?? errorCloudItem.msg ?? "Unknown Error")
-                    .font(.headline) // 제목 폰트로 강조
+                    .font(AppFont.listTitle) // 제목 폰트로 강조
                     .lineLimit(2) // 2줄로 제한
                     .truncationMode(.tail)
                     .foregroundColor(.primary)
