@@ -43,7 +43,7 @@ struct SourceDeployListView: View {
                 }
             }
 #if os(macOS)
-.font(.title2)
+.font(AppFont.sidebarItem)
 #endif
             Section("개발"){
                 ForEach(devList, id:\.id){ item in
@@ -64,7 +64,7 @@ struct SourceDeployListView: View {
                 
             }
 #if os(macOS)
-.font(.title2)
+.font(AppFont.sidebarItem)
 #endif
         }
         .navigationTitle("소스배포")

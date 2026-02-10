@@ -55,7 +55,7 @@ struct ErrorCloudItemView: View {
                             Text("Delete Data")
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(.red) // 버튼 배경색을 빨간색으로 변경하여 삭제 액션 강조
+                        .tint(AppColor.destructive) // 버튼 배경색을 빨간색으로 변경하여 삭제 액션 강조
                         .controlSize(.large) // 중요한 버튼이므로 크기 키우기 (선택 사항)
                     }
                 }
@@ -78,7 +78,7 @@ struct ErrorCloudItemView: View {
                 
                 ScrollView([.horizontal, .vertical]) {
                     Text(errorCloudItem.traceCn ?? "")
-                        .font(.caption.monospaced()) // Trace는 고정폭 폰트 사용
+                        .font(AppFont.mono) // Trace는 고정폭 폰트 사용
                         .textSelection(.enabled) // 텍스트 선택 가능
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -107,7 +107,7 @@ struct TraceRow: View {
     var body: some View {
         HStack {
             Image(systemName: "ladybug")
-                .foregroundColor(.red)
+                .foregroundColor(AppColor.error)
                 .frame(width: 20)
             Text("Trace:")
                 .fontWeight(.medium)
@@ -116,7 +116,7 @@ struct TraceRow: View {
             // 미리보기 텍스트
             Text(traceCn ?? "N/A")
                 .foregroundColor(.gray)
-                .font(.caption.monospaced()) // 고정폭 폰트
+                .font(AppFont.mono) // 고정폭 폰트
                 .lineLimit(1)
                 .truncationMode(.tail)
                 .frame(maxWidth: 150, alignment: .trailing) // 최대 너비 지정
@@ -126,7 +126,7 @@ struct TraceRow: View {
                 isSheetPresented = true
             }
             .buttonStyle(.plain)
-            .foregroundColor(.blue)
+            .foregroundColor(AppColor.link)
         }
         .padding(.vertical, 5)
     }
@@ -143,7 +143,7 @@ struct InfoRowIcon: View {
     var body: some View {
         HStack {
             Image(systemName: iconName)
-                .foregroundColor(.accentColor)
+                .foregroundColor(AppColor.icon)
                 .frame(width: 20) // 아이콘 정렬
             Text("\(title):")
                 .fontWeight(.medium)
@@ -165,7 +165,7 @@ struct UserRow: View {
     var body: some View {
         HStack {
             Image(systemName: "person.crop.circle.fill")
-                .foregroundColor(.orange)
+                .foregroundColor(AppColor.userIcon)
                 .frame(width: 20)
             Text("사용자 아이디:")
                 .fontWeight(.medium)

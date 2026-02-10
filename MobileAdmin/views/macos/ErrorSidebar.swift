@@ -74,7 +74,7 @@ struct ErrorSidebar: View {
                         
                         // 슬라이더 설명 텍스트
                         Text("자동 새로고침 진행: \(Int((timerProgress / 5) * 100))%")
-                            .font(.caption.monospacedDigit())
+                            .font(AppFont.monoDigit)
                             .foregroundColor(.gray)
                             .padding(.top, 4)
                     }

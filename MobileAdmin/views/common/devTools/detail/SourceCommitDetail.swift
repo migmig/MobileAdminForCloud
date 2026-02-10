@@ -23,7 +23,7 @@ struct SourceCommitDetail: View {
                 }
             }
 #if os(macOS)
-.font(.title2)
+.font(AppFont.sidebarItem)
 #endif
             Section("Branch"){
                 if isListLoading{
@@ -41,7 +41,7 @@ struct SourceCommitDetail: View {
             }
         }
 #if os(macOS)
-.font(.title2)
+.font(AppFont.sidebarItem)
 #endif
         .onChange(of: selectedSourceCommit.name){_,  newValue in
             Task{

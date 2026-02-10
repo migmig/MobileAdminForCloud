@@ -30,7 +30,7 @@ struct  FilteredGoodsItem:View  {
                             }
                         }){
                             Text(goodsCd)
-                                .foregroundColor(selectedGoodsCd.contains(goodsCd) ? Color.blue : Color.gray)
+                                .foregroundColor(selectedGoodsCd.contains(goodsCd) ? AppColor.selected : AppColor.deselected)
                         }
 //                        .foregroundColor(selectedGoodsCd.contains(goodsCd) ? Color.blue : Color.gray) 
                         .font(.caption)

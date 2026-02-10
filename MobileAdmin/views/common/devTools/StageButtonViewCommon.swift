@@ -13,17 +13,17 @@ struct StageButtonViewCommon: View {
         HStack{
            Button(action:{searchText = ""}){
                Label("전체", systemImage: Util.getDevTypeImg("ALL"))
-                   .foregroundColor(searchText.isEmpty ? .accentColor : .gray)
+                   .foregroundColor(searchText.isEmpty ? AppColor.selected : AppColor.deselected)
            }
            .buttonStyle(.bordered)
            Button(action:{searchText = "prod"}){
                Label("운영", systemImage: Util.getDevTypeImg("prod"))
-                   .foregroundColor(searchText == "prod" ? .accentColor : .gray)
+                   .foregroundColor(searchText == "prod" ? AppColor.selected : AppColor.deselected)
            }
            .buttonStyle(.bordered)
            Button(action:{searchText = "dev"}){
                Label("개발", systemImage: Util.getDevTypeImg("dev"))
-                   .foregroundColor(searchText == "dev" ? .accentColor : .gray)
+                   .foregroundColor(searchText == "dev" ? AppColor.selected : AppColor.deselected)
            }
            .buttonStyle(.bordered)
        }
