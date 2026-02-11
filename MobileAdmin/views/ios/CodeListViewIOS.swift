@@ -10,27 +10,64 @@ import SwiftUI
 struct CodeListViewIOS: View {
     @ObservedObject var viewModel:ViewModel
     @State var cmmnGroupCodeItems:[CmmnGroupCodeItem] = []
+    @State private var isLoading = false
+
     var body: some View {
-        //NavigationStack{
-            VStack{
-                List{
-                    ForEach(cmmnGroupCodeItems,id:\.self){ item in
-                        NavigationLink(destination: CodeDetailView(viewModel: viewModel, cmmnGroupCodeItem: item)){
-                            HStack {
-                                Image(systemName:"doc.text")
-                                Text("[\(item.cmmnGroupCode)]")
-                                Text(item.cmmnGroupCodeNm ?? "")
-                            }//HStack
-                        }
-                    }
+        List{
+            if isLoading {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("로딩 중...")
+                        .font(AppFont.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
                 }
             }
-            .navigationTitle("코드 조회")
-       // }
+
+            ForEach(cmmnGroupCodeItems, id:\.self){ item in
+                NavigationLink(destination: CodeDetailView(viewModel: viewModel, cmmnGroupCodeItem: item)){
+                    HStack(spacing: AppSpacing.md) {
+                        Text(item.cmmnGroupCode)
+                            .font(AppFont.mono)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.vertical, AppSpacing.xs)
+                            .background(AppColor.link.gradient)
+                            .cornerRadius(6)
+
+                        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                            Text(item.cmmnGroupCodeNm ?? "")
+                                .font(AppFont.listTitle)
+                            Text("그룹코드")
+                                .font(AppFont.captionSmall)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        if item.useAt == "Y" {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(AppColor.success)
+                                .font(AppFont.caption)
+                        } else {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                                .font(AppFont.caption)
+                        }
+                    }
+                    .padding(.vertical, AppSpacing.xxs)
+                }
+            }
+        }
+        .navigationTitle("코드 조회")
         .onAppear(){
             if cmmnGroupCodeItems.isEmpty{
                 Task{
+                    isLoading = true
                     cmmnGroupCodeItems = await viewModel.fetchGroupCodeLists()
+                    isLoading = false
                 }
             }
         }

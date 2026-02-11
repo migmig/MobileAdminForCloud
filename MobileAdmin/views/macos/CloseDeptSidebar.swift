@@ -44,25 +44,38 @@ struct CloseDeptSidebar: View {
                                          ]
     
     var body: some View {
-        VStack{
-            HStack {
-                ForEach(buttonsArr, id:\.self){ button in
-                    ButtonView(txt: button.keys.first!
-                               , selectGb: button.values.first!
-                               , closeGb: $closeGb
-                               , loadData: loadData)
+        VStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    ForEach(buttonsArr, id:\.self){ button in
+                        FilterChip(
+                            label: button.keys.first!,
+                            isSelected: closeGb == button.values.first!,
+                            color: AppColor.closeDeptStatus(button.values.first!),
+                            action: {
+                                Task {
+                                    withAnimation {
+                                        closeGb = button.values.first!
+                                    }
+                                    await loadData()
+                                }
+                            }
+                        )
+                    }
                 }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.vertical, AppSpacing.sm)
             }
-            .padding()
             List(selection: $selectedCloseDept){
                 ForEach(filteredList, id:\.self){ entry in
                     NavigationLink(value:entry){
-                        HStack{
-                            Image(systemName: entry.closegb != "" ? "checkmark.circle" : "circle")
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: entry.closegb != "" ? "checkmark.circle.fill" : "circle")
                                 .foregroundColor(colorForCloseGb(entry.closegb))
                             Text(entry.deptprtnm ?? "")
                             Spacer()
                             Text(entry.rmk ?? "")
+                                .font(AppFont.caption)
                                 .foregroundColor(.secondary)
                         }
                     }

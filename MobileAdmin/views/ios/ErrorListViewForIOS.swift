@@ -3,12 +3,11 @@ import SwiftUI
 struct ErrorListViewForIOS: View {
     @ObservedObject var viewModel:ViewModel
     @State private var searchText = ""
-    @State private var isSearchBarVisible:Bool = true
     @State private var isLoading: Bool = false
     @State private var dateFrom:Date = Date()
     @State private var dateTo:Date = Date()
-    
-    
+
+
     var filteredErrorItems: [ErrorCloudItem] {
         if searchText.isEmpty {
             return viewModel.errorItems
@@ -16,13 +15,11 @@ struct ErrorListViewForIOS: View {
             return viewModel.errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
         }
     }
-    
+
     var body: some View {
-       // NavigationStack{
-            
-            VStack() {
+            VStack(spacing: 0) {
                 List{
-                    Section{
+                    Section {
                         SearchArea(dateFrom: $dateFrom,
                                    dateTo: $dateTo,
                                    isLoading: $isLoading,
@@ -30,36 +27,41 @@ struct ErrorListViewForIOS: View {
                             searchText = ""
                         }){
                             viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo:  dateTo) ?? []
-                        }//.padding()
-                        // 검색창 추가
-                        if isSearchBarVisible {
-                            HStack(alignment:.center) { 
-                                if isLoading{
-                                    VStack {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle())
-                                            .frame(maxHeight: .infinity)
-                                    }
-                                }
-                                Text("\(filteredErrorItems.count)개의 오류")
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                    }
+
+                    // 결과 요약
+                    Section {
+                        HStack(spacing: AppSpacing.sm) {
+                            if isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
                             }
-                            .frame(maxHeight:40)
-                            .padding(.horizontal) // 전체 HStack의 패딩
-                            
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(AppColor.error)
+                                .font(AppFont.caption)
+                            Text("\(filteredErrorItems.count)건의 오류")
+                                .font(AppFont.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
                         }
                     }
-                    .searchable(text: $searchText , placement: .automatic)
-                    ForEach(filteredErrorItems,id:\.id){entry in
-                        NavigationLink(destination: ErrorCloudItemView(viewModel:viewModel,
-                                                                       errorCloudItem: entry)){
-                            ErrorCloudListItem(errorCloudItem: entry)
+
+                    // 오류 목록
+                    Section {
+                        ForEach(filteredErrorItems, id:\.id){ entry in
+                            NavigationLink(destination: ErrorCloudItemView(viewModel:viewModel,
+                                                                           errorCloudItem: entry)){
+                                ErrorCloudListItem(errorCloudItem: entry)
+                            }
                         }
-                        
                     }
                 }
+                .searchable(text: $searchText, placement: .automatic)
                 .navigationTitle("오류 조회")
             }
-        //}
         .onAppear(){
             Task{
                 isLoading = true;
@@ -77,7 +79,7 @@ struct ErrorListViewForIOS: View {
             }
         }
     }
-    
+
 }
 
 #Preview{

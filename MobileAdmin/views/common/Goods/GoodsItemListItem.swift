@@ -14,48 +14,57 @@ struct GoodsItemListItem: View {
      
     
     var body: some View {
-        VStack(alignment: .trailing) {
-            HStack {
-                Image(systemName: "info.bubble")
-                    .font(.caption)
-                VStack(alignment: .leading){
-                    Text(goodsItem.userId  ?? ""  )
-//                        .font(.caption)
-//                        .frame(maxWidth:130)
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            // 사용자 + 날짜
+            HStack(spacing: AppSpacing.sm) {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "person.circle")
+                        .font(AppFont.captionSmall)
+                        .foregroundColor(AppColor.userIcon)
+                    Text(goodsItem.userId ?? "")
+                        .font(AppFont.listTitle)
                 }
+
                 Spacer()
-                Image(systemName:"calendar")
-                    .font(.caption)
-                Text(Util.convertToFormattedDate(goodsItem.rdt))
-//                    .font(.caption)
+
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "calendar")
+                        .font(AppFont.captionSmall)
+                    Text(Util.convertToFormattedDate(goodsItem.rdt))
+                        .font(AppFont.caption)
+                        .monospacedDigit()
+                }
+                .foregroundColor(.secondary)
             }
-               // VStack(alignment: .trailing) {
-                    HStack{
-                    VStack(alignment: .trailing) {
-                        if(!goodsItem.goods.isEmpty){
-                            HStack(spacing:1){
-                                Image(systemName:"folder.fill")
-                                    .font(.caption)
-                                ForEach(Array(
-                                    goodsItem.goods.enumerated()),
-                                        id:\.element
-                                ){index, good in
-                                    
-                                    Text("\(index == 0 ? "" : ",")\(good.goodsCd)")
-                                        .font(.caption)
-                                        .foregroundColor(selectedGoodsCd.contains(good.goodsCd) ? AppColor.selected : AppColor.deselected)
-                                    
-                                }
-                                //                            Text(goodsItem.goods.map({$0.goodsCd}).joined(separator:","))
-                                //                                .font(.caption)
-                            }
-                        }
+
+            // 상품코드 태그
+            if !goodsItem.goods.isEmpty {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "tag.fill")
+                        .font(AppFont.captionSmall)
+                        .foregroundColor(.secondary)
+                    ForEach(Array(goodsItem.goods.enumerated()), id:\.element) { index, good in
+                        Text(good.goodsCd)
+                            .font(AppFont.captionSmall)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.vertical, AppSpacing.xxs)
+                            .background(
+                                selectedGoodsCd.contains(good.goodsCd)
+                                    ? AppColor.selected.opacity(0.12)
+                                    : Color.secondary.opacity(0.08)
+                            )
+                            .foregroundColor(
+                                selectedGoodsCd.contains(good.goodsCd)
+                                    ? AppColor.selected
+                                    : AppColor.deselected
+                            )
+                            .cornerRadius(6)
                     }
-                //}
+                }
             }
         }
-        
-        
+        .padding(.vertical, AppSpacing.xxs)
     }
 }
 
