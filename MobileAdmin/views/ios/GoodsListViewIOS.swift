@@ -2,7 +2,6 @@ import SwiftUI
 
 struct GoodsListViewIOS: View {
     @ObservedObject var viewModel:ViewModel
-//    @ObservedObject var toastManager: ToastManager
     @State var goodsItems:[Goodsinfo] = []
     @State private var filteredGoodsItems:[Goodsinfo] = []
     @State private var isLoading:Bool = false
@@ -11,8 +10,8 @@ struct GoodsListViewIOS: View {
     @State private var arrGoods:[String] = []
     @State private var selectedGoodsCd:[String] = []
     @State private var searchText:String = ""
-    
-    
+
+
     var filteredGoods:[Goodsinfo]{
         if searchText.isEmpty{
             return filteredGoodsItems
@@ -22,10 +21,11 @@ struct GoodsListViewIOS: View {
             }
         }
     }
-    
+
     var body: some View {
         List{
-            Section("상품 조회"){
+            // 검색 영역
+            Section {
                 SearchArea(dateFrom: $dateFrom,
                            dateTo: $dateTo,
                            isLoading: $isLoading,
@@ -40,117 +40,72 @@ struct GoodsListViewIOS: View {
                     arrGoods = Array(arr)
                     filteredGoodsItems = goodsItems
                 }
-                
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+
+            // 필터
+            Section {
                 FilteredGoodsItem(
                     arrGoods: $arrGoods,
                     selectedGoodsCd: $selectedGoodsCd,
                     filteredGoodsItems: $filteredGoodsItems,
                     goodsItems: $goodsItems
                 )
-                
-                if selectedGoodsCd.count > 0{
-                    HStack{
-                        Text("count:\(filteredGoodsItems.count)")
-                        Button("Clear"){
+
+                if !selectedGoodsCd.isEmpty {
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                            .foregroundColor(AppColor.link)
+                            .font(AppFont.caption)
+                        Text("\(filteredGoodsItems.count)건 필터됨")
+                            .font(AppFont.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button(action: {
                             selectedGoodsCd = []
                             filteredGoodsItems = goodsItems
+                        }) {
+                            Label("초기화", systemImage: "xmark.circle")
+                                .font(AppFont.caption)
                         }
-                        .font(.caption)
                         .buttonStyle(.bordered)
+                        .controlSize(.small)
                     }
                 }
+            }
+
+            // 상품 목록
+            Section {
                 ForEach(filteredGoods){ entry in
                     NavigationLink(destination:{
                         GoodsDetailView(goodsinfo: entry)
                     }){
-                            GoodsItemListItem(
-                                goodsItem: entry,
-                                selectedGoodsCd: selectedGoodsCd
-                            )
-                        }
+                        GoodsItemListItem(
+                            goodsItem: entry,
+                            selectedGoodsCd: selectedGoodsCd
+                        )
+                    }
                 }
             }
         }
         .searchable(text: $searchText, placement: .automatic)
-//        NavigationStack{
-//            VStack{
-//
-//                Section{
-//                    SearchArea(dateFrom: $dateFrom,
-//                               dateTo: $dateTo,
-//                               isLoading: $isLoading,
-//                               clearAction:{
-//                                    selectedGoodsCd.removeAll()
-//                                searchText = ""
-//                                }){
-//                        goodsItems = await viewModel.fetchGoods(dateFrom, dateTo) ?? []
-//                        let arr  = Set(goodsItems.flatMap{item in
-//                            item.goods.map{$0.goodsCd}
-//                        })
-//                        arrGoods = Array(arr)
-//                        filteredGoodsItems = goodsItems
-//                    }
-//
-//                    FilteredGoodsItem(
-//                        arrGoods: $arrGoods,
-//                        selectedGoodsCd: $selectedGoodsCd,
-//                        filteredGoodsItems: $filteredGoodsItems,
-//                        goodsItems: $goodsItems
-//                    )
-//
-//                    if selectedGoodsCd.count > 0{
-//                        HStack{
-//                            Text("count:\(filteredGoodsItems.count)")
-//                            Button("Clear"){
-//                                selectedGoodsCd = []
-//                                filteredGoodsItems = goodsItems
-//                            }
-//                            .font(.caption)
-//                            .buttonStyle(.bordered)
-//                        }
-//                    }
-//                }
-//                .padding(.horizontal)
-//                if isLoading {
-//                    ProgressView(" ")
-//                        .progressViewStyle(CircularProgressViewStyle())
-//                }
-//
-//                List(filteredGoods){ entry in
-//                    NavigationLink(destination:{
-//                        GoodsDetailView(goodsinfo: entry)
-//                    }){
-//                            GoodsItemListItem(
-//                                goodsItem: entry,
-//                                selectedGoodsCd: selectedGoodsCd
-//                            )
-//                        }
-//                    .searchable(text: $searchText, placement: .automatic)
-//
-//
-//                }
-//                .navigationTitle("상품 조회")
-//            }
-//        }
-        .onAppear()
-        {
+        .navigationTitle("상품 조회")
+        .onAppear() {
             Task{
                 isLoading = true;
-                //await goodsItems = viewModel.fetchGoods(nil, nil) ?? []
                 isLoading = false;
             }
         }
-        .refreshable
-        {
+        .refreshable {
             Task{
                 isLoading = true;
-               // await goodsItems = viewModel.fetchGoods(nil, nil) ?? []
                 isLoading = false;
             }
         }
     }
 }
- 
+
 #Preview{
     GoodsListViewIOS(viewModel: .init()  )
 }

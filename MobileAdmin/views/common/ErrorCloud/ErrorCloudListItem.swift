@@ -4,54 +4,49 @@ struct ErrorCloudListItem: View {
     let errorCloudItem: ErrorCloudItem
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            
-            // MARK: - 1. Main Error Message & Icon
-            HStack(alignment: .top, spacing: 10) {
-                // 에러 아이콘 강조 (빨간색 또는 .secondary)
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            // 에러 메시지
+            HStack(alignment: .top, spacing: AppSpacing.sm) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(AppColor.error) // 에러 강조
-                    .font(AppFont.sectionTitle) // 아이콘 크기
-                    .accessibilityHidden(true) // VoiceOver 중복 방지
-                
-                // 에러 메시지 (가장 중요)
+                    .foregroundColor(AppColor.error)
+                    .font(AppFont.listTitle)
+                    .accessibilityHidden(true)
+
                 Text(errorCloudItem.description ?? errorCloudItem.msg ?? "Unknown Error")
-                    .font(AppFont.listTitle) // 제목 폰트로 강조
-                    .lineLimit(2) // 2줄로 제한
+                    .font(AppFont.listTitle)
+                    .lineLimit(2)
                     .truncationMode(.tail)
                     .foregroundColor(.primary)
-                
+
                 Spacer()
             }
-            .padding(.top, 5) // 상단 여백 추가
-            
-            // MARK: - 2. Metadata (Date & User ID)
+            .padding(.top, AppSpacing.xxs)
+
+            // 메타데이터
             HStack {
-                // 등록 날짜 (왼쪽 정렬)
-                HStack(spacing: 4) {
+                HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "clock")
-                        .font(.caption2)
+                        .font(AppFont.captionSmall)
                     Text(Util.formattedDate(errorCloudItem.registerDt ?? "").prefix(19))
-                        .font(.caption)
-                        .monospacedDigit() // 시간을 깔끔하게 정렬
+                        .font(AppFont.caption)
+                        .monospacedDigit()
                 }
                 .foregroundColor(.secondary)
-                
-                Spacer() // 날짜와 사용자 ID를 양쪽 끝으로 분리
 
-                // 사용자 ID (오른쪽 정렬)
-                HStack(spacing: 4) {
+                Spacer()
+
+                HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "person.circle")
-                        .font(.caption2)
+                        .font(AppFont.captionSmall)
                     Text(errorCloudItem.userId ?? "N/A")
-                        .font(.caption)
-                        .fontWeight(.medium) // 사용자 ID 살짝 강조
+                        .font(AppFont.caption)
+                        .fontWeight(.medium)
                 }
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
             }
-            .padding(.bottom, 5) // 하단 여백 추가
+            .padding(.bottom, AppSpacing.xxs)
         }
-        .padding(.vertical, 4) // 전체 항목 세로 패딩
+        .padding(.vertical, AppSpacing.xs)
     }
 }
 
