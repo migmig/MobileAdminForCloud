@@ -1,11 +1,8 @@
 
 import SwiftUI
-import Logging
-
 
 struct SettingsView: View {
     @AppStorage("serverType") var serverType:EnvironmentType = .development
-    let logger = Logger(label:"com.migmig.MobileAdmin.SettingsView")
     
     init(){
         EnvironmentConfig.current = serverType
@@ -44,7 +41,6 @@ struct SettingsView: View {
                 .tag(item)
             }
         }
-       // .frame(width:475,height:350)
     }
     
     //ios
@@ -52,7 +48,6 @@ struct SettingsView: View {
         VStack{
             SettingsDetailsView(title:Settings.sync.rawValue )
         }
-//        .padding()
         .navigationTitle(Settings.sync.rawValue)
     }
 }

@@ -96,9 +96,7 @@ struct EnvSetView: View {
             }
             .padding(AppSpacing.xl)
         }
-        #if os(iOS)
-        .background(Color(.systemGroupedBackground))
-        #endif
+        .groupedBackground()
     }
 
     private func saveUrls() {
@@ -145,9 +143,9 @@ private struct EnvUrlField: View {
                 Image(systemName: systemImage)
                     .foregroundColor(.white)
                     .font(.caption)
-                    .frame(width: 24, height: 24)
+                    .frame(width: AppIconSize.sm, height: AppIconSize.sm)
                     .background(accentColor.gradient)
-                    .cornerRadius(6)
+                    .cornerRadius(AppRadius.xs)
 
                 Text(label)
                     .font(AppFont.listTitle)
@@ -162,12 +160,8 @@ private struct EnvUrlField: View {
                 #endif
         }
         .padding(AppSpacing.lg)
-        #if os(iOS)
-        .background(Color(.secondarySystemGroupedBackground))
-        #else
-        .background(Color(.controlBackgroundColor))
-        #endif
-        .cornerRadius(12)
+        .cardBackground()
+        .cornerRadius(AppRadius.lg)
     }
 }
 

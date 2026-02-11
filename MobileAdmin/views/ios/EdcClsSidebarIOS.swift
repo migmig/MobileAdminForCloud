@@ -9,7 +9,6 @@ import SwiftUI
 
 struct EdcClsSidebarIOS: View {
     @ObservedObject var viewModel:ViewModel
-    //@State var edcCrseCl:[EdcCrseCl] = []
     @State var selectedEdcCrseCl:EdcCrseCl? = nil
     @State var isLoading:Bool = false
     var body: some View { 

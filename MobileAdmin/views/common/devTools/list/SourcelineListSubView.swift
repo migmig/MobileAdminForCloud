@@ -17,9 +17,9 @@ struct SourcelineListSubView: View {
             Image(systemName: isProd ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
                 .foregroundColor(.white)
                 .font(.caption)
-                .frame(width: 26, height: 26)
+                .frame(width: AppIconSize.sm, height: AppIconSize.sm)
                 .background(envColor.gradient)
-                .cornerRadius(6)
+                .cornerRadius(AppRadius.xs)
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Text(itemNm)

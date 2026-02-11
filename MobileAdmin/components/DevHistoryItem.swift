@@ -25,7 +25,7 @@ struct DevHistoryItem: View {
                     .padding(.vertical, AppSpacing.xxs)
                     .background(statusColor.opacity(0.12))
                     .foregroundColor(statusColor)
-                    .cornerRadius(8)
+                    .cornerRadius(AppRadius.sm)
 
                 Spacer()
 

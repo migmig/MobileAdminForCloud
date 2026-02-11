@@ -112,14 +112,9 @@ enum SlidebarItem: Hashable,CaseIterable{
         }
     }
     static let groups: [(String, [SlidebarItem])] = [
-           ("클라우드", [.errerlist
-                     //, .toast
-                     //, .gcpClsList
-                     , .codeList]),
+           ("클라우드", [.errerlist, .codeList]),
            ("내부시스템", [.goodsInfo, .closeDeptList]),
-           ("개발도구", [
-                     //.sourceCommit,
-               .sourceBuild, .sourceDeploy, .sourcePipeline])
+           ("개발도구", [.sourceBuild, .sourceDeploy, .sourcePipeline])
        ]
 }
 

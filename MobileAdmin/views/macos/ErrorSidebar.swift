@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ErrorSidebar: View {
-//    @Binding var errorItems:[ErrorCloudItem]
     @ObservedObject var viewModel:ViewModel
     @Binding var selectedErrorItem:ErrorCloudItem?
     @State private var searchText = ""
@@ -43,18 +42,12 @@ struct ErrorSidebar: View {
                 }
             }
             .padding()
-//            .padding(.horizontal) // 전체 HStack의 패딩
             .searchable(text: $searchText , placement: .automatic)
             HStack{
                 if autoRefresh{
                     HStack {
                         GeometryReader { geometry in
                             ZStack {
-//                                // 슬라이더 배경
-//                                RoundedRectangle(cornerRadius: 10)
-//                                    .fill(Color.gray.opacity(0.2))
-//                                    .frame(height: 12)
-                                
                                 // 진행도 바
                                 RoundedRectangle(cornerRadius: 10)
                                     .fill(LinearGradient(
@@ -99,9 +92,6 @@ struct ErrorSidebar: View {
                     NavigationLink(value:entry){
                         ErrorCloudListItem(errorCloudItem: entry)
                     }
-//                    NavigationLink(destination: ErrorCloudItemView(errorCloudItem: entry)){
-//                        ErrorCloudListItem(errorCloudItem: entry)
-//                    }
                 }
                 .navigationTitle("오류 조회")
                 #if os(macOS)

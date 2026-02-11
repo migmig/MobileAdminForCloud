@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Logging
 import SwiftData
 
 struct SettingsDetailsView: View {
@@ -33,9 +32,9 @@ struct SettingsDetailsView: View {
                             Image(systemName: Util.getDevTypeImg(key))
                                 .foregroundColor(.white)
                                 .font(.caption)
-                                .frame(width: 28, height: 28)
+                                .frame(width: AppIconSize.md, height: AppIconSize.md)
                                 .background(color.gradient)
-                                .cornerRadius(7)
+                                .cornerRadius(AppRadius.sm)
 
                             Text(label)
                                 .font(AppFont.listTitle)
@@ -64,9 +63,9 @@ struct SettingsDetailsView: View {
                         Image(systemName: "server.rack")
                             .foregroundColor(.white)
                             .font(.caption)
-                            .frame(width: 28, height: 28)
+                            .frame(width: AppIconSize.md, height: AppIconSize.md)
                             .background(Color.secondary.gradient)
-                            .cornerRadius(7)
+                            .cornerRadius(AppRadius.sm)
 
                         Text("URL 변경")
                             .font(AppFont.listTitle)

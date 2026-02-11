@@ -34,9 +34,7 @@ struct HomeViewForIOS: View {
                 }
                 .padding(AppSpacing.lg)
             }
-            #if os(iOS)
-            .background(Color(.systemGroupedBackground))
-            #endif
+            .groupedBackground()
             .navigationTitle("Home")
         }
     }
@@ -64,9 +62,9 @@ struct HomeMenuCard: View {
             Image(systemName: systemImage)
                 .font(.title2)
                 .foregroundColor(.white)
-                .frame(width: 44, height: 44)
+                .frame(width: AppIconSize.lg, height: AppIconSize.lg)
                 .background(accentColor.gradient)
-                .cornerRadius(10)
+                .cornerRadius(AppRadius.md)
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Text(title)
@@ -84,13 +82,9 @@ struct HomeMenuCard: View {
                 .foregroundColor(.secondary)
         }
         .padding(AppSpacing.lg)
-        #if os(iOS)
-        .background(Color(.secondarySystemGroupedBackground))
-        #else
-        .background(Color(.controlBackgroundColor))
-        #endif
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
+        .cardBackground()
+        .cornerRadius(AppRadius.lg)
+        .cardShadow()
     }
 }
  
