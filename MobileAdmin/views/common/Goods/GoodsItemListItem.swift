@@ -59,7 +59,7 @@ struct GoodsItemListItem: View {
                                     ? AppColor.selected
                                     : AppColor.deselected
                             )
-                            .cornerRadius(6)
+                            .cornerRadius(AppRadius.xs)
                     }
                 }
             }

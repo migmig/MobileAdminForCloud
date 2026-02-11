@@ -6,11 +6,9 @@ import LocalAuthentication
 
 struct MySceneForIOS: Scene {
    let logger = Logger(label:"com.migmig.MobileAdmin.MyScene")
-  // @StateObject private var toastManager: ToastManager = ToastManager()
    @AppStorage("serverType") var serverType:EnvironmentType = .local
    @StateObject private var viewModel = ViewModel()
    @State var toast:Toast = Toast(applcBeginDt: nil, applcEndDt: nil, noticeHder: "", noticeSj: "", noticeCn: "", useYn: "")
-//    @State var goodsItems:[Goodsinfo] = []
    @State var edcCrseCl:[EdcCrseCl] = []
    @State var selectedEdcCrseCl:EdcCrseCl = .init()
    @State private var isLoading: Bool = false
@@ -83,9 +81,6 @@ struct MySceneForIOS: Scene {
                            }
                        }
                        .ignoresSafeArea()
-                    
-                   
-//                   .toastManager(toastManager:toastManager)
                    .onAppear{
                        print(allEnvironment)
                        EnvironmentConfig.initializeUrls(from: allEnvironment)
@@ -116,10 +111,8 @@ struct MySceneForIOS: Scene {
            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
                DispatchQueue.main.async {
                    if success {
-                       //self.isAuthenticated = true
                        self.authenticationMessage = "인증에 성공했습니다!"
                    } else {
-                       //self.isAuthenticated = false
                        self.authenticationMessage = "인증에 실패했습니다."
                    }
                }
@@ -132,24 +125,3 @@ struct MySceneForIOS: Scene {
        }
    }
 }
-//
-//#Preview{
-//    var viewModel:ViewModel = ViewModel()
-//        let tabItems: [(UUID, String, String, AnyView)] = [
-//            (UUID() ,"홈"                            ,"house"                          ,AnyView(HomeViewForIOS( ))),
-//            (UUID(), SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS( ))),
-//            (UUID(), "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS( ))),
-//            (UUID(), "환경설정"                      , "gear"                         , AnyView(SettingsView()))
-//        ]
-//        
-//        TabView() {
-//            ForEach(tabItems, id: \.0) { tabItem in
-//                tabItem.3
-//                    .tabItem {
-//                        Label(tabItem.1, systemImage: tabItem.2)
-//                    }
-//                    .tag(tabItem.0)
-//                    .environmentObject(viewModel)
-//            }
-//        }
-//}

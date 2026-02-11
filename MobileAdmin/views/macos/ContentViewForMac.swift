@@ -16,9 +16,7 @@ struct ContentViewForMac: View {
     @State var selectedBuild:SourceBuildProject?
     @State var selectedCommit:SourceCommitInfoRepository?
     @State var selectedDeploy:SourceInfoProjectInfo?
-//    @State var selectedSourceBuildProject:SourceBuildProject?
-//    @State var selectedSourceCommitInfoRepository:SourceCommitInfoRepository?
-    
+
     @State private var selectedSidebarItem: SlidebarItem? = nil
     var body: some View {
         NavigationSplitView{
@@ -40,8 +38,6 @@ struct ContentViewForMac: View {
                 selectedBuild: $selectedBuild,
                 selectedCommit : $selectedCommit,
                 selectedDeploy : $selectedDeploy
-//                selectedSourceBuildProject: $selectedSourceBuildProject,
-//                selectedSourceCommitInfoRepository: $selectedSourceCommitInfoRepository
             )
         }detail:{
             NavigationStack{
@@ -60,7 +56,6 @@ struct ContentViewForMac: View {
                     selectedBuild: $selectedBuild,
                     selectedCommit : $selectedCommit,
                     selectedDeploy : $selectedDeploy
-//                    selectedSourceBuildProject: $selectedSourceBuildProject
                 )
             }
         }
@@ -74,7 +69,6 @@ struct ContentViewForMac: View {
 ){
     
     ContentViewForMac(
-        //viewModel:ViewModel(),
         toastManager: ToastManager()
     )
     .toolbar{

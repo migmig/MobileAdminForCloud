@@ -8,8 +8,8 @@ struct ToastView: View {
     @Binding var toastItem:Toast
     @State var isLoading: Bool = false // 로딩중
     @State private var useYn: Bool = false
-    @State private var startdt: Date = Date()//getDate(toastItem?.applcBeginDt)
-    @State private var enddt:   Date = Date()//getDate(toastItem?.applcEndDt)
+    @State private var startdt: Date = Date()
+    @State private var enddt:   Date = Date()
     @State private var strCn: String = ""
     
     let logger = Logger(label:"com.migmig.MobileAdmin.ToastView")
@@ -17,7 +17,8 @@ struct ToastView: View {
     let dateRange: ClosedRange<Date> = {
         let calendar = Calendar.current
         let startComponents = DateComponents(year: 2024, month: 1, day: 1)
-        let endComponents = DateComponents(year: 2025, month: 12, day: 31, hour: 23, minute: 59, second: 59)
+        let currentYear = calendar.component(.year, from: Date())
+        let endComponents = DateComponents(year: currentYear + 1, month: 12, day: 31, hour: 23, minute: 59, second: 59)
         return calendar.date(from:startComponents)!
         ...
         calendar.date(from:endComponents)!
@@ -47,17 +48,11 @@ struct ToastView: View {
 #if os(macOS)
                             .font(.headline)
 #endif
-                        //.border(Color.gray, width: 1)
-                            .frame(maxHeight: .infinity) // 자동으로 높이가 늘어남
+                            .frame(maxHeight: .infinity)
                     }
-#if os(iOS)
-//                    .frame(height: 150)
-#endif
-                    
                     Divider()
                     HStack{
                         Text("개시 종료")
-                        //Spacer()
                         KorDatePicker("",
                                    selection: $toastItem.applcEndDt,
                                    displayedComponents: [.date, .hourAndMinute]
@@ -103,15 +98,15 @@ struct ToastView: View {
                     }) {
                         Label("저장", systemImage: "square.and.arrow.down")
                             .font(.system(size: 16, weight: .semibold))
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue))
+                            .padding(.vertical, AppSpacing.sm)
+                            .padding(.horizontal, AppSpacing.md)
+                            .background(RoundedRectangle(cornerRadius: AppRadius.sm).fill(Color.blue))
                             .foregroundColor(.white)
                     }
 #if os(macOS)
-                    .buttonStyle(PlainButtonStyle()) // macOS에서 기본 버튼 스타일 제거
+                    .buttonStyle(PlainButtonStyle())
 #endif
-                    .shadow(radius: 2, x: 0, y: 2) // 살짝의 그림자 효과
+                    .cardShadow()
                     
                     
                 }
@@ -129,12 +124,9 @@ struct ToastView: View {
             }
             .onTapGesture {
 #if os(iOS)
-                UIApplication.shared.endEditing()// 키보드 내리기
+                UIApplication.shared.endEditing()
 #endif
-              //insert webview
-              
-                
-            }//VStack 
+            } 
         }//ScrollView
         .toolbar{
             ToolbarItem(placement: .automatic) {

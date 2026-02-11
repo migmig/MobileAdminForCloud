@@ -63,12 +63,8 @@ struct SearchArea: View {
             }
         }
         .padding(AppSpacing.md)
-        #if os(iOS)
-        .background(Color(.secondarySystemGroupedBackground))
-        #else
-        .background(Color(.controlBackgroundColor))
-        #endif
-        .cornerRadius(12)
+        .cardBackground()
+        .cornerRadius(AppRadius.lg)
         .padding(.horizontal, AppSpacing.lg)
         .padding(.vertical, AppSpacing.sm)
     }

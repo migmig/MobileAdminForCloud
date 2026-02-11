@@ -16,7 +16,6 @@ struct Sample: View {
             ParallaxBackground()
                 .frame(height: 500)
                 .clipped()
-                                //Spacer().frame(height: 100) // 배경과 내용 간 거리 조정
                                 ForEach(1...20, id: \.self) { i in
                                     Text("Item \(i)")
                                         .padding()
@@ -42,10 +41,7 @@ struct Sample: View {
                     Text("Hello, World!")
                     Text("Hello, World!")
                 }
-                .transition(.blurAndFade
-//                    .combined(with: .slideAndScale)
-//                    .combined(with: .blurAndFade)
-                )
+                .transition(.blurAndFade)
             }
         }
     }

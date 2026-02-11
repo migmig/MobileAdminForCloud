@@ -35,7 +35,7 @@ struct CodeListViewIOS: View {
                             .padding(.horizontal, AppSpacing.sm)
                             .padding(.vertical, AppSpacing.xs)
                             .background(AppColor.link.gradient)
-                            .cornerRadius(6)
+                            .cornerRadius(AppRadius.xs)
 
                         VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                             Text(item.cmmnGroupCodeNm ?? "")

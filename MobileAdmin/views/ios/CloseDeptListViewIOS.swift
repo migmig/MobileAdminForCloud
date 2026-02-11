@@ -104,9 +104,9 @@ struct FilterChip: View {
                 .padding(.vertical, AppSpacing.sm)
                 .background(isSelected ? color.opacity(0.15) : Color.clear)
                 .foregroundColor(isSelected ? color : .secondary)
-                .cornerRadius(16)
+                .cornerRadius(AppRadius.xl)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppRadius.xl)
                         .strokeBorder(isSelected ? color : Color.secondary.opacity(0.3), lineWidth: 1)
                 )
         }
@@ -123,7 +123,7 @@ private struct CloseDeptListItem: View {
             Image(systemName: statusIcon)
                 .foregroundColor(AppColor.closeDeptStatus(entry.closegb))
                 .font(.body)
-                .frame(width: 28)
+                .frame(width: AppIconSize.md)
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Text(entry.deptprtnm ?? "")
@@ -145,7 +145,7 @@ private struct CloseDeptListItem: View {
                 .padding(.vertical, AppSpacing.xxs)
                 .background(AppColor.closeDeptStatus(entry.closegb).opacity(0.12))
                 .foregroundColor(AppColor.closeDeptStatus(entry.closegb))
-                .cornerRadius(8)
+                .cornerRadius(AppRadius.sm)
         }
         .padding(.vertical, AppSpacing.xxs)
     }

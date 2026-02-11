@@ -4,32 +4,6 @@ import SwiftUI
 struct GoodsDetailView: View {
     var goodsinfo:Goodsinfo
     
-    fileprivate func goodsDetailOfDetail() -> some View{
-        return Grid(alignment:.trailing)
-        {
-            ForEach(goodsinfo.goods, id: \.self) { item in
-                NavigationLink(destination: SelectedGoodsDetailView(goodsItem: item)) {
-                    GridRow{
-                        VStack(alignment: .trailing) {
-                            HStack{
-                                Image(systemName:"cart.circle")
-                                Text("\(item.goodsCd)")
-                                    .font(.headline)
-                                Spacer()
-                            Text("\(item.goodsNm)")
-                                    .foregroundColor(item.maxLmt > 0 && item.msgDispYn != "Y" ? .blue : .secondary)
-                                .font(.subheadline)
-                            }
-                        }
-                        //.padding()
-                        // .padding(.horizontal)
-                    }
-                    .padding(3)
-                }
-            }
-        }
-    }
-    
     func getGnoWithDash(gno : String?) -> String{
         
         if gno == nil || gno!.isEmpty{
@@ -65,7 +39,7 @@ struct GoodsDetailView: View {
                                         (item.maxLmt > 0 && item.msgDispYn != "Y"
                                             ? AppColor.link : Color.secondary).gradient
                                     )
-                                    .cornerRadius(6)
+                                    .cornerRadius(AppRadius.xs)
 
                                 Text(item.goodsNm)
                                     .font(AppFont.listSubtitle)
@@ -85,8 +59,8 @@ struct GoodsDetailView: View {
             }
             .padding(AppSpacing.lg)
         }
+        .groupedBackground()
 #if os(iOS)
-        .background(Color(.systemGroupedBackground))
         .navigationTitle("상세정보")
 #elseif os(macOS)
         .navigationSubtitle(Util.formatDateTime(goodsinfo.registerDt))

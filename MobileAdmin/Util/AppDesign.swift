@@ -112,21 +112,28 @@ enum AppSpacing {
     static let xxl: CGFloat = 40
 }
 
+// MARK: - 아이콘 크기
+enum AppIconSize {
+    static let xs: CGFloat = 20
+    static let sm: CGFloat = 24
+    static let md: CGFloat = 28
+    static let lg: CGFloat = 44
+}
+
 // MARK: - 코너 반경
 enum AppRadius {
-    static let sm: CGFloat = 6
-    static let md: CGFloat = 10
-    static let lg: CGFloat = 12
-    static let xl: CGFloat = 16
+    static let xs: CGFloat = 6    // 태그, 소형 뱃지
+    static let sm: CGFloat = 8    // 상태 뱃지
+    static let md: CGFloat = 10   // 아이콘 박스
+    static let lg: CGFloat = 12   // 카드
+    static let xl: CGFloat = 16   // 필터 칩
 }
 
 // MARK: - 그림자
 enum AppShadow {
-    static func card() -> some View {
-        Color.black.opacity(0.06)
-    }
-    static let cardRadius: CGFloat = 4
-    static let cardY: CGFloat = 2
+    static let color = Color.black.opacity(0.06)
+    static let radius: CGFloat = 4
+    static let y: CGFloat = 2
 }
 
 // MARK: - 공통 뷰 수정자
@@ -136,5 +143,25 @@ extension View {
             .font(AppFont.caption)
             .foregroundColor(.secondary)
             .textCase(.uppercase)
+    }
+
+    func cardShadow() -> some View {
+        self.shadow(color: AppShadow.color, radius: AppShadow.radius, x: 0, y: AppShadow.y)
+    }
+
+    func cardBackground() -> some View {
+        #if os(iOS)
+        self.background(Color(.secondarySystemGroupedBackground))
+        #else
+        self.background(Color(.controlBackgroundColor))
+        #endif
+    }
+
+    func groupedBackground() -> some View {
+        #if os(iOS)
+        self.background(Color(.systemGroupedBackground))
+        #else
+        self.background(Color(.windowBackgroundColor))
+        #endif
     }
 }

@@ -69,8 +69,7 @@ struct ErrorCloudItemView: View {
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-            //    .background(Color(.secondarySystemBackground))
-                .cornerRadius(8)
+                .cornerRadius(AppRadius.sm)
                 .padding(.horizontal)
             }
         }
@@ -126,7 +125,7 @@ struct InfoRowIcon: View {
             Image(systemName: iconName)
                 .foregroundColor(AppColor.icon)
                 .font(AppFont.caption)
-                .frame(width: 20)
+                .frame(width: AppIconSize.xs)
             Text(title)
                 .font(AppFont.caption)
                 .foregroundColor(.secondary)
@@ -156,7 +155,7 @@ struct UserRow: View {
         HStack {
             Image(systemName: "person.crop.circle.fill")
                 .foregroundColor(AppColor.userIcon)
-                .frame(width: 20)
+                .frame(width: AppIconSize.xs)
             Text("사용자 아이디:")
                 .fontWeight(.medium)
             Spacer()

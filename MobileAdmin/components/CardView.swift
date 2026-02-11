@@ -40,13 +40,9 @@ struct CardView<Content: View>: View {
             content
         }
         .padding(AppSpacing.lg)
-        #if os(iOS)
-        .background(Color(.secondarySystemGroupedBackground))
-        #else
-        .background(Color(.controlBackgroundColor))
-        #endif
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
+        .cardBackground()
+        .cornerRadius(AppRadius.lg)
+        .cardShadow()
     }
 }
 
