@@ -43,6 +43,8 @@ struct CardView<Content: View>: View {
         .cardBackground()
         .cornerRadius(AppRadius.lg)
         .cardShadow()
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(title ?? "")
     }
 }
 

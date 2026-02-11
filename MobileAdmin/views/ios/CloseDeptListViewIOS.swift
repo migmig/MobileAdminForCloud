@@ -120,6 +120,8 @@ struct FilterChip: View {
                 )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -157,6 +159,8 @@ private struct CloseDeptListItem: View {
                 .cornerRadius(AppRadius.sm)
         }
         .padding(.vertical, AppSpacing.xxs)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(entry.deptprtnm ?? ""), \(statusLabel)")
     }
 
     private var statusIcon: String {

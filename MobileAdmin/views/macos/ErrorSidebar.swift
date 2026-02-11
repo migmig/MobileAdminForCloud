@@ -110,17 +110,9 @@ struct ErrorSidebar: View {
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 #endif
-                .onAppear()
-                {
-                    Task{
-                        isLoading = true;
-                        print("start")
-                        let errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
-                                                                 endTo:  dateTo) ?? []
-                        viewModel.errorItems = errorItems
-                        print("end")
-                        isLoading = false;
-                    }
+                .loadingTask(isLoading: $isLoading) {
+                    let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
+                    viewModel.errorItems = errorItems
                 }
                 .onChange(of:viewModel.errorItems){_,_ in
                     proxy.scrollTo(viewModel.errorItems.first, anchor: .top)

@@ -70,21 +70,13 @@ struct ErrorListViewForIOS: View {
                 .searchable(text: $searchText, placement: .automatic)
                 .navigationTitle("오류 조회")
             }
-        .onAppear(){
-            Task{
-                isLoading = true;
-                await viewModel.errorItems = viewModel.fetchErrors(startFrom: dateFrom,
-                                                         endTo:  dateTo) ?? []
-                isLoading = false;
-            }
+        .loadingTask(isLoading: $isLoading) {
+            viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
         }
         .refreshable {
-            Task{
-                isLoading = true;
-                await viewModel.errorItems = viewModel.fetchErrors(startFrom: dateFrom,
-                                                         endTo:  dateTo) ?? []
-                isLoading = false;
-            }
+            isLoading = true
+            viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
+            isLoading = false
         }
     }
 

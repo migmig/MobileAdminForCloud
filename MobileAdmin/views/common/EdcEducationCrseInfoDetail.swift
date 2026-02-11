@@ -18,7 +18,7 @@ struct EdcEducationCrseInfoDetail: View {
         VStack{
             List{
                 ForEach(crseTmeList, id: \.self){ item in
-                    InfoRow2(title:item.edcTitleInfo ?? ""){
+                    InfoRowCustom(title:item.edcTitleInfo ?? ""){
                         HStack{
                             VideoPlayerView(
                                 videoURL:URL(string:  Util.urlEncode(item.edcVidoUrl))!

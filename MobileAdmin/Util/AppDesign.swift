@@ -96,7 +96,7 @@ enum AppFont {
     static let caption = Font.caption
     static let captionSmall = Font.caption2
     static let sidebarItem = Font.title2
-    static let timestamp = Font.system(size: 11)
+    static let timestamp = Font.caption2
     static let mono = Font.caption.monospaced()
     static let monoDigit = Font.caption.monospacedDigit()
 }
@@ -171,5 +171,13 @@ extension View {
         #else
         self.background(Color(.controlBackgroundColor))
         #endif
+    }
+
+    func loadingTask(isLoading: Binding<Bool>, action: @escaping () async -> Void) -> some View {
+        self.task {
+            isLoading.wrappedValue = true
+            await action()
+            isLoading.wrappedValue = false
+        }
     }
 }

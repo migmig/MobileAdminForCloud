@@ -50,6 +50,8 @@ struct SearchArea: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
+                .accessibilityLabel("조회")
+                .accessibilityHint("선택한 기간으로 데이터를 조회합니다")
 
                 Button(action: {
                     dateFrom = Date()
@@ -60,6 +62,8 @@ struct SearchArea: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
+                .accessibilityLabel("초기화")
+                .accessibilityHint("날짜와 검색 조건을 초기화합니다")
             }
         }
         .padding(AppSpacing.md)
