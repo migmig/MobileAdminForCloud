@@ -51,6 +51,14 @@ struct ErrorListViewForIOS: View {
 
                     // 오류 목록
                     Section {
+                        if !isLoading && filteredErrorItems.isEmpty {
+                            EmptyStateView(
+                                systemImage: "checkmark.shield",
+                                title: "오류가 없습니다",
+                                description: "조회 기간을 변경해 보세요"
+                            )
+                            .listRowBackground(Color.clear)
+                        }
                         ForEach(filteredErrorItems, id:\.id){ entry in
                             NavigationLink(destination: ErrorCloudItemView(viewModel:viewModel,
                                                                            errorCloudItem: entry)){

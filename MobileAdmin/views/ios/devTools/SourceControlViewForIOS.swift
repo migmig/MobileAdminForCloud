@@ -43,9 +43,7 @@ struct SourceControlViewForIOS: View {
                 }
                 .padding(AppSpacing.lg)
             }
-            #if os(iOS)
-            .background(Color(.systemGroupedBackground))
-            #endif
+            .groupedBackground()
             .navigationTitle("개발도구")
         }
     }

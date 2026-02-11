@@ -25,6 +25,13 @@ struct SourceDeployListView: View {
     }
     var body: some View {
         List(selection: $selectedDeploy){
+            if viewModel.sourceDeployList.isEmpty {
+                EmptyStateView(
+                    systemImage: "arrow.up.circle",
+                    title: "배포 프로젝트가 없습니다"
+                )
+                .listRowBackground(Color.clear)
+            }
             Section("운영"){
                 ForEach(prodList, id:\.id){ item in
                     #if os(iOS)

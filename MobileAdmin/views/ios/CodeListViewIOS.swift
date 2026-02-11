@@ -24,6 +24,12 @@ struct CodeListViewIOS: View {
                         .foregroundColor(.secondary)
                     Spacer()
                 }
+            } else if cmmnGroupCodeItems.isEmpty {
+                EmptyStateView(
+                    systemImage: "doc.text.magnifyingglass",
+                    title: "코드가 없습니다"
+                )
+                .listRowBackground(Color.clear)
             }
 
             ForEach(cmmnGroupCodeItems, id:\.self){ item in

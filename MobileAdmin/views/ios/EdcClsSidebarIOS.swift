@@ -11,11 +11,18 @@ struct EdcClsSidebarIOS: View {
     @ObservedObject var viewModel:ViewModel
     @State var selectedEdcCrseCl:EdcCrseCl? = nil
     @State var isLoading:Bool = false
-    var body: some View { 
+    var body: some View {
         if isLoading {
             ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
         }
         List{
+            if !isLoading && viewModel.edcCrseCllist.isEmpty {
+                EmptyStateView(
+                    systemImage: "graduationcap",
+                    title: "교육 과정이 없습니다"
+                )
+                .listRowBackground(Color.clear)
+            }
             ForEach(viewModel.edcCrseCllist, id:\.id){  entry in
                 NavigationLink(destination:EdcCrseDetailView(viewModel:viewModel, edcCrseClinfo: entry)){
                     HStack {
