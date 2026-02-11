@@ -2,31 +2,32 @@ import SwiftUI
 
 struct ToastModifier: ViewModifier {
      @ObservedObject var toastManager: ToastManager
-    
+
     func body(content:Content) -> some View{
         ZStack{
             content
             if toastManager.isShowing{
                 VStack{
                     Spacer()
-                    HStack {
+                    HStack(spacing: AppSpacing.md) {
                         Image(systemName: "bell.fill")
                             .foregroundColor(.white)
-                            .padding(.trailing, 8)
+                            .font(AppFont.listTitle)
                         Text(toastManager.message)
-                            .font(.title3)
-                            .fontWeight(.bold)
+                            .font(AppFont.listSubtitle)
+                            .fontWeight(.semibold)
                             .foregroundColor(.white)
-                            .transition(.move(edge:.bottom).combined(with:.opacity))
                         Spacer()
                     }
-                    .padding()
+                    .padding(AppSpacing.lg)
                     .background(AppColor.toastGradient)
-                    .cornerRadius(12)
-                    .shadow(radius: 10)
-                    .padding(40)
-                } // VStack
-               // .animation(.easeInOut)
+                    .cornerRadius(16)
+                    .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 4)
+                    .padding(.horizontal, AppSpacing.xl)
+                    .padding(.bottom, AppSpacing.xxl)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: toastManager.isShowing)
             }
         }
     }

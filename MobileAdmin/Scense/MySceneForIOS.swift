@@ -65,11 +65,10 @@ struct MySceneForIOS: Scene {
                    }
                }else{
                    let tabItems: [(Int, String, String, AnyView)] = [
-                       (0,"홈"                            ,"house"                          , AnyView(HomeViewForIOS())),
-                  
-                       (1, SlidebarItem.closeDeptList.title, SlidebarItem.closeDeptList.img , AnyView(CloseDeptListViewIOS())),
-                       (2, "개발도구"                      , "hammer"                       , AnyView(SourceControlViewForIOS())),
-                       (3, "환경설정"                      , "gear"                         , AnyView(SettingsView()))
+                       (0, "홈",      "house.fill",                     AnyView(HomeViewForIOS())),
+                       (1, "개시마감", SlidebarItem.closeDeptList.img,  AnyView(CloseDeptListViewIOS())),
+                       (2, "개발도구", "wrench.and.screwdriver.fill",   AnyView(SourceControlViewForIOS())),
+                       (3, "설정",     "gearshape.fill",                AnyView(SettingsView()))
                    ]
                    
                    

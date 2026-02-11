@@ -14,57 +14,78 @@ struct SettingsDetailsView: View {
     @AppStorage("serverType") var serverType:EnvironmentType = .development
     @State private var isPresented = false
     
+    private let envOptions: [(EnvironmentType, String, String, Color)] = [
+        (.production,  "운영환경", "prod",  AppColor.envProd),
+        (.development, "개발환경", "dev",   AppColor.envDev),
+        (.local,       "로컬환경", "local", AppColor.envLocal),
+    ]
+
     var body: some View {
         List {
-            Section("설정"){
-                Picker("환경설정변경", selection: $serverType) {
-                    HStack{
-                        Image(systemName: Util.getDevTypeImg("prod"))
-                            .foregroundColor(AppColor.envType("prod"))
-                        Spacer()
-                        Text("운영환경")
-                        Spacer()
+            Section("환경 설정"){
+                ForEach(envOptions, id: \.0) { type, label, key, color in
+                    Button {
+                        withAnimation {
+                            serverType = type
+                        }
+                    } label: {
+                        HStack(spacing: AppSpacing.md) {
+                            Image(systemName: Util.getDevTypeImg(key))
+                                .foregroundColor(.white)
+                                .font(.caption)
+                                .frame(width: 28, height: 28)
+                                .background(color.gradient)
+                                .cornerRadius(7)
+
+                            Text(label)
+                                .font(AppFont.listTitle)
+                                .foregroundColor(.primary)
+
+                            Spacer()
+
+                            if serverType == type {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(color)
+                                    .font(AppFont.listTitle)
+                            }
+                        }
+                        .padding(.vertical, AppSpacing.xs)
                     }
-                    .tag(EnvironmentType.production)
-                    HStack{
-                        Image(systemName: Util.getDevTypeImg("dev"))
-                            .foregroundColor(AppColor.envType("dev"))
-                        Spacer()
-                        Text("개발환경")
-                        Spacer()
-                    }
-                    .tag(EnvironmentType.development)
-                    HStack{
-                        Image(systemName: Util.getDevTypeImg("local"))
-                            .foregroundColor(AppColor.envType("local"))
-                        Spacer()
-                        Text("로컬환경")
-                        Spacer()
-                    }
-                    .tag(EnvironmentType.local)
+                    .buttonStyle(.plain)
                 }
                 .onChange(of:serverType){oldvalue,newValue in
                     EnvironmentConfig.current = newValue
                     ViewModel.token = nil
                 }
-                .font(.title)
-                .pickerStyle(.inline)
-                .padding()
             }
-            Section("URL"){
+            Section("서버 URL"){
                 Button(action:{ isPresented = true}){
-                    HStack{
-                        Image(systemName: "gearshape.2")
-                        Spacer()
+                    HStack(spacing: AppSpacing.md) {
+                        Image(systemName: "server.rack")
+                            .foregroundColor(.white)
+                            .font(.caption)
+                            .frame(width: 28, height: 28)
+                            .background(Color.secondary.gradient)
+                            .cornerRadius(7)
+
                         Text("URL 변경")
+                            .font(AppFont.listTitle)
+                            .foregroundColor(.primary)
+
                         Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(AppFont.caption)
+                            .foregroundColor(.secondary)
                     }
-                }.sheet(isPresented: $isPresented, content: {
+                    .padding(.vertical, AppSpacing.xs)
+                }
+                .buttonStyle(.plain)
+                .sheet(isPresented: $isPresented, content: {
                     EnvSetView(isPresented: $isPresented)
                 })
             }
-        } // List
-//        .ignoresSafeArea()
+        }
         .navigationTitle(title)
     }
 }
