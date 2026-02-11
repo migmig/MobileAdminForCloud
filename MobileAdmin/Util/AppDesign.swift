@@ -111,3 +111,30 @@ enum AppSpacing {
     static let xl: CGFloat = 20
     static let xxl: CGFloat = 40
 }
+
+// MARK: - 코너 반경
+enum AppRadius {
+    static let sm: CGFloat = 6
+    static let md: CGFloat = 10
+    static let lg: CGFloat = 12
+    static let xl: CGFloat = 16
+}
+
+// MARK: - 그림자
+enum AppShadow {
+    static func card() -> some View {
+        Color.black.opacity(0.06)
+    }
+    static let cardRadius: CGFloat = 4
+    static let cardY: CGFloat = 2
+}
+
+// MARK: - 공통 뷰 수정자
+extension View {
+    func sectionHeaderStyle() -> some View {
+        self
+            .font(AppFont.caption)
+            .foregroundColor(.secondary)
+            .textCase(.uppercase)
+    }
+}

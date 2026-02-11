@@ -126,13 +126,26 @@ enum SlidebarItem: Hashable,CaseIterable{
 
 struct SlidebarViewForMac: View {
     @Binding var selection: SlidebarItem?
+
+    private let groupIcons: [String: String] = [
+        "클라우드": "cloud.fill",
+        "내부시스템": "building.2.fill",
+        "개발도구": "hammer.fill"
+    ]
+
     var body: some View {
         List(selection:$selection){
             ForEach(SlidebarItem.groups, id: \.0) { (header, items) in
-               Section(header: Text(header)) {
+               Section(header:
+                   HStack(spacing: AppSpacing.sm) {
+                       Image(systemName: groupIcons[header] ?? "folder")
+                           .font(.caption2)
+                       Text(header)
+                   }
+               ) {
                    ForEach(items, id: \.self) { item in
                        NavigationLink(value: item) {
-                           Label(" [ \(item.title) ] ", systemImage: item.img)
+                           Label(item.title, systemImage: item.img)
                                .font(AppFont.sidebarItem)
                        }
                    }
