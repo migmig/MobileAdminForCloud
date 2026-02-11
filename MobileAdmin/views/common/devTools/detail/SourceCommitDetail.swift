@@ -15,27 +15,25 @@ struct SourceCommitDetail: View {
     var body: some View {
         List{
             Section("Repository"){
-                HStack{
-                    Text("명칭")
-                    Spacer()
-                    Text(selectedSourceCommit.name)
-                        .font(.subheadline)
-                }
+                InfoRow(title: "명칭", value: selectedSourceCommit.name)
             }
 #if os(macOS)
 .font(AppFont.sidebarItem)
 #endif
-            Section("Branch"){
+            Section("Branch (\(branchList.count))"){
                 if isListLoading{
-                    ProgressView().progressViewStyle(CircularProgressViewStyle())
+                    ProgressView()
                 }else{
                     ForEach(branchList, id: \.self){ branch in
-                        HStack{
-                            Image(systemName: SlidebarItem.sourceCommit.img)
-                                .foregroundColor(.blue)
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "arrow.triangle.branch")
+                                .foregroundColor(AppColor.link)
+                                .font(AppFont.caption)
                             Text(branch)
+                                .font(AppFont.listSubtitle)
                                 .transition(.blurAndFade)
                         }
+                        .padding(.vertical, AppSpacing.xxs)
                     }
                 }
             }

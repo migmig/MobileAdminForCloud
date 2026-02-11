@@ -40,55 +40,53 @@ struct GoodsDetailView: View {
     }
     
     var body: some View {
-        List{
-            Section(header: Text("상세 정보").font(.headline)) {
-                InfoRow3(title: "사용자아이디", value: goodsinfo.userId ?? "")
-                InfoRow3(
-                    title: "접수일자",
-                    value: Util.convertToFormattedDate(goodsinfo.rdt)
-                )
-                InfoRow3(
-                    title: "보증번호",
-                    value: getGnoWithDash(gno: goodsinfo.gno)
-                )
-                InfoRow3(title: "접수구분", value: goodsinfo.kindGb ?? "")
-                InfoRow3(
-                    title: "등록일자",
-                    value: Util.formatDateTime(goodsinfo.registerDt)
-//                        value:goodsinfo.registerDt
-                )
-                HStack{
-                    Text("상품정보")
-                    Spacer()
+        ScrollView {
+            VStack(spacing: AppSpacing.md) {
+                // MARK: - 접수 정보
+                CardView(title: "접수 정보", systemImage: "doc.text") {
+                    InfoRow(title: "사용자아이디", value: goodsinfo.userId ?? "")
+                    InfoRow(title: "접수일자", value: Util.convertToFormattedDate(goodsinfo.rdt))
+                    InfoRow(title: "보증번호", value: getGnoWithDash(gno: goodsinfo.gno))
+                    InfoRow(title: "접수구분", value: goodsinfo.kindGb ?? "")
+                    InfoRow(title: "등록일자", value: Util.formatDateTime(goodsinfo.registerDt))
                 }
-                //goodsDetailOfDetail()
-            }
-            Section("상품정보"){
-                ForEach(goodsinfo.goods, id: \.self) { item in
-                    NavigationLink(destination: SelectedGoodsDetailView(goodsItem: item)) {
-                        HStack{
-                            Image(systemName:"cart.circle")
-                            Text("\(item.goodsCd)")
-                                .font(.headline)
-                            Spacer()
-                            Text("\(item.goodsNm)")
-                                .font(.subheadline)
+
+                // MARK: - 상품 목록
+                CardView(title: "상품 정보 (\(goodsinfo.goods.count)건)", systemImage: "cart") {
+                    ForEach(goodsinfo.goods, id: \.self) { item in
+                        NavigationLink(destination: SelectedGoodsDetailView(goodsItem: item)) {
+                            HStack(spacing: AppSpacing.md) {
+                                Text(item.goodsCd)
+                                    .font(AppFont.mono)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, AppSpacing.sm)
+                                    .padding(.vertical, AppSpacing.xs)
+                                    .background(
+                                        (item.maxLmt > 0 && item.msgDispYn != "Y"
+                                            ? AppColor.link : Color.secondary).gradient
+                                    )
+                                    .cornerRadius(6)
+
+                                Text(item.goodsNm)
+                                    .font(AppFont.listSubtitle)
+                                    .foregroundColor(.primary)
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(AppFont.captionSmall)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, AppSpacing.xs)
                         }
-                        .foregroundColor(item.maxLmt > 0 && item.msgDispYn != "Y" ? .blue : .secondary)
+                        .buttonStyle(.plain)
                     }
                 }
             }
+            .padding(AppSpacing.lg)
         }
 #if os(iOS)
-        .listStyle(GroupedListStyle())
-#endif
-//        .navigationDestination(for:Good.self){item2 in
-//            SelectedGoodsDetailView(goodsItem:item2)
-//        }
-        .onAppear{
-        }
-        
-#if os(iOS)
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("상세정보")
 #elseif os(macOS)
         .navigationSubtitle(Util.formatDateTime(goodsinfo.registerDt))

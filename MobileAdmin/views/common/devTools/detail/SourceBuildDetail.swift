@@ -21,126 +21,68 @@ struct SourceBuildDetail: View {
     }
     var body: some View {
         List{
-            Section("Info"){
-                InfoRow3(title:"ID"  , value:selectedProject?.id.description)
-                InfoRow3(title:"Name", value:sourceBuildInfoResult?.name)
-                InfoRow3(
-                    title:"Description",
-                    value:sourceBuildInfoResult?.description
-                )
+            Section("프로젝트 정보"){
+                InfoRow(title:"ID"  , value:selectedProject?.id.description)
+                InfoRow(title:"Name", value:sourceBuildInfoResult?.name)
+                InfoRow(title:"Description", value:sourceBuildInfoResult?.description)
             }
             Section("기능"){
                 Button(action:{
-                    print("Refresh")
                     Task{
-                        withAnimation{
-                            isLoaded = true
-                        }
+                        withAnimation { isLoaded = true }
                         sourceBuildInfoResult = await viewModel.fetchSourceBuildInfo(selectedProject?.id ?? 0)?.result
-                        withAnimation{
-                            isLoaded = false
-                        }
+                        withAnimation { isLoaded = false }
                     }
                 }){
-                    Text("재조회")
+                    Label("재조회", systemImage: "arrow.clockwise")
                 }
-                Button(action:{
-                    isConfirm = true
-                }){
-                    Text("빌드실행")
+                Button(action:{ isConfirm = true }){
+                    Label("빌드실행", systemImage: "play.fill")
                 }
                 .confirmationDialog("실행확인", isPresented: $isConfirm) {
-                    Button(action:{
-                        runBuild()
-                    }){
+                    Button(action:{ runBuild() }){
                         Text("실행확인")
                     }
                 }
             }
-                Section("Source"){
-                    InfoRow3(
-                        title:"Repository",
-                        value:sourceBuildInfoResult?.source?.config?.repository
-                    )
-                    
-                    InfoRow3(
-                        title:"branch",
-                        value:sourceBuildInfoResult?.source?.config?.branch
-                    )
+            Section("소스"){
+                InfoRow(title:"Repository", value:sourceBuildInfoResult?.source?.config?.repository)
+                InfoRow(title:"Branch", value:sourceBuildInfoResult?.source?.config?.branch)
+            }
+            if isLoaded {
+                ProgressView()
+            } else {
+                Section("최근 빌드"){
+                    InfoRow(title:"History ID", value:sourceBuildInfoResult?.lastBuild?.id?.description)
+                    InfoRow(title:"빌드시각", value:Util.convertFromDateIntoString(sourceBuildInfoResult?.lastBuild?.timestamp ?? 0))
                 }
-                if isLoaded {
-                    // HStack{
-                    ProgressView()//.progressViewStyle(CircularProgressViewStyle())
-                    // }
-                }else{
-                    Section("Last Build"){
-                        //NavigationLink{
-                        //    SourceBuildHistory(viewModel:viewModel,
-                        //                       projectId: selectedProject?.id ?? 0)
-                        //} label:{
-                            InfoRow3(
-                                title:"History ID",
-                                value:sourceBuildInfoResult?.lastBuild?.id?.description
-                            )
-                            .lineLimit(1)
-                       // }
-                        InfoRow3(
-                            title:"LastBuildTime",
-                            value:Util.convertFromDateIntoString(sourceBuildInfoResult?.lastBuild?.timestamp ?? 0)
-                        )
-                    }
-                }
-            
-            Section("History"){
-                ForEach(sourceBuildHistoryInfoHistory, id: \.self){item in
-                    VStack{
-                        HStack{
-                            Image(systemName:"hammer")
-                                .foregroundColor(getBuildColor(status: item.status ?? ""))
-                            Spacer()
-                            Text(item.userId ?? "")
-                                .font(.subheadline)
-                        }
-                        HStack{
-                            Text(Util.convertFromDateIntoString( item.begin ?? 0))
-                                .font(AppFont.timestamp)
-                            Spacer()
-                            Text(Util.convertFromDateIntoString( item.end ?? 0))
-                                .font(AppFont.timestamp)
-                        }
-                        HStack{
-                            Spacer()
-                            Text(item.status ?? "")
-                                .font(.subheadline)
-                                .foregroundColor(getBuildColor(status: item.status ?? ""))
-                        }
-                    }
-                }
-                Section("CMD"){
-                    InfoRow3(
-                        title:"pre",
-                        value:sourceBuildInfoResult?.cmd?.pre?.joined(separator: "\n")
-                    )
-                    InfoRow3(
-                        title:"build",
-                        value:sourceBuildInfoResult?.cmd?.build?.joined(separator: "\n")
-                    )
-                    InfoRow3(
-                        title:"post",
-                        value:sourceBuildInfoResult?.cmd?.post?.joined(separator: "\n")
+            }
+
+            Section("빌드 이력"){
+                ForEach(sourceBuildHistoryInfoHistory, id: \.self){ item in
+                    DevHistoryItem(
+                        statusColor: getBuildColor(status: item.status ?? ""),
+                        status: item.status ?? "",
+                        beginTime: Util.convertFromDateIntoString(item.begin ?? 0),
+                        endTime: Util.convertFromDateIntoString(item.end ?? 0),
+                        subtitle: item.userId ?? ""
                     )
                 }
             }
-            .navigationTitle(sourceBuildInfoResult?.description ?? selectedProject!.name)
-            .onChange(of: selectedProject!.id ){oldvalue,newValue in
-                getBuildInfo()
-                getBuildHistory()
+            Section("CMD"){
+                InfoRow(title:"pre", value:sourceBuildInfoResult?.cmd?.pre?.joined(separator: "\n"))
+                InfoRow(title:"build", value:sourceBuildInfoResult?.cmd?.build?.joined(separator: "\n"))
+                InfoRow(title:"post", value:sourceBuildInfoResult?.cmd?.post?.joined(separator: "\n"))
             }
-            .onAppear(){
-                getBuildInfo()
-                getBuildHistory()
-                
-            }
+        }
+        .navigationTitle(sourceBuildInfoResult?.description ?? selectedProject!.name)
+        .onChange(of: selectedProject!.id ){oldvalue,newValue in
+            getBuildInfo()
+            getBuildHistory()
+        }
+        .onAppear(){
+            getBuildInfo()
+            getBuildHistory()
         }
     }
     func getBuildHistory(){

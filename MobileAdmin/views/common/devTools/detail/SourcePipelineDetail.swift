@@ -16,92 +16,61 @@ struct SourcePipelineDetail: View {
     @State var isLoaded = false
     var body: some View {
         List{
-            Section("파이프라인"){
-                HStack{
-                    Text("명칭")
-                    Spacer()
-                    Text(selectedPipeline.name)
-                        .font(.subheadline)
-                }
+            Section("파이프라인 프로젝트"){
+                InfoRow(title: "명칭", value: selectedPipeline.name)
             }
             Section("기능"){
-                Button("재조회"){
+                Button {
                     getHistory()
+                } label: {
+                    Label("재조회", systemImage: "arrow.clockwise")
                 }
-                
-                Button(action:{isConfirm = true}){
-                    Text("파이프라인 실행하기")
+
+                Button(action:{ isConfirm = true }){
+                    Label("파이프라인 실행하기", systemImage: "play.fill")
                 }
                 .confirmationDialog("실행확인", isPresented: $isConfirm) {
-                    Button(action:{
-                        runSourcePipeline()
-                    }){
+                    Button(action:{ runSourcePipeline() }){
                         Text("실행확인")
                     }
                 }
             }
-            
-                Section("History"){if isLoaded {
-                    HStack{
-                        ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
-                           
-                    }
-                }else{
+
+            Section("파이프라인 이력"){
+                if isLoaded {
+                    ProgressView()
+                } else {
                     ForEach(viewModel.sourcePipelineHistoryList, id:\.self){ item in
-                        VStack {
-                            HStack{
-                                Image(systemName:"hammer")
-                                    .foregroundColor(AppColor.pipelineStatus(item.status))
-                                Spacer()
-                                VStack{
-                                    HStack{
-                                        Spacer()
-                                        Text(item.requestId)
+                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                            DevHistoryItem(
+                                statusColor: AppColor.pipelineStatus(item.status),
+                                status: item.status,
+                                beginTime: Util.convertFromDateIntoString(item.begin),
+                                endTime: item.end == 0 ? "" : Util.convertFromDateIntoString(item.end),
+                                subtitle: item.requestId
+                            )
+
+                            if item.status == "running" {
+                                Button {
+                                    isCancel = true
+                                    Task{
+                                        _ = await viewModel.cancelSourcePipeline(item.projectId, item.id)
                                     }
-#if os(iOS)
-                                    .font(AppFont.timestamp)
-#endif
-                                    HStack{
-                                        Text(Util.convertFromDateIntoString( item.begin))
-                                        Spacer()
-                                        Text(item.end == 0 ? "" : Util.convertFromDateIntoString( item.end))
-                                    }
-#if os(iOS)
-                                            .font(AppFont.timestamp)
-#endif
-                                    HStack{
-                                        Spacer()
-                                        Text(item.status)
-                                        #if os(iOS)
-                                            .font(AppFont.listSubtitle)
-                                        #endif
-                                            .foregroundColor(AppColor.pipelineStatus(item.status))
-                                        if item.status == "running" {
-                                            Button("cancel"){
-                                                isCancel = true
-                                                Task{
-                                                    _ = await viewModel
-                                                        .cancelSourcePipeline(
-                                                            item.projectId,
-                                                            item.id
-                                                        )
-                                                    //                                                sourcePipelineExecResultResult = response.result
-                                                }
-                                            }
-                                            .buttonStyle(BorderedButtonStyle())
-                                            .alert("취소되었습니다.", isPresented: $isCancel){
-                                                Button("확인"){
-                                                }
-                                            }
-                                        }
-                                    }
+                                } label: {
+                                    Label("Cancel", systemImage: "xmark.circle")
+                                        .font(AppFont.caption)
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .alert("취소되었습니다.", isPresented: $isCancel){
+                                    Button("확인"){}
                                 }
                             }
                         }
-                    }//ForEach
-                }//if
-            }//Section(history)
-        }//List
+                    }
+                }
+            }
+        }
         .navigationTitle(selectedPipeline.name)
         .onChange(of: selectedPipeline.id){_, newValue in
             getHistory()

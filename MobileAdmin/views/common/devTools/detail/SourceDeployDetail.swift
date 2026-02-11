@@ -20,13 +20,8 @@ struct SourceDeployDetail: View {
     @State var scenarioId:Int = 0
     var body: some View {
         List{
-            Section("배포"){
-                HStack{
-                    Text("명칭")
-                    Spacer()
-                    Text(selectedDeploy.name)
-                        .font(.subheadline)
-                }
+            Section("배포 프로젝트"){
+                InfoRow(title: "명칭", value: selectedDeploy.name)
             }
             Section("Stage"){
                 Picker("Stage", selection: $stageId){
@@ -49,12 +44,14 @@ struct SourceDeployDetail: View {
                 }
             }
             Section("기능"){
-                Button("재조회"){
+                Button {
                     getStage()
                     getHistory()
+                } label: {
+                    Label("재조회", systemImage: "arrow.clockwise")
                 }
-                Button(action:{isConfirm = true}){
-                    Text("배포 실행하기")
+                Button(action:{ isConfirm = true }){
+                    Label("배포 실행하기", systemImage: "paperplane.fill")
                 }
                 .confirmationDialog("실행확인", isPresented: $isConfirm) {
                     Button(action:{
@@ -65,29 +62,17 @@ struct SourceDeployDetail: View {
                     }
                 }
             }
-            Section("History"){
+            Section("배포 이력"){
                 if isLoaded {
-                    HStack{
-                        ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
-                    }
-                }else{
-                    ForEach(historyList  , id:\.id){ item in
-                        VStack{
-                            HStack{
-                                Image(systemName:"hammer")
-                                    .foregroundColor(AppColor.deployStatus(item.status))
-                                Text(Util.convertFromDateIntoString(item.startTime) )
-                                Spacer()
-                                VStack{
-
-                                    HStack{
-                                        Spacer()
-                                        Text(item.status  )
-                                            .foregroundColor(AppColor.deployStatus(item.status))
-                                    }
-                                }
-                            }
-                        }
+                    ProgressView()
+                } else {
+                    ForEach(historyList, id:\.id){ item in
+                        DevHistoryItem(
+                            statusColor: AppColor.deployStatus(item.status),
+                            status: item.status,
+                            beginTime: Util.convertFromDateIntoString(item.startTime),
+                            endTime: ""
+                        )
                     }
                 }
             }

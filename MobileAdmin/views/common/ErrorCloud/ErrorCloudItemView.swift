@@ -9,65 +9,51 @@ struct ErrorCloudItemView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) { // 카드 간 간격
-                
-                // MARK: - 상세 정보 카드
-                VStack(alignment: .leading, spacing: 15) {
-                    Text("상세 정보")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .padding(.bottom, 5)
-
-                    // 사용자 아이디 Row (특별 컨텍스트 메뉴 포함)
+            VStack(spacing: AppSpacing.md) {
+                // MARK: - 사용자 정보
+                CardView(title: "사용자", systemImage: "person.crop.circle") {
                     UserRow(userId: errorCloudItem.userId, viewModel: viewModel)
-                    
-                    Divider()
-                    
-                    // 핵심 정보
+                }
+
+                // MARK: - 핵심 정보
+                CardView(title: "오류 정보", systemImage: "exclamationmark.triangle") {
                     InfoRowIcon(iconName: "qrcode", title: "Code", value: errorCloudItem.code)
                     InfoRowIcon(iconName: "note.text", title: "Description", value: errorCloudItem.description)
                     InfoRowIcon(iconName: "envelope", title: "Msg", value: errorCloudItem.msg)
-                    
-                    Divider()
-                    
-                    // Trace 미리보기
-                    TraceRow(traceCn: errorCloudItem.traceCn, isSheetPresented: $isSheetPresented)
-                    
-                    Divider()
+                }
 
-                    // 기타 정보
+                // MARK: - Trace
+                CardView(title: "Trace", systemImage: "ladybug") {
+                    TraceRow(traceCn: errorCloudItem.traceCn, isSheetPresented: $isSheetPresented)
+                }
+
+                // MARK: - 요청 정보
+                CardView(title: "요청 정보", systemImage: "network") {
                     InfoRowIcon(iconName: "link", title: "Request URL", value: errorCloudItem.restUrl)
                     InfoRowIcon(iconName: "calendar", title: "Register DT", value: Util.formatDateTime(errorCloudItem.registerDt))
                     InfoRowIcon(iconName: "info.circle", title: "Request Info", value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
-                    Divider()
-                    HStack{
-                        Spacer()
-                        Button{
-                            if errorCloudItem.id  != nil {
-                                Task {
-                                    print(errorCloudItem.id!)
-                                    await viewModel.deleteError(id: errorCloudItem.id!) 
-                                }
-                            }
-                            
-                        }label:{
-                            Image(systemName: "trash.fill")
-                            Text("Delete Data")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(AppColor.destructive) // 버튼 배경색을 빨간색으로 변경하여 삭제 액션 강조
-                        .controlSize(.large) // 중요한 버튼이므로 크기 키우기 (선택 사항)
-                    }
                 }
-                .padding()                
-                .cornerRadius(12)
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-                
+
+                // MARK: - 삭제
+                HStack{
+                    Spacer()
+                    Button{
+                        if errorCloudItem.id  != nil {
+                            Task {
+                                print(errorCloudItem.id!)
+                                await viewModel.deleteError(id: errorCloudItem.id!)
+                            }
+                        }
+                    }label:{
+                        Label("Delete Data", systemImage: "trash.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppColor.destructive)
+                    .controlSize(.large)
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
+            .padding(AppSpacing.lg)
         }
-       // .background(Color(.secondarySystemBackground)) // 전체 배경색
         
         // MARK: - Trace Sheet
         .sheet(isPresented: $isSheetPresented) {
@@ -106,29 +92,24 @@ struct TraceRow: View {
 
     var body: some View {
         HStack {
-            Image(systemName: "ladybug")
-                .foregroundColor(AppColor.error)
-                .frame(width: 20)
-            Text("Trace:")
-                .fontWeight(.medium)
-            Spacer()
-            
-            // 미리보기 텍스트
             Text(traceCn ?? "N/A")
-                .foregroundColor(.gray)
-                .font(AppFont.mono) // 고정폭 폰트
-                .lineLimit(1)
+                .foregroundColor(.secondary)
+                .font(AppFont.mono)
+                .lineLimit(2)
                 .truncationMode(.tail)
-                .frame(maxWidth: 150, alignment: .trailing) // 최대 너비 지정
-            
-            // 상세 보기 버튼
-            Button("상세 보기") {
+
+            Spacer()
+
+            Button {
                 isSheetPresented = true
+            } label: {
+                Label("상세 보기", systemImage: "arrow.up.right.square")
+                    .font(AppFont.caption)
             }
-            .buttonStyle(.plain)
-            .foregroundColor(AppColor.link)
+            .buttonStyle(.bordered)
+            .controlSize(.small)
         }
-        .padding(.vertical, 5)
+        .padding(.vertical, AppSpacing.xs)
     }
 }
 // MARK: - Sub Views
@@ -141,18 +122,27 @@ struct InfoRowIcon: View {
     var value: String?
 
     var body: some View {
-        HStack {
+        HStack(spacing: AppSpacing.sm) {
             Image(systemName: iconName)
                 .foregroundColor(AppColor.icon)
-                .frame(width: 20) // 아이콘 정렬
-            Text("\(title):")
-                .fontWeight(.medium)
+                .font(AppFont.caption)
+                .frame(width: 20)
+            Text(title)
+                .font(AppFont.caption)
+                .foregroundColor(.secondary)
             Spacer()
             Text(value ?? "N/A")
+                .font(AppFont.body)
                 .foregroundColor(value?.isEmpty == false ? .primary : .secondary)
-                .lineLimit(1)
+                .lineLimit(2)
+                .multilineTextAlignment(.trailing)
         }
-        .padding(.vertical, 5)
+        .padding(.vertical, AppSpacing.xs)
+        .contextMenu {
+            Button("Copy") {
+                Util.copyToClipboard(value ?? "")
+            }
+        }
     }
 }
 /**
@@ -192,7 +182,7 @@ struct UserRow: View {
             .controlSize(.small)
             #endif
         }
-        .padding(.vertical, 5)
+        .padding(.vertical, AppSpacing.xs)
         .contextMenu {
             Button("Copy User ID") {
                 Util.copyToClipboard(userId ?? "")
