@@ -9,7 +9,6 @@ import SwiftUI
 
 struct GoodsSidebar: View {
     @ObservedObject var viewModel:ViewModel = ViewModel()
-//    @Binding var goodsItems:[Goodsinfo]
     @Binding var selectedGoods:Goodsinfo?
     @State   var isLoading:Bool = false
     @State var dateFrom:Date = Date()
@@ -91,13 +90,21 @@ struct GoodsSidebar: View {
                     )
                 }
             }
+            .overlay {
+                if filteredGoods.isEmpty && !isLoading {
+                    EmptyStateView(
+                        systemImage: "cart",
+                        title: "상품 이력이 없습니다",
+                        description: "조회 조건을 변경해 보세요"
+                    )
+                }
+            }
         }
         .searchable(text: $searchText, placement: .automatic)
         .onAppear()
         {
             Task{
                 isLoading = true;
-                // await goodsItems = viewModel.fetchGoods(dateFrom,dateTo) ?? []
                 isLoading = false;
             }
         }

@@ -85,12 +85,8 @@ struct CodeDetailView:View{
                             .fontWeight(.bold)
                             .font(AppFont.caption)
                             .padding(.vertical, AppSpacing.sm)
-                            #if os(iOS)
-                            .background(Color(.tertiarySystemGroupedBackground))
-                            #else
-                            .background(Color(.controlBackgroundColor))
-                            #endif
-                            .cornerRadius(8)
+                            .tertiaryBackground()
+                            .cornerRadius(AppRadius.sm)
 
                             // 데이터 행
                             ForEach(cmmnCodeItems){item in

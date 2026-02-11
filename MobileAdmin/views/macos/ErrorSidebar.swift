@@ -93,6 +93,15 @@ struct ErrorSidebar: View {
                         ErrorCloudListItem(errorCloudItem: entry)
                     }
                 }
+                .overlay {
+                    if !isLoading && filteredErrorItems.isEmpty {
+                        EmptyStateView(
+                            systemImage: "checkmark.shield",
+                            title: "오류가 없습니다",
+                            description: "조회 기간을 변경해 보세요"
+                        )
+                    }
+                }
                 .navigationTitle("오류 조회")
                 #if os(macOS)
                 .navigationSubtitle("  \(filteredErrorItems.count)개의 오류")

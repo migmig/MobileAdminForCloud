@@ -25,6 +25,13 @@ struct SourcePipelineListView: View {
     }
     var body: some View {
         List(selection: $selectedPipeline){
+            if viewModel.sourcePipelineList.isEmpty {
+                EmptyStateView(
+                    systemImage: "rectangle.connected.to.line.below",
+                    title: "파이프라인이 없습니다"
+                )
+                .listRowBackground(Color.clear)
+            }
             Section("운영"){
                 ForEach(prodList, id:\.id){ item in
                     #if os(iOS)

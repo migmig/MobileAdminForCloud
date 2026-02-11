@@ -74,6 +74,15 @@ struct CloseDeptListViewIOS: View {
                         CloseDeptListItem(entry: entry)
                     }
                 }
+                .overlay {
+                    if filteredList.isEmpty {
+                        EmptyStateView(
+                            systemImage: "building.2",
+                            title: "데이터가 없습니다",
+                            description: "조회 결과가 없습니다"
+                        )
+                    }
+                }
                 .refreshable {
                     await loadData()
                 }

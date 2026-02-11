@@ -77,6 +77,14 @@ struct GoodsListViewIOS: View {
 
             // 상품 목록
             Section {
+                if filteredGoods.isEmpty && !isLoading {
+                    EmptyStateView(
+                        systemImage: "cart",
+                        title: "상품 이력이 없습니다",
+                        description: "조회 조건을 변경해 보세요"
+                    )
+                    .listRowBackground(Color.clear)
+                }
                 ForEach(filteredGoods){ entry in
                     NavigationLink(destination:{
                         GoodsDetailView(goodsinfo: entry)

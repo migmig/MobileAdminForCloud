@@ -164,4 +164,12 @@ extension View {
         self.background(Color(.windowBackgroundColor))
         #endif
     }
+
+    func tertiaryBackground() -> some View {
+        #if os(iOS)
+        self.background(Color(.tertiarySystemGroupedBackground))
+        #else
+        self.background(Color(.controlBackgroundColor))
+        #endif
+    }
 }

@@ -27,6 +27,13 @@ struct SourceBuildListView: View {
     }
     var body: some View {
         List(selection: $selected){
+            if viewModel.buildProjects.isEmpty {
+                EmptyStateView(
+                    systemImage: "hammer",
+                    title: "빌드 프로젝트가 없습니다"
+                )
+                .listRowBackground(Color.clear)
+            }
             Section("운영"){
                 ForEach(prodList, id:\.id){ item in
                     #if os(iOS)
