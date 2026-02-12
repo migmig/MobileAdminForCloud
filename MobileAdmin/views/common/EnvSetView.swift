@@ -105,7 +105,7 @@ struct EnvSetView: View {
         EnvironmentConfig.environmentUrls[.development] = devUrl
         EnvironmentConfig.environmentUrls[.local] = localUrl
         EnvironmentConfig.environmentUrls.forEach { type, url in
-            print("\(type.rawValue): \(url)")
+            // \(type.rawValue): \(url)
 
             if let existsingSession = allEnvironment.first(
                 where: {$0.envType == type.rawValue})
@@ -120,9 +120,9 @@ struct EnvSetView: View {
         }
         do{
             try modelContext.save()
-            print("저장 성공: ")
+            // 저장 성공
         }catch{
-            print("저장 실패: \(error.localizedDescription)")
+            // 저장 실패: \(error.localizedDescription)
         }
         isSaving = false
         isPresented = false

@@ -40,8 +40,7 @@ struct ErrorCloudItemView: View {
                     Button{
                         if errorCloudItem.id  != nil {
                             Task {
-                                print(errorCloudItem.id!)
-                                await viewModel.deleteError(id: errorCloudItem.id!)
+                                await viewModel.deleteError(id: errorCloudItem.id ?? 0)
                             }
                         }
                     }label:{
