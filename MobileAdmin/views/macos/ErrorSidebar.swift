@@ -17,6 +17,7 @@ struct ErrorSidebar: View {
     @State var autoRefresh:Bool = false
     @State var timerProgress: Double = 0 // 슬라이더 값
     @State var timer: Timer? = nil // 타이머 객체
+    @State private var isFetching: Bool = false // 자동 조회 중복 방지
     @ObservedObject var toastManager = ToastManager()
     var timeInterval:Double = 0.01 // 타이머 간격
    
@@ -123,17 +124,16 @@ struct ErrorSidebar: View {
     
     private func startAutoRefresh() {
         timerProgress = 0
-        timer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { timer in
+        isFetching = false
+        timer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { _ in
             timerProgress += timeInterval
-            if timerProgress >= 5 {
-                Task {
-                    DispatchQueue.main.async {
-                        timerProgress = 0
-                    }
+            if timerProgress >= 5 && !isFetching {
+                isFetching = true
+                timerProgress = 0
+                Task { @MainActor in
                     let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
-                    DispatchQueue.main.async {
-                        viewModel.errorItems = errorItems
-                    }
+                    viewModel.errorItems = errorItems
+                    isFetching = false
                 }
             }
         }
@@ -143,6 +143,7 @@ struct ErrorSidebar: View {
         timer?.invalidate()
         timer = nil
         timerProgress = 0
+        isFetching = false
     }
 }
  #Preview {
