@@ -12,11 +12,20 @@ class ViewModel: ObservableObject {
     @Published var sourcePipelineHistoryList: [SourcePipelineHistoryInfoHistoryList] = []
     @Published var sourceDeployList : [SourceInfoProjectInfo] = []
     @Published var sourceDeployHistoryList : [SourceDeployHistoryInfoHistoryList] = []
+    @Published var lastError: NetworkError?
 
     let logger = Logger(label:"com.migmig.MobileAdmin.ViewModel")
     static var tokenExpirationDate: Date? // 토큰 만료 시간을 저장하는 변수
-    static var token: String? // 토큰 만료 시간을 저장하는 변수
+    static var token: String? // 토큰을 저장하는 변수
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
+    private static var tokenRefreshTask: Task<Void, Error>?
+
+    // MARK: - 공유 DateFormatter (재생성 방지)
+    private static let apiDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMddHHmmss"
+        return formatter
+    }()
 
     private var baseUrl: String {
         return EnvironmentConfig.baseUrl
@@ -43,12 +52,12 @@ class ViewModel: ObservableObject {
     private func extractExpiration(from token: String) -> Date? {
         let parts = token.split(separator: ".")
         guard parts.count == 3 else {
-            print("Invalid token format")
+            logger.warning("Invalid token format")
             return nil
         }
 
         guard let payloadData = base64UrlDecode(String(parts[1])) else {
-            print("Failed to decode payload")
+            logger.warning("Failed to decode payload")
             return nil
         }
 
@@ -58,25 +67,63 @@ class ViewModel: ObservableObject {
                 return Date(timeIntervalSince1970: exp)
             }
         } catch {
-            print("Error decoding JWT payload: \(error)")
+            logger.error("Error decoding JWT payload: \(error)")
         }
 
         return nil
+    }
+
+    // MARK: - 토큰 관리
+
+    /// 토큰 유효성 확인 및 필요시 갱신
+    private func ensureValidToken() async throws {
+        let needsRefresh = ViewModel.token == nil ||
+            (ViewModel.tokenExpirationDate.map { $0 <= Date() } ?? true)
+
+        guard needsRefresh else { return }
+
+        // 이미 진행 중인 토큰 갱신이 있으면 대기
+        if let existingTask = ViewModel.tokenRefreshTask {
+            try await existingTask.value
+            return
+        }
+
+        let task = Task {
+            try await fetchToken()
+            ViewModel.tokenRefreshTask = nil
+        }
+        ViewModel.tokenRefreshTask = task
+        try await task.value
+    }
+
+    /// 인증된 URLRequest 생성
+    private func makeAuthenticatedRequest(url urlString: String) throws -> URLRequest {
+        guard let url = URL(string: urlString) else {
+            throw NetworkError.invalidURL(urlString)
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-type")
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
+        if let token = ViewModel.token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        return request
     }
 
     // 토큰을 가져오는 비동기 함수
     private func fetchToken() async throws {
         logger.info("fetchToken called")
         let url = "\(baseUrl)/simpleLoginForAdmin"
-        let adminCI:String  = Bundle.main.object(forInfoDictionaryKey: "adminCI") as! String
-
+        guard let adminCI = Bundle.main.object(forInfoDictionaryKey: "adminCI") as? String else {
+            throw NetworkError.missingCredential
+        }
 
         let tokenRequestData = TokenRequest(ci: adminCI)
-        let tokenUrl =  URL(string: url)
-        if tokenUrl == nil {
-            throw NSError(domain: "Invalid token url", code: 0, userInfo: nil)
+        guard let tokenUrl = URL(string: url) else {
+            throw NetworkError.invalidURL(url)
         }
-        var request = URLRequest(url: tokenUrl!)
+        var request = URLRequest(url: tokenUrl)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-type")
         request.setValue("*/*", forHTTPHeaderField: "Accept")
@@ -85,156 +132,121 @@ class ViewModel: ObservableObject {
         let (_, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NetworkError.httpError(statusCode: statusCode, url: url)
         }
-        ViewModel.token = httpResponse.value(forHTTPHeaderField: "Authorization")
-        //        logger.info("get token sucess:\(ViewModel.token!)")
-        if ViewModel.token != nil {
-            ViewModel.tokenExpirationDate = extractExpiration(from: ViewModel.token!)
-        } else {
-            throw NSError(domain: "Authorization header is missing", code: 0, userInfo: nil)
+        guard let token = httpResponse.value(forHTTPHeaderField: "Authorization") else {
+            throw NetworkError.missingToken
         }
+        ViewModel.token = token
+        ViewModel.tokenExpirationDate = extractExpiration(from: token)
     }
+
+    // MARK: - 네트워크 요청 메서드
 
     // 모든 요청을 처리하는 비동기 함수
     private func makeRequestNoReturn<T: Codable>(
         url: String,
         requestData: T? = nil
     ) async throws  {
-        if ViewModel.token == nil{
-            try await fetchToken()
-        }else{
-            if let expirationDate = ViewModel.tokenExpirationDate, expirationDate <= Date() {
-                try await fetchToken()
-            }
-        }
-        var request = URLRequest(url: URL(string: url)!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-type")
-        request.setValue("*/*", forHTTPHeaderField: "Accept")
-        if(ViewModel.token != nil){
-            request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
-        }
+        try await ensureValidToken()
+        var request = try makeAuthenticatedRequest(url: url)
 
-        
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMMddHHmmss"
         // 요청 데이터가 주어졌다면 JSON 인코딩
         if let requestData = requestData {
-            
             let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .formatted(dateFormatter)
-            let str = try encoder.encode(requestData)
-           // print(str)
-            request.httpBody = str
+            encoder.dateEncodingStrategy = .formatted(Self.apiDateFormatter)
+            request.httpBody = try encoder.encode(requestData)
         }
 
         let (_, _) = try await URLSession.shared.data(for: request)
-
     }
 
     // 파일처리를 제외한 요청을 처리하는 비동기 함수
     private func makeRequestNoRequestData<T: Codable>(
         url: String
     ) async throws -> T {
-        //        logger.info("makeRequest called with url: \(url) and token: \(ViewModel.token ?? "none") ")
-        if ViewModel.token == nil{
-            try await fetchToken()
-        }else{
-            if let expirationDate = ViewModel.tokenExpirationDate, expirationDate <= Date() {
-                try await fetchToken()
-            }
-        }
-        //print(url);
-        var request = URLRequest(url: URL(string: url)!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-type")
-        request.setValue("*/*", forHTTPHeaderField: "Accept")
-        if(ViewModel.token != nil){
-            request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
-        }
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMMddHHmmss"
-      
+        try await ensureValidToken()
+        let request = try makeAuthenticatedRequest(url: url)
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NetworkError.httpError(statusCode: statusCode, url: url)
         }
 
-       // let stringfromdata = String(data: data, encoding: .utf8)
-       // print("data:\(String(describing: String(data: data, encoding: .utf8)))")
-        
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        decoder.dateDecodingStrategy = .formatted(Self.apiDateFormatter)
         let decodedData = try decoder.decode(T.self, from: data)
-        
+
         return decodedData
     }
+
     // 모든 요청을 처리하는 비동기 함수
     private func makeRequest<R: Codable , T: Codable>(
         url: String,
         requestData: R? = nil
     ) async throws -> T {
-        //        logger.info("makeRequest called with url: \(url) and token: \(ViewModel.token ?? "none") ")
-        if ViewModel.token == nil{
-            try await fetchToken()
-        }else{
-            if let expirationDate = ViewModel.tokenExpirationDate, expirationDate <= Date() {
-                try await fetchToken()
-            }
-        }
-        print(url);
-        var request = URLRequest(url: URL(string: url)!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-type")
-        request.setValue("*/*", forHTTPHeaderField: "Accept")
-        if(ViewModel.token != nil){
-            request.setValue("Bearer \(ViewModel.token!)", forHTTPHeaderField: "Authorization")
-        }
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMMddHHmmss"
+        try await ensureValidToken()
+        var request = try makeAuthenticatedRequest(url: url)
+
         // 요청 데이터가 주어졌다면 JSON 인코딩
         if let requestData = requestData {
-            
             let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .formatted(dateFormatter)
-            let str = try encoder.encode(requestData)
-            //print(str)
-            request.httpBody = str
+            encoder.dateEncodingStrategy = .formatted(Self.apiDateFormatter)
+            request.httpBody = try encoder.encode(requestData)
         }
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw NSError(domain: "Invalid Response", code: 0, userInfo: nil)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NetworkError.httpError(statusCode: statusCode, url: url)
         }
 
-      //  let stringfromdata = String(data: data, encoding: .utf8)
-       // print("data:\(String(describing: String(data: data, encoding: .utf8)))")
-        
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        decoder.dateDecodingStrategy = .formatted(Self.apiDateFormatter)
         let decodedData = try decoder.decode(T.self, from: data)
-        
+
         return decodedData
     }
+
+    // MARK: - Toast API
 
     // Toast 데이터를 가져오는 비동기 함수
     func fetchToasts() async  -> Toast{
         do {
             let url = "\(baseUrl)/admin/toastNotice"
-            //let toast: Toast? = nil//try await makeRequestNoRequestData(url: url)
-            return Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
+            let toast: Toast = try await makeRequestNoRequestData(url: url)
+            return toast
         } catch {
-            print("Error fetching toasts: \(error)")
+            logger.error("fetchToasts 실패: \(error)")
         }
         return Toast(applcBeginDt: Date(), applcEndDt: Date(), noticeHder: "", noticeSj: "", noticeCn: "", useYn: "N")
     }
+
+    // Toast 노출 설정 함수
+    func setNoticeVisible(toastData:Toast) async {
+        do {
+            let urlPath = "/admin/toastSetVisible/\(toastData.useYn)"
+            try await makeRequestNoReturn(url: "\(baseUrl)\(urlPath)" , requestData: toastData)
+        } catch {
+            logger.error("setNoticeVisible 실패: \(error)")
+        }
+    }
+
+    // Toast 데이터 설정 함수
+    func setToastData(toastData:Toast) async {
+        do {
+            let urlPath = "/admin/toastSetNotice"
+            try await makeRequestNoReturn(url: "\(baseUrl)\(urlPath)", requestData: toastData)
+        } catch {
+            logger.error("setToastData 실패: \(error)")
+        }
+    }
+
+    // MARK: - Error Cloud API
 
     // Error 데이터를 가져오는 비동기 함수
     func fetchErrors(startFrom: Date, endTo: Date) async -> [ErrorCloudItem]?{
@@ -243,41 +255,22 @@ class ViewModel: ObservableObject {
             let errorItems: [ErrorCloudItem] = try await makeRequestNoRequestData(url: "\(baseUrl)\(urlPath)")
             return errorItems
         } catch {
-            print("Error fetching errors: \(error)")
+            logger.error("fetchErrors 실패: \(error)")
         }
         return nil
     }
-    
+
     // Error 데이터 삭제 함수
     func deleteError(id:Int) async{
         do{
             let urlPath = "/admin/cloud/error/delete/\(id)"
-            print(urlPath)
-            let errorItems:[ErrorCloudItem] = try await makeRequestNoRequestData(url: "\(baseUrl)\(urlPath)")
+            let _:[ErrorCloudItem] = try await makeRequestNoRequestData(url: "\(baseUrl)\(urlPath)")
         }catch {
-            print("Error fetching errors: \(error)")
+            logger.error("deleteError 실패: \(error)")
         }
     }
 
-    // Error 데이터를 가져오는 비동기 함수
-    func setNoticeVisible(toastData:Toast) async {
-        do {
-            let urlPath = "/admin/toastSetVisible/\(toastData.useYn)"
-            try await makeRequestNoReturn(url: "\(baseUrl)\(urlPath)" , requestData: toastData)
-        } catch {
-            print("Error fetching errors: \(error)")
-        }
-    }
-
-    // Error 데이터를 가져오는 비동기 함수
-    func setToastData(toastData:Toast) async {
-        do {
-            let urlPath = "/admin/toastSetNotice"
-            try await makeRequestNoReturn(url: "\(baseUrl)\(urlPath)", requestData: toastData)
-        } catch {
-            print("Error fetching errors: \(error)")
-        }
-    }
+    // MARK: - Goods API
 
     func fetchGoods(_ startFrom: Date?, _ endTo: Date?) async -> [Goodsinfo]?{
         do {
@@ -287,25 +280,26 @@ class ViewModel: ObservableObject {
             let goodsinfos: [Goodsinfo] = try await makeRequestNoRequestData(url: "\(baseUrl)\(urlPath)")
             return goodsinfos
         } catch {
-            print("Error fetching errors: \(error)")
+            logger.error("fetchGoods 실패: \(error)")
         }
         return nil
     }
-    
-    
+
+    // MARK: - 교육과정 API
+
     // 강의 리스트  데이터를 가져오는 비동기 함수
     func fetchClsLists() async  -> EdcCrseClListResponse{
         do {
             let url = "\(baseUrl)/gcamp/category/all-edu-list"
-            let toast: EdcCrseClListResponse? = try await makeRequestNoRequestData(url: url)
-            return toast ?? EdcCrseClListResponse()
+            let result: EdcCrseClListResponse? = try await makeRequestNoRequestData(url: url)
+            return result ?? EdcCrseClListResponse()
         } catch {
-            print("Error fetching toasts: \(error)")
+            logger.error("fetchClsLists 실패: \(error)")
         }
         return EdcCrseClListResponse()
     }
-    
-    
+
+
     // 교육과정 데이터를 가져오는 비동기 함수
     func fetchClsInfo(edcCrseId:Int) async  -> EdcCrseResponse{
         do {
@@ -316,12 +310,13 @@ class ViewModel: ObservableObject {
             )
             return resp  ?? EdcCrseResponse()
         } catch {
-            print("Error fetching EdcCrseResponse: \(error)")
+            logger.error("fetchClsInfo 실패: \(error)")
         }
         return EdcCrseResponse()
     }
-    
-    
+
+    // MARK: - 공통코드 API
+
     // 코드그룹 리스트  데이터를 가져오는 비동기 함수
     func fetchGroupCodeLists() async  -> [CmmnGroupCodeItem]{
         do {
@@ -329,12 +324,12 @@ class ViewModel: ObservableObject {
             let result: [CmmnGroupCodeItem]? = try await makeRequestNoRequestData(url: url)
             return result ?? []
         } catch {
-            print("Error fetching toasts: \(error)")
+            logger.error("fetchGroupCodeLists 실패: \(error)")
         }
         return []
     }
-    
-    
+
+
     // 코드 리스트  데이터를 가져오는 비동기 함수
     func fetchCodeListByGroupCode(_ groupCode:String) async  -> [CmmnCodeItem]{
         do {
@@ -342,103 +337,85 @@ class ViewModel: ObservableObject {
             let result: [CmmnCodeItem]? = try await makeRequestNoRequestData(url: url)
             return result ?? []
         } catch {
-            print("Error fetching toasts: \(error)")
+            logger.error("fetchCodeListByGroupCode 실패: \(error)")
         }
         return []
     }
-    
+
+    // MARK: - 개시마감 API
+
     func fetchCloseDeptList() async  -> CloseInfo {
         do {
             let url = "\(baseUrl)/admin/getStartEndOfDept"
             let result: CloseInfo? = try await makeRequestNoRequestData(url: url)
-            
+
             return result ?? CloseInfo()
         } catch {
-            print("Error fetching deptlist: \(error)")
+            logger.error("fetchCloseDeptList 실패: \(error)")
         }
         return CloseInfo()
     }
-    
+
+    // MARK: - Build API
+
     func fetchSourceBuildList() async -> BuildProjects {
         do{
             let url = "\(baseUrl)/admin/cloud/build-project-list"
             let result: BuildProjects? = try await makeRequestNoRequestData(url:url)
             return result ?? BuildProjects()
         }catch{
-            print("Error fetchSourceBuildList: \(error)")
+            logger.error("fetchSourceBuildList 실패: \(error)")
         }
         return BuildProjects()
     }
-    
+
     func fetchSourceBuildInfo(_ buildId:Int) async -> SourceBuildInfo? {
         do{
             let url = "\(baseUrl)/admin/cloud/build-project-info/\(buildId)"
             let result: SourceBuildInfo? = try await makeRequestNoRequestData(url:url)
             return result
         }catch{
-            print("Error fetchSourceBuildInfo: \(error)")
+            logger.error("fetchSourceBuildInfo 실패: \(error)")
         }
         return nil
     }
-    
+
     func execSourceBuild(_ buildId:Int) async -> BuildExecResult? {
         do{
             let url = "\(baseUrl)/admin/cloud/exec-build-project/\(buildId)"
             let result: BuildExecResult? = try await makeRequestNoRequestData(url:url)
             return result
         }catch{
-            print("Error execSourceBuild: \(error)")
+            logger.error("execSourceBuild 실패: \(error)")
         }
         return nil
     }
-    
-    
+
+
     func fetchSourceBuildHistory(_ buildId:Int) async -> SourceBuildHistoryInfo? {
         do{
             let url = "\(baseUrl)/admin/cloud/build-project-history-info/\(buildId)"
             let result: SourceBuildHistoryInfo? = try await makeRequestNoRequestData(url:url)
             return result
         }catch{
-            print("Error fetchSourceBuildHistory: \(error)")
+            logger.error("fetchSourceBuildHistory 실패: \(error)")
         }
         return nil
     }
-    
+
+    // MARK: - Pipeline API
+
     func fetchSourcePipelineList() async -> SourceProjectInfo {
         do{
             let url = "\(baseUrl)/admin/cloud/pipeline-project-list"
             let result: SourceProjectInfo? = try await makeRequestNoRequestData(url:url)
             return result ?? SourceProjectInfo()
         }catch{
-            print("Error fetchSourcePipelineList: \(error)")
+            logger.error("fetchSourcePipelineList 실패: \(error)")
         }
         return SourceProjectInfo()
     }
-    
-    //commit-repository-list
-    func fetchSourceCommitList() async -> SourceCommitInfo {
-        do{
-            let url = "\(baseUrl)/admin/cloud/commit-repository-list"
-            let result: SourceCommitInfo? = try await makeRequestNoRequestData(url:url)
-            return result ?? SourceCommitInfo()
-        }catch{
-            print("Error fetchSourceCommitList: \(error)")
-        }
-        return SourceCommitInfo()
-    }
-    
-    //commit-repository-branch-list
-    func fetchSourceCommitBranchList(_ repositoryName:String) async -> SourceCommitBranchInfo {
-        do{
-            let url = "\(baseUrl)/admin/cloud/commit-repository-branch-list/\(repositoryName)"
-            let result: SourceCommitBranchInfo? = try await makeRequestNoRequestData(url:url)
-            return result ?? SourceCommitBranchInfo()
-        }catch{
-            print("Error fetchSourceCommitList: \(error)")
-        }
-        return SourceCommitBranchInfo()
-    }
-    
+
     //SourcePipelineHistoryInfo
     func fetchSourcePipelineHistoryInfo(_ projectId:Int) async -> SourcePipelineHistoryInfo {
         do{
@@ -446,68 +423,96 @@ class ViewModel: ObservableObject {
             let result: SourcePipelineHistoryInfo? = try await makeRequestNoRequestData(url:url)
             return result ?? SourcePipelineHistoryInfo()
         }catch{
-            print("Error fetchSourcePipelineHistoryInfo: \(error)")
+            logger.error("fetchSourcePipelineHistoryInfo 실패: \(error)")
         }
         return SourcePipelineHistoryInfo()
     }
+
     func runSourcePipeline(_ projectId:Int) async -> SourcePipelineExecResult {
         do{
             let url = "\(baseUrl)/admin/cloud/exec-pipeline-project/\(projectId)"
             let result: SourcePipelineExecResult? = try await makeRequestNoRequestData(url:url)
             return result ?? SourcePipelineExecResult()
         }catch{
-            print("Error runSourcePipeline: \(error)")
+            logger.error("runSourcePipeline 실패: \(error)")
         }
         return SourcePipelineExecResult()
     }
-    
+
     func cancelSourcePipeline(_ projectId:Int, _ historyId:Int) async -> SourcePipelineExecResult {
         do{
             let url = "\(baseUrl)/admin/cloud/cancel-pipeline-project/\(projectId)/\(historyId)"
             let result: SourcePipelineExecResult? = try await makeRequestNoRequestData(url:url)
             return result ?? SourcePipelineExecResult()
         }catch{
-            print("Error cancelSourcePipeline: \(error)")
+            logger.error("cancelSourcePipeline 실패: \(error)")
         }
         return SourcePipelineExecResult()
     }
-    
-    
+
+    // MARK: - Commit API
+
+    //commit-repository-list
+    func fetchSourceCommitList() async -> SourceCommitInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/commit-repository-list"
+            let result: SourceCommitInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceCommitInfo()
+        }catch{
+            logger.error("fetchSourceCommitList 실패: \(error)")
+        }
+        return SourceCommitInfo()
+    }
+
+    //commit-repository-branch-list
+    func fetchSourceCommitBranchList(_ repositoryName:String) async -> SourceCommitBranchInfo {
+        do{
+            let url = "\(baseUrl)/admin/cloud/commit-repository-branch-list/\(repositoryName)"
+            let result: SourceCommitBranchInfo? = try await makeRequestNoRequestData(url:url)
+            return result ?? SourceCommitBranchInfo()
+        }catch{
+            logger.error("fetchSourceCommitBranchList 실패: \(error)")
+        }
+        return SourceCommitBranchInfo()
+    }
+
+    // MARK: - Deploy API
+
     func fetchSourceDeployList() async -> SourceProjectInfo {
         do{
             let url = "\(baseUrl)/admin/cloud/deploy-project-list"
             let result: SourceProjectInfo? = try await makeRequestNoRequestData(url:url)
             return result ?? SourceProjectInfo()
         }catch{
-            print("Error fetchSourceDeployList: \(error)")
+            logger.error("fetchSourceDeployList 실패: \(error)")
         }
         return SourceProjectInfo()
     }
-    
-     
+
+
     func fetchSourceDeployHistoryInfo(_ projectId:Int) async -> SourceDeployHistoryInfo {
         do{
             let url = "\(baseUrl)/admin/cloud/deploy-project-history-list/\(projectId)"
             let result: SourceDeployHistoryInfo? = try await makeRequestNoRequestData(url:url)
             return result ?? SourceDeployHistoryInfo()
         }catch{
-            print("Error fetchSourceDeployHistoryInfo: \(error)")
+            logger.error("fetchSourceDeployHistoryInfo 실패: \(error)")
         }
         return SourceDeployHistoryInfo()
     }
-    
-    
+
+
    func fetchSourceDeployStageInfo(_ projectId:Int) async -> SourceDeployStageInfo {
        do{
            let url = "\(baseUrl)/admin/cloud/deploy-project-stage/\(projectId)"
            let result: SourceDeployStageInfo? = try await makeRequestNoRequestData(url:url)
            return result ?? SourceDeployStageInfo()
        }catch{
-           print("Error fetchSourceDeployStageInfo: \(error)")
+           logger.error("fetchSourceDeployStageInfo 실패: \(error)")
        }
        return SourceDeployStageInfo()
    }
-    
+
     //deploy-project-scenario
     func fetchSourceDeployScenarioInfo(_ projectId:Int,_ stageId:Int) async -> SourceDeployScenarioInfo {
         do{
@@ -515,7 +520,7 @@ class ViewModel: ObservableObject {
             let result: SourceDeployScenarioInfo? = try await makeRequestNoRequestData(url:url)
             return result ?? SourceDeployScenarioInfo()
         }catch{
-            print("Error fetchSourceDeployScenarioInfo: \(error)")
+            logger.error("fetchSourceDeployScenarioInfo 실패: \(error)")
         }
         return SourceDeployScenarioInfo()
     }
@@ -526,11 +531,13 @@ class ViewModel: ObservableObject {
             let result: SourceDeployExecResult? = try await makeRequestNoRequestData(url:url)
             return result ?? SourceDeployExecResult()
         }catch{
-            print("Error runSourceDeploy: \(error)")
+            logger.error("runSourceDeploy 실패: \(error)")
         }
         return SourceDeployExecResult()
     }
-    
+
+    // MARK: - 사용자 로그
+
     // UT번호에서 앞의 "UT" 제거 + 숫자만 남기는 유틸
     private func normalizeUserLogNo(_ sno: String) -> String {
         if sno.hasPrefix("UT") {
@@ -554,41 +561,26 @@ class ViewModel: ObservableObject {
     /// - Returns: 저장된 파일의 URL
     func downloadUserLog(_ sno: String) async throws -> URL {
         // 1) 토큰 유효성 체크
-        if ViewModel.token == nil {
-            try await fetchToken()
-        } else if let expirationDate = ViewModel.tokenExpirationDate,
-                  expirationDate <= Date() {
-            try await fetchToken()
-        }
+        try await ensureValidToken()
 
         // 2) 번호 정규화
         let no = normalizeUserLogNo(sno)
         let urlString = "\(baseUrl)/admin/getUserLog/\(no)"
 
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: 0, userInfo: nil)
-        }
-
         // 3) 요청 구성
-        var request = URLRequest(url: url)
+        var request = try makeAuthenticatedRequest(url: urlString)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-type")
-        request.setValue("*/*", forHTTPHeaderField: "Accept")
-        if let token = ViewModel.token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
 
         // 4) 요청 전송
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
-            throw NSError(domain: "Invalid Response", code: 0, userInfo: [
-                "statusCode": (response as? HTTPURLResponse)?.statusCode ?? -1
-            ])
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NetworkError.httpError(statusCode: statusCode, url: urlString)
         }
 
-        // 5) 파일 저장 경로 (macOS면 .downloadsDirectory, iOS면 .documentDirectory 같은 거 골라서)
+        // 5) 파일 저장 경로
         #if os(macOS)
         let directory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
         #else
@@ -596,7 +588,7 @@ class ViewModel: ObservableObject {
         #endif
 
         guard let saveDir = directory else {
-            throw NSError(domain: "Directory not found", code: 0, userInfo: nil)
+            throw NetworkError.noData
         }
 
         let fileName = makeUserLogFileName(no: no)

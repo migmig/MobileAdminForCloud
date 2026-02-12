@@ -85,7 +85,7 @@ class VideoPlayerViewModel: ObservableObject {
                         self?.isLoading = false
                     case .failed:
                         // 오류가 발생했을 때 처리할 내용
-                        print("Failed to load video")
+                        // Failed to load video
                         self?.isLoading = false
                     default:
                         self?.isLoading = true
