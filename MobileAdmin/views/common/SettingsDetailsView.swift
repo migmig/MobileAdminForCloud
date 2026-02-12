@@ -51,6 +51,8 @@ struct SettingsDetailsView: View {
                         .padding(.vertical, AppSpacing.xs)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("\(label), \(serverType == type ? "선택됨" : "선택 안됨")")
+                    .accessibilityAddTraits(serverType == type ? .isSelected : [])
                 }
                 .onChange(of:serverType){oldvalue,newValue in
                     EnvironmentConfig.current = newValue

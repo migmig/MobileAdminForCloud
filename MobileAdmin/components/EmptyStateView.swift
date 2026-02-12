@@ -29,6 +29,8 @@ struct EmptyStateView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 200)
         .padding(AppSpacing.xl)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(description != nil ? "\(title), \(description!)" : title)
     }
 }
 

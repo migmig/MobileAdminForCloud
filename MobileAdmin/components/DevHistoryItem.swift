@@ -65,6 +65,8 @@ struct DevHistoryItem: View {
             }
         }
         .padding(.vertical, AppSpacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(status), \(beginTime) ~ \(endTime)\(subtitle.isEmpty ? "" : ", \(subtitle)")")
     }
 }
 

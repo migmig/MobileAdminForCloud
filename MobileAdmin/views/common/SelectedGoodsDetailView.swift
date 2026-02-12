@@ -15,26 +15,26 @@ struct SelectedGoodsDetailView:View{
     var body: some View{
         List{
             Section("상품정보"){
-                InfoRow3(title: "상품코드", value: goodsItem.goodsCd  )
-                InfoRow3(title: "상품명"  , value: goodsItem.goodsNm  )
-                InfoRow3(title: "상한액"  , value: String(goodsItem.maxLmt.formatted(.number)) )
-                InfoRow4(title: "알림여부"){
+                InfoRow(title: "상품코드", value: goodsItem.goodsCd  )
+                InfoRow(title: "상품명"  , value: goodsItem.goodsNm  )
+                InfoRow(title: "상한액"  , value: String(goodsItem.maxLmt.formatted(.number)) )
+                InfoRowCustom(title: "알림여부"){
                     Toggle("", isOn: .constant(goodsItem.userAlertYn == "Y"))
                         .labelsHidden()
                 }
-                InfoRow4(title: "거절여부"){
+                InfoRowCustom(title: "거절여부"){
                     Toggle("", isOn: .constant(goodsItem.msgDispYn == "Y"))
                         .labelsHidden()
                 }
-                InfoRow3(title: "보증료율", value: String(goodsItem.feeRate ?? 0))
-                InfoRow3(title: "금리상한", value: String(goodsItem.inrstMax ?? 0))
-                InfoRow3(title: "금리하한", value: String(goodsItem.inrstMin ?? 0))
-                InfoRow4(title: "자동여부"){
+                InfoRow(title: "보증료율", value: String(goodsItem.feeRate ?? 0))
+                InfoRow(title: "금리상한", value: String(goodsItem.inrstMax ?? 0))
+                InfoRow(title: "금리하한", value: String(goodsItem.inrstMin ?? 0))
+                InfoRowCustom(title: "자동여부"){
                     Toggle("", isOn: .constant(goodsItem.autoRptYn == "Y"))
                         .labelsHidden()
                 }
                 InfoRow(title: "거절메세지", value: goodsItem.dispMsg ?? "")
-                InfoRow4(title: "팝업표시여부"){
+                InfoRowCustom(title: "팝업표시여부"){
                     Toggle("", isOn: .constant(goodsItem.popDispYn == "Y"))
                         .labelsHidden()
                 }

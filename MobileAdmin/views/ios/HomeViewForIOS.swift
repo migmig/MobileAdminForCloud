@@ -85,6 +85,8 @@ struct HomeMenuCard: View {
         .cardBackground()
         .cornerRadius(AppRadius.lg)
         .cardShadow()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title), \(description)")
     }
 }
  
