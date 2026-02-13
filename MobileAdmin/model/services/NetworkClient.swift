@@ -142,7 +142,7 @@ class NetworkClient {
             request.httpBody = try encoder.encode(requestData)
         }
 
-        let (_, _) = try await URLSession.shared.data(for: request)
+        _ = try await URLSession.shared.data(for: request)
     }
 
     func makeRequestNoRequestData<T: Codable>(

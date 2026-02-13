@@ -30,18 +30,34 @@ class ViewModel: ObservableObject {
 
     // MARK: - 서비스
 
-    private let networkClient = NetworkClient()
-    private lazy var toastService = ToastService(client: networkClient)
-    private lazy var errorService = ErrorService(client: networkClient)
-    private lazy var goodsService = GoodsService(client: networkClient)
-    private lazy var educationService = EducationService(client: networkClient)
-    private lazy var codeService = CodeService(client: networkClient)
-    private lazy var closeDeptService = CloseDeptService(client: networkClient)
-    private lazy var buildService = BuildService(client: networkClient)
-    private lazy var pipelineService = PipelineService(client: networkClient)
-    private lazy var commitService = CommitService(client: networkClient)
-    private lazy var deployService = DeployService(client: networkClient)
-    private lazy var userLogService = UserLogService(client: networkClient)
+    private let networkClient: NetworkClient
+    private let toastService: ToastService
+    private let errorService: ErrorService
+    private let goodsService: GoodsService
+    private let educationService: EducationService
+    private let codeService: CodeService
+    private let closeDeptService: CloseDeptService
+    private let buildService: BuildService
+    private let pipelineService: PipelineService
+    private let commitService: CommitService
+    private let deployService: DeployService
+    private let userLogService: UserLogService
+
+    init() {
+        let client = NetworkClient()
+        self.networkClient = client
+        self.toastService = ToastService(client: client)
+        self.errorService = ErrorService(client: client)
+        self.goodsService = GoodsService(client: client)
+        self.educationService = EducationService(client: client)
+        self.codeService = CodeService(client: client)
+        self.closeDeptService = CloseDeptService(client: client)
+        self.buildService = BuildService(client: client)
+        self.pipelineService = PipelineService(client: client)
+        self.commitService = CommitService(client: client)
+        self.deployService = DeployService(client: client)
+        self.userLogService = UserLogService(client: client)
+    }
 
     func setToken(token: String?) {
         networkClient.setToken(token: token)
