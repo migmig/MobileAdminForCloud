@@ -18,6 +18,16 @@ class ViewModel: ObservableObject {
     let logger = Logger(label: "com.migmig.MobileAdmin.ViewModel")
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
 
+    // 하위 호환: 외부에서 ViewModel.token 접근 시 NetworkClient로 위임
+    static var token: String? {
+        get { NetworkClient.token }
+        set { NetworkClient.token = newValue }
+    }
+    static var tokenExpirationDate: Date? {
+        get { NetworkClient.tokenExpirationDate }
+        set { NetworkClient.tokenExpirationDate = newValue }
+    }
+
     // MARK: - 서비스
 
     private let networkClient = NetworkClient()
