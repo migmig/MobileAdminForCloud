@@ -13,49 +13,38 @@ struct CloseDeptSidebar: View {
     @Binding var selectedCloseDept:Detail1?
     @State var closeGb = "4"
     @State var searchText:String = ""
-    
-    private func filterList() -> [Detail1] {
+
+    var filteredList: [Detail1] {
         list.filter {
             (searchText.isEmpty || $0.deptprtnm?.localizedStandardContains(searchText) == true) &&
             (closeGb == "4" || $0.closegb == closeGb)
         }
     }
 
-    var filteredList: [Detail1] {
-        filterList()
-    }
-    
     private func loadData() async {
        let closeInfo = await viewModel.fetchCloseDeptList()
        list = closeInfo.detail1
    }
-    
-    private func colorForCloseGb(_ closeGb: String?) -> Color {
-        return AppColor.closeDeptStatus(closeGb)
+
+    private func count(for code: String) -> Int {
+        code == "4" ? list.count : list.filter { $0.closegb == code }.count
     }
-     
-     var buttonsArr : [[String:String]] = [
-                                            ["전체"   : "4" ]
-                                          , ["미개시" : ""  ]
-                                          , ["개시"   : "0" ]
-                                          , ["가마감" : "1" ]
-                                          , ["마감"   : "2" ]
-                                          , ["마감후거래"   : "3" ]
-                                         ]
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.sm) {
-                    ForEach(buttonsArr, id:\.self){ button in
+                    ForEach(CloseDeptStatus.filtersWithAfterClose, id: \.code) { filter in
                         FilterChip(
-                            label: button.keys.first!,
-                            isSelected: closeGb == button.values.first!,
-                            color: AppColor.closeDeptStatus(button.values.first!),
+                            label: filter.label,
+                            icon: filter.icon,
+                            count: count(for: filter.code),
+                            isSelected: closeGb == filter.code,
+                            color: AppColor.closeDeptStatus(filter.code == "4" ? nil : filter.code),
                             action: {
                                 Task {
                                     withAnimation {
-                                        closeGb = button.values.first!
+                                        closeGb = filter.code
                                     }
                                     await loadData()
                                 }
@@ -70,13 +59,18 @@ struct CloseDeptSidebar: View {
                 ForEach(filteredList, id:\.self){ entry in
                     NavigationLink(value:entry){
                         HStack(spacing: AppSpacing.sm) {
-                            Image(systemName: entry.closegb != "" ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(colorForCloseGb(entry.closegb))
+                            Image(systemName: CloseDeptStatus.icon(for: entry.closegb))
+                                .foregroundColor(AppColor.closeDeptStatus(entry.closegb))
                             Text(entry.deptprtnm ?? "")
                             Spacer()
-                            Text(entry.rmk ?? "")
-                                .font(AppFont.caption)
-                                .foregroundColor(.secondary)
+                            Text(CloseDeptStatus.label(for: entry.closegb))
+                                .font(AppFont.captionSmall)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, AppSpacing.sm)
+                                .padding(.vertical, AppSpacing.xxs)
+                                .background(AppColor.closeDeptStatus(entry.closegb).opacity(0.12))
+                                .foregroundColor(AppColor.closeDeptStatus(entry.closegb))
+                                .cornerRadius(AppRadius.sm)
                         }
                     }
                 }
