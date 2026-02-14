@@ -64,6 +64,14 @@ class NetworkClient {
 
     // MARK: - 토큰 관리
 
+    /// 토큰 상태를 완전히 초기화 (환경 전환 시 호출)
+    static func resetTokenState() {
+        token = nil
+        tokenExpirationDate = nil
+        tokenRefreshTask?.cancel()
+        tokenRefreshTask = nil
+    }
+
     func ensureValidToken() async throws {
         let needsRefresh = NetworkClient.token == nil ||
             (NetworkClient.tokenExpirationDate.map { $0 <= Date() } ?? true)
@@ -76,8 +84,8 @@ class NetworkClient {
         }
 
         let task = Task {
+            defer { NetworkClient.tokenRefreshTask = nil }
             try await fetchToken()
-            NetworkClient.tokenRefreshTask = nil
         }
         NetworkClient.tokenRefreshTask = task
         try await task.value
