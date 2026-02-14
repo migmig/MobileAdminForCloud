@@ -56,21 +56,10 @@ struct ErrorCloudItemView: View {
         
         // MARK: - Trace Sheet
         .sheet(isPresented: $isSheetPresented) {
-            VStack {
-                CloseButton(isPresented: $isSheetPresented)
-                Text("Trace 상세")
-                    .font(.headline)
-                
-                ScrollView([.horizontal, .vertical]) {
-                    Text(errorCloudItem.traceCn ?? "")
-                        .font(AppFont.mono) // Trace는 고정폭 폰트 사용
-                        .textSelection(.enabled) // 텍스트 선택 가능
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .cornerRadius(AppRadius.sm)
-                .padding(.horizontal)
-            }
+            TraceDetailView(traceContent: errorCloudItem.traceCn ?? "")
+                #if os(macOS)
+                .frame(minWidth: 700, minHeight: 500)
+                #endif
         }
         
         // MARK: - Navigation Bar Title/Subtitle
