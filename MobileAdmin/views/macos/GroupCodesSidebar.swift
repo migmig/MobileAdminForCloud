@@ -6,76 +6,112 @@
 //
 import SwiftUI
 
-struct GroupCodesSidebar:View{
-    @ObservedObject var viewModel:ViewModel = ViewModel()
-    @Binding var groupCodes:[CmmnGroupCodeItem]?
-    @Binding var selectedGroupCode:CmmnGroupCodeItem?
-    @State var searchText:String = ""
-    @State var isLoading:Bool = false
-    
-    var orderedAscending:[CmmnGroupCodeItem]{
-        groupCodes?.sorted(by:{$0.cmmnGroupCode < $1.cmmnGroupCode}) ?? []
-    }
-    var filteredGroupCodes:[CmmnGroupCodeItem]{
-        if searchText.isEmpty {
-            return orderedAscending
-        }else{
-            return orderedAscending.filter{groupCode in
-                groupCode.cmmnGroupCodeNm?.localizedCaseInsensitiveContains(searchText) == true
-                //groupCode.cmmnGroupCodeNm?.contains(searchText)
+struct GroupCodesSidebar: View {
+    @ObservedObject var viewModel: ViewModel
+    @Binding var groupCodes: [CmmnGroupCodeItem]?
+    @Binding var selectedGroupCode: CmmnGroupCodeItem?
+    @State private var searchText: String = ""
+    @State private var isLoading: Bool = false
+    @State private var useAtFilter: String = "all"
+
+    var filteredGroupCodes: [CmmnGroupCodeItem] {
+        (groupCodes ?? [])
+            .sorted { $0.cmmnGroupCode < $1.cmmnGroupCode }
+            .filter {
+                (searchText.isEmpty ||
+                 $0.cmmnGroupCodeNm?.localizedCaseInsensitiveContains(searchText) == true ||
+                 $0.cmmnGroupCode.localizedCaseInsensitiveContains(searchText))
+                && (useAtFilter == "all" || $0.useAt == useAtFilter)
             }
-        }
     }
-    
+
+    private func count(for code: String) -> Int {
+        let all = groupCodes ?? []
+        return code == "all" ? all.count : all.filter { $0.useAt == code }.count
+    }
+
     var body: some View {
-        if isLoading {
-            ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
+        VStack(spacing: 0) {
+            // MARK: - 필터 바
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    ForEach(UseAtStatus.filters, id: \.code) { filter in
+                        FilterChip(
+                            label: filter.label,
+                            icon: filter.icon,
+                            count: count(for: filter.code),
+                            isSelected: useAtFilter == filter.code,
+                            color: UseAtStatus.color(for: filter.code == "all" ? "Y" : filter.code),
+                            action: {
+                                withAnimation { useAtFilter = filter.code }
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.vertical, AppSpacing.sm)
+            }
+
+            // MARK: - 리스트
+            if isLoading {
+                ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
+            }
+            List(selection: $selectedGroupCode) {
+                ForEach(filteredGroupCodes, id: \.self) { entry in
+                    NavigationLink(value: entry) {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: UseAtStatus.icon(for: entry.useAt))
+                                .foregroundColor(UseAtStatus.color(for: entry.useAt))
+
+                            Text(entry.cmmnGroupCode)
+                                .font(AppFont.mono)
+                                .foregroundColor(.secondary)
+
+                            Text(entry.cmmnGroupCodeNm ?? "")
+
+                            Spacer()
+
+                            Text(UseAtStatus.label(for: entry.useAt))
+                                .font(AppFont.captionSmall)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, AppSpacing.sm)
+                                .padding(.vertical, AppSpacing.xxs)
+                                .background(UseAtStatus.color(for: entry.useAt).opacity(0.12))
+                                .foregroundColor(UseAtStatus.color(for: entry.useAt))
+                                .cornerRadius(AppRadius.sm)
+                        }
+                    }
+                }
+            }
+            .searchable(text: $searchText, placement: .automatic)
         }
-        List(selection:$selectedGroupCode){
-            ForEach(filteredGroupCodes , id:\.self){  entry in
-                NavigationLink(value:entry){
-                    HStack {
-                        Image(systemName:"doc.text")
-                        Text("[\(entry.cmmnGroupCode)]")
-                        Text(entry.cmmnGroupCodeNm ?? "")
-                    }//HStack
-                }//NavigationLink
-            }//ForEach
-        }//List
-        .toolbar{
-            ToolbarItem(placement:.primaryAction){
-                Button(action:{
-                    Task{
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    Task {
                         isLoading = true
-                        groupCodes =  await viewModel.fetchGroupCodeLists()
+                        groupCodes = await viewModel.fetchGroupCodeLists()
                         isLoading = false
                     }
-                }){
-                    Image(systemName:"arrow.clockwise")
-                }//Button
-            }//ToolbarItem
-        }//toolbar
-        .navigationTitle("코드 조회")
-        #if os(macOS)
-        .navigationSubtitle("  \(filteredGroupCodes.count)건의 코드")
-        #endif
-        .searchable(text: $searchText, placement: .automatic)
-        .onAppear
-        {
-            Task{
-                isLoading = true
-                groupCodes =  await viewModel.fetchGroupCodeLists()
-                isLoading = false
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                }
             }
         }
-    }//body
-}//GroupCodesSidebar
+        .navigationTitle("코드 조회")
+        #if os(macOS)
+        .navigationSubtitle("\(filteredGroupCodes.count)건의 코드")
+        #endif
+        .loadingTask(isLoading: $isLoading) {
+            groupCodes = await viewModel.fetchGroupCodeLists()
+        }
+    }
+}
 
-
-#Preview{
-    GroupCodesSidebar(groupCodes: .constant(
-        [
-            
-        ]
-    ), selectedGroupCode: .constant(nil))
+#Preview {
+    GroupCodesSidebar(
+        viewModel: ViewModel(),
+        groupCodes: .constant([]),
+        selectedGroupCode: .constant(nil)
+    )
 }
