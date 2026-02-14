@@ -124,7 +124,7 @@ struct TraceDetailView: View {
                 .frame(maxWidth: wordWrap ? .infinity : nil, alignment: .leading)
             }
             .onChange(of: currentMatchIndex) { _, newIndex in
-                if totalMatches > 0 {
+                if totalMatches > 0, newIndex < matchingLineIndices.count {
                     let targetIndex = matchingLineIndices[newIndex]
                     withAnimation(.easeInOut(duration: 0.3)) {
                         proxy.scrollTo(targetIndex, anchor: .center)
@@ -187,13 +187,10 @@ struct TraceDetailView: View {
         attributed.foregroundColor = .secondary
         attributed.font = .system(.caption, design: .monospaced)
 
-        let textLowered = text.lowercased()
-        let queryLowered = query.lowercased()
-        var searchStart = textLowered.startIndex
+        var searchStart = text.startIndex
 
-        while searchStart < textLowered.endIndex,
-              let range = textLowered.range(of: queryLowered, range: searchStart..<textLowered.endIndex) {
-            // Convert String.Index to AttributedString.Index
+        while searchStart < text.endIndex,
+              let range = text.range(of: query, options: .caseInsensitive, range: searchStart..<text.endIndex) {
             let attrStart = AttributedString.Index(range.lowerBound, within: attributed)
             let attrEnd = AttributedString.Index(range.upperBound, within: attributed)
 
@@ -201,7 +198,7 @@ struct TraceDetailView: View {
                 attributed[attrStart..<attrEnd].backgroundColor = isCurrent ? .orange : .yellow.opacity(0.4)
                 attributed[attrStart..<attrEnd].foregroundColor = isCurrent ? .white : .primary
                 if isCurrent {
-                    attributed[attrStart..<attrEnd].font = .system(.caption, design: .monospaced).bold()
+                    attributed[attrStart..<attrEnd].font = .system(.caption, design: .monospaced, weight: .bold)
                 }
             }
 
@@ -261,7 +258,7 @@ struct TraceDetailView: View {
             Button {
                 withAnimation { wordWrap.toggle() }
             } label: {
-                Image(systemName: wordWrap ? "text.word.spacing" : "arrow.left.and.right.text.vertical")
+                Image(systemName: wordWrap ? "text.alignleft" : "arrow.left.and.right")
             }
             .help(wordWrap ? "줄바꿈 끄기" : "줄바꿈 켜기")
 
