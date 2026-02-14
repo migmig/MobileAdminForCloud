@@ -116,7 +116,7 @@ struct SettingsDetailsView: View {
                     withAnimation {
                         serverType = env
                         EnvironmentConfig.current = env
-                        ViewModel.token = nil
+                        NetworkClient.resetTokenState()
                     }
                     pendingEnv = nil
                 }
