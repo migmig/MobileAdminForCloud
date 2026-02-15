@@ -24,9 +24,8 @@ struct ErrorCloudListItem: View {
 
             // 심각도 및 발생 횟수 배지
             HStack(spacing: AppSpacing.sm) {
-                if let severity = errorCloudItem.severity ?? SeverityLevel.derived(from: errorCloudItem) as? SeverityLevel {
-                    SeverityBadge(severity: severity, style: .compact)
-                }
+                let severity = errorCloudItem.severity ?? SeverityLevel.derived(from: errorCloudItem)
+                SeverityBadge(severity: severity, style: .compact)
 
                 if let count = errorCloudItem.occurrenceCount, count > 1 {
                     OccurrenceCountBadge(count: count)

@@ -44,8 +44,9 @@ enum SortField: String, CaseIterable {
     func compare(_ a: ErrorCloudItem, _ b: ErrorCloudItem) -> Bool {
         switch self {
         case .date:
-            let aDate = Date(from: a.registerDt ?? "") ?? .distantPast
-            let bDate = Date(from: b.registerDt ?? "") ?? .distantPast
+            // registerDt는 ISO 형식 문자열이므로 문자열 비교로 정렬
+            let aDate = a.registerDt ?? ""
+            let bDate = b.registerDt ?? ""
             return aDate > bDate // 최신순이 기본
 
         case .code:
@@ -112,13 +113,11 @@ struct SortConfiguration: Equatable {
             return primaryComparison
         }
 
-        // 정렬 방향 반전 (descending인 경우)
-        if direction == .descending {
-            // 기본 compare 함수가 이미 내림차순이므로,
-            // ascending일 때만 반전하면 됨
-            if direction == .ascending {
-                sorted.reverse()
-            }
+        // 정렬 방향 반전
+        // compare() 함수는 이미 내림차순(큰순)을 반환하므로,
+        // ascending이 필요하면 reverse()
+        if direction == .ascending {
+            sorted.reverse()
         }
 
         return sorted
@@ -128,9 +127,7 @@ struct SortConfiguration: Equatable {
     private func primaryValueEqual(_ a: ErrorCloudItem, _ b: ErrorCloudItem, by field: SortField) -> Bool {
         switch field {
         case .date:
-            let aDate = Date(from: a.registerDt ?? "") ?? .distantPast
-            let bDate = Date(from: b.registerDt ?? "") ?? .distantPast
-            return aDate == bDate
+            return (a.registerDt ?? "") == (b.registerDt ?? "")
 
         case .code:
             return (a.code ?? "") == (b.code ?? "")
