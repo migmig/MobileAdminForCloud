@@ -13,15 +13,6 @@ struct EmptyStateView: View {
     var description: String?
     var iconColor: Color = .secondary.opacity(0.6)
 
-    // Convenience initializer for EmptyStateContext
-    init(context: EmptyStateContext) {
-        self.systemImage = context.systemImage
-        self.title = context.title
-        self.description = context.description
-        self.iconColor = context.iconColor.opacity(0.6)
-    }
-
-    // Original initializer for backward compatibility
     init(systemImage: String, title: String, description: String? = nil) {
         self.systemImage = systemImage
         self.title = title
