@@ -1,404 +1,676 @@
-# 오류조회 화면 개선점 분석
+# 오류조회화면 개선점 분석 및 구현정도
 
-**분석 일자:** 2026-02-15
-**분석 범위:** iOS & macOS 공통 오류 모니터링 화면
+**작성일:** 2026-02-15 (업데이트)
+**대상:** MobileAdminForCloud 프로젝트
+**플랫폼:** iOS / macOS 크로스플랫폼
+**분석 방법:** 전체 코드베이스 상세 검토
+
+---
+
+## 📊 현재 구현 현황 요약
+
+### 🎯 전체 구현 완성도: **85%**
+
+| 기능 영역 | 구현도 | 비고 |
+|---------|-------|------|
+| 데이터 조회 및 표시 | ✅ 95% | 완성도 높음 |
+| 검색 및 필터링 | ✅ 90% | 고급 기능 구현됨 |
+| 정렬 기능 | ✅ 90% | 다중 정렬 지원 |
+| 상세 보기 | ✅ 85% | 대부분 완성 |
+| 자동 새로고침 | ✅ 80% | iOS/macOS 모두 구현 |
+| 사용자 경험(UX) | ⚠️ 75% | 개선 여지 있음 |
+| 에러 처리 | ⚠️ 70% | 추가 개선 필요 |
+| 성능 최적화 | ⚠️ 75% | 기본 최적화 완료 |
 
 ---
 
 ## 📋 목차
-1. [현재 구조](#현재-구조)
-2. [발견된 개선점](#발견된-개선점)
-3. [우선순위별 개선안](#우선순위별-개선안)
-4. [기술적 권장사항](#기술적-권장사항)
+1. [구현된 주요 기능](#구현된-주요-기능)
+2. [개선이 필요한 영역](#개선이-필요한-영역)
+3. [우선순위별 개선 로드맵](#우선순위별-개선-로드맵)
+4. [현재 구현의 강점](#현재-구현의-강점)
+5. [결론 및 권장사항](#결론-및-권장사항)
 
 ---
 
 ## 현재 구조
 
 ### 파일 구성
-| 파일 | 역할 | 플랫폼 |
-|------|------|--------|
-| `ErrorListViewForIOS.swift` | 오류 목록 화면 | iOS |
-| `ErrorSidebar.swift` | 오류 필터 & 목록 (3-column 사이드바) | macOS |
-| `ErrorCloudItemView.swift` | 오류 상세 화면 (공통) | Both |
-| `TraceDetailView.swift` | 스택 트레이스 분석 화면 | Both |
-| `ErrorCloudListItem.swift` | 목록 아이템 렌더링 | Both |
-| `ErrorCloudItem.swift` | 데이터 모델 | Both |
+| 파일 | 역할 | 플랫폼 | 라인수 |
+|------|------|--------|--------|
+| `ErrorListViewForIOS.swift` | 오류 목록 화면 | iOS | 225 |
+| `ErrorSidebar.swift` | 오류 필터 & 목록 (3-column 사이드바) | macOS | 221 |
+| `ErrorCloudItemView.swift` | 오류 상세 화면 (공통) | Both | 209 |
+| `TraceDetailView.swift` | 스택 트레이스 상세 뷰어 | Both | 439 |
+| `ErrorCloudListItem.swift` | 목록 아이템 렌더링 | Both | 87 |
+| `ErrorCloudItem.swift` | 데이터 모델 | Both | 62 |
+| `SeverityLevel.swift` | 심각도 레벨 정의 | Both | 116 |
+| `SeverityFilterView.swift` | 심각도 필터 UI | Both | 84 |
+| `SeverityBadge.swift` | 심각도 배지 | Both | 58 |
+| `SortConfiguration.swift` | 정렬 설정 관리 | Both | 160 |
+| `SearchField.swift` | 검색 필드 정의 | Both | 59 |
+| `AutoRefreshToggleView.swift` | 자동새로고침 컴포넌트 | Both | 96 |
+| `EmptyStateView.swift` | 빈 상태 뷰 | Both | 61 |
+| `ExpandableRequestInfoRow.swift` | 요청 정보 펼치기 | Both | 127 |
 
-### 주요 기능
-- ✅ 날짜 범위 기반 오류 조회
-- ✅ 오류 설명 텍스트 검색
-- ✅ 스택 트레이스 상세 보기 (검색, 줄바꿈, 접기 기능)
-- ✅ 사용자 ID 기반 오류 추적
-- ✅ 오류 삭제 기능
-- ✅ 사용자 로그 다운로드 (macOS)
-- ✅ macOS: 5초 자동 새로고침
-
----
-
-## 발견된 개선점
-
-### 🔴 High Priority (기능 결함)
-
-#### 1. **요청 정보(Request Info) 표시 문제**
-- **현재 상태:** `Util.formatRequestInfo()`로 포맷팅하지만 실제 결과가 명확하지 않음
-- **문제:** 복잡한 JSON/QueryString이 한 줄로 표시되어 가독성 저하
-- **영향:** 디버깅 시 요청 내용 파악 어려움
-- **위치:** `ErrorCloudItemView.swift:34`
-
-```swift
-// 현재: 한 줄 표시
-InfoRowIcon(iconName: "info.circle", title: "Request Info",
-            value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
-
-// 개선 필요: 펼칠 수 있는 형태
-```
-
-#### 2. **오류 심각도(Severity) 정보 부재**
-- **현재 상태:** ErrorCloudItem에 severity 필드 없음
-- **문제:** 모든 오류가 동일하게 표시됨 (우선순위 없음)
-- **영향:** 중대한 오류를 쉽게 놓칠 수 있음
-- **필요 개선:**
-  - 서버 API에서 severity 정보 받기
-  - UI에서 severity별 색상 구분 (Critical, High, Medium, Low)
-
-#### 3. **에러 중복 발생 여부 미표시**
-- **현재 상태:** 같은 오류가 몇 번 발생했는지 알 수 없음
-- **문제:** 한 번 발생한 오류와 100번 발생한 오류를 구별 불가
-- **영향:** 오류 우선순위 판단 어려움
-- **권장:** `ErrorCloudItem`에 `count` 필드 추가
+**총 코드량:** 약 2,000+ 라인
 
 ---
 
-### 🟡 Medium Priority (UX 개선)
+## ✅ 구현된 주요 기능
 
-#### 4. **정렬 및 필터링 옵션 부재**
-- **현재 상태:** 기본 오류 목록만 표시 (날짜순 정렬도 수동 설정 필요)
-- **문제:**
-  - 최신 오류를 우선 확인하려면 직접 오류를 스크롤
-  - 특정 사용자의 오류만 필터링 불가
-  - 특정 오류 코드별 그룹화 없음
+### 1. 데이터 조회 및 표시 ✅
+**파일:** `ErrorListViewForIOS.swift`, `ErrorSidebar.swift`, `ErrorCloudListItem.swift`
 
-**개선 안:**
-```
-정렬 옵션:
-- 날짜 (최신순 / 오래된순)
-- 오류 코드
-- 사용자 ID
-- 발생 빈도
+#### ✅ 구현된 기능:
+- 날짜 범위 기반 오류 조회 (SearchArea 컴포넌트)
+- 오류 목록 리스트 뷰 (iOS/macOS 플랫폼별 최적화)
+- **오류 발생 횟수 집계** (`aggregateErrorOccurrences`)
+- **중복 오류 자동 그룹화** (code + msg 기준)
+- **심각도 자동 추론** (SeverityLevel.derived)
+- 오류 개수 표시 및 요약 정보
+- Pull-to-refresh (iOS)
 
-필터링 옵션:
-- 사용자별 필터
-- 오류 코드별 필터
-- 심각도별 필터
-```
-
-#### 5. **iOS/macOS 기능 불일치**
-- **macOS 전용 기능:**
-  - 5초마다 자동 새로고침 (토글)
-  - 진행도 표시 (timerProgress)
-  - 로그 다운로드 버튼
-
-- **iOS 없는 기능:**
-  - 자동 새로고침 기능
-  - 직접 로그 다운로드 불가 (context menu에만 있음)
-
-- **개선:**
-  - iOS에도 자동 새로고침 옵션 추가
-  - 일관된 UX 제공
-
-#### 6. **검색 기능 제한**
-- **현재:** `description` 필드의 텍스트 검색만 가능
-- **미지원:**
-  - 오류 코드 검색
-  - 사용자 ID 검색
-  - 요청 URL 검색
-  - 정규식(regex) 검색
-
-**권장 개선:**
+#### 기술적 구현:
 ```swift
-// 현재 코드
-filteredErrorItems: [ErrorCloudItem] {
-    if searchText.isEmpty {
-        return viewModel.errorItems
-    }else{
-        return viewModel.errorItems.filter{
-            $0.description?.localizedCaseInsensitiveContains(searchText) == true
-        }
+var filteredErrorItems: [ErrorCloudItem] {
+    // 1. 집계 (중복 카운팅)
+    var items = viewModel.aggregateErrorOccurrences(viewModel.errorItems)
+    // 2. 텍스트 검색
+    if !searchText.isEmpty {
+        items = items.filter { searchField.matches(item: $0, query: searchText) }
     }
-}
-
-// 개선: 다중 필드 검색 + 필드 선택
-@State private var searchField: SearchField = .description // .code, .userId, .url 등
-
-filteredErrorItems: [ErrorCloudItem] {
-    if searchText.isEmpty { return viewModel.errorItems }
-
-    return viewModel.errorItems.filter { item in
-        switch searchField {
-        case .description:
-            return item.description?.localizedCaseInsensitiveContains(searchText) == true
-        case .code:
-            return item.code?.localizedCaseInsensitiveContains(searchText) == true
-        case .userId:
-            return item.userId?.localizedCaseInsensitiveContains(searchText) == true
-        case .url:
-            return item.restUrl?.localizedCaseInsensitiveContains(searchText) == true
-        case .all:
-            return (item.description?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                   (item.code?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                   (item.userId?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                   (item.restUrl?.localizedCaseInsensitiveContains(searchText) ?? false)
-        }
-    }
+    // 3. 심각도 필터
+    items = viewModel.applySeverityFilter(items)
+    // 4. 정렬
+    items = viewModel.applySorting(items)
+    return items
 }
 ```
 
-#### 7. **빈 상태 메시지 개선**
-- **현재:** 모든 경우 "오류가 없습니다" (동일)
-- **문제:** 사용자가 다음 행동을 모름
-  - 조회 중인지?
-  - 날짜 범위를 잘못 설정한 건 아닌지?
-  - 실제로 오류가 없는 건지?
-
-**개선:**
-```swift
-// 상황별 메시지 분리
-if isLoading {
-    EmptyStateView(systemImage: "hourglass",
-                   title: "조회 중입니다...",
-                   description: "잠깐만 기다려주세요")
-} else if filteredErrorItems.isEmpty && !viewModel.errorItems.isEmpty {
-    EmptyStateView(systemImage: "magnifyingglass.circle",
-                   title: "검색 결과 없음",
-                   description: "검색 조건을 변경해주세요")
-} else if viewModel.errorItems.isEmpty {
-    EmptyStateView(systemImage: "checkmark.shield",
-                   title: "오류가 없습니다",
-                   description: "조회 기간을 변경해 보세요")
-}
-```
+#### 🌟 강점:
+- 파이프라인 방식의 명확한 데이터 처리 흐름
+- 플랫폼별 UI 최적화 (iOS: TabView, macOS: 3-column NavigationSplitView)
+- **중복 오류 자동 집계로 실용성 높음**
 
 ---
 
-### 🟢 Low Priority (사용성 향상)
+### 2. 검색 및 필터링 시스템 ✅
+**파일:** `SearchField.swift`, `SeverityFilterView.swift`
 
-#### 8. **대량 작업(Bulk Actions) 미지원**
-- **현재:** 오류 하나씩만 삭제 가능
-- **개선:**
-  - 다중 선택
-  - 선택된 오류 일괄 삭제
-  - 선택된 오류 일괄 내보내기
+#### ✅ 구현된 기능:
+- **4가지 검색 필드 지원** (설명, 코드, 사용자ID, URL)
+- 필드별 검색 UI (Segmented Picker)
+- **4단계 심각도 필터** (긴급/높음/중간/낮음)
+- **심각도별 오류 개수 배지 표시**
+- 필터 활성화 상태 표시 (filterCount)
+- 실시간 필터링
 
-#### 9. **오류 통계 대시보드 없음**
-- **개선 아이디어:**
-  - 일일 오류 발생 추이 그래프
-  - 상위 오류 코드 목록
-  - 사용자별 오류 분포
-  - 요청 URL별 오류 분포
-
-#### 10. **Request Info 전개/축소 기능**
-- **현재:** 긴 QueryString/JSON이 truncated 됨
-- **개선:** InfoRowIcon에 "더보기" 버튼 또는 expandable section
-
-#### 11. **타이밍 정보 개선**
-- **현재:** 등록 시간만 표시
-- **개선:**
-  - 오류 발생 후 경과 시간 표시 ("5분 전")
-  - 사용자가 해당 오류를 본 시간
-
-#### 12. **컨텍스트 메뉴 확장**
+#### 검색 필드 종류:
 ```swift
-// 현재: Copy User ID, Log Download만 있음
-
-// 개선 추가:
-.contextMenu {
-    Button("Copy User ID") { ... }
-    Button("Copy Error Code") { ... }
-    Button("Copy Request URL") { ... }
-    Button("Copy Entire Trace") { ... }
-    Divider()
-    Button("Export as JSON") { ... }
-    Button("Open in Browser") { ... } // URL이 있을 경우
+enum SearchField {
+    case description  // 설명
+    case code         // 코드
+    case userId       // 사용자ID
+    case restUrl      // URL
 }
 ```
+
+#### 심각도 자동 추론 로직:
+```swift
+static func derived(from errorCloudItem: ErrorCloudItem) -> SeverityLevel {
+    // 긴급: 500, fatal, panic, critical
+    // 높음: 400, error, exception, fail
+    // 낮음: 200, info, warn
+    // 기본값: medium
+}
+```
+
+#### 🌟 강점:
+- 유연한 다중 검색 필드
+- 직관적인 심각도 필터링
+- 시각적 피드백 (배지, 색상 코딩)
 
 ---
 
-## 우선순위별 개선안
+### 3. 정렬 기능 ✅
+**파일:** `SortConfiguration.swift`, `SortAndFilterBar.swift`
 
-### Phase 1: Critical Fixes (1-2주)
-| # | 개선사항 | 예상 난이도 | 영향도 |
-|---|---------|-----------|--------|
-| 1 | Request Info 가독성 개선 | 중간 | 높음 |
-| 2 | 빈 상태 메시지 개선 | 낮음 | 중간 |
-| 3 | iOS/macOS 자동새로고침 일치 | 낮음 | 중간 |
-| 4 | 검색 필드 선택 기능 추가 | 중간 | 높음 |
+#### ✅ 구현된 기능:
+- **4가지 정렬 기준** (날짜, 코드, 발생빈도, 사용자)
+- **오름차순/내림차순 전환**
+- **보조 정렬 필드 지원** (secondaryField)
+- 정렬 상태 UI 표시
 
-### Phase 2: Core Features (2-3주)
-| # | 개선사항 | 예상 난이도 | 영향도 |
-|---|---------|-----------|--------|
-| 5 | 정렬/필터링 옵션 추가 | 중간 | 높음 |
-| 6 | 에러 심각도(Severity) 필드 추가 | 높음 | 높음 |
-| 7 | 에러 발생 횟수 추적 | 높음 | 높음 |
-| 8 | 일괄 삭제 기능 | 중간 | 중간 |
+#### 정렬 필드:
+```swift
+enum SortField {
+    case date       // 날짜 (최신순 기본)
+    case code       // 코드
+    case frequency  // 발생 빈도 (많은 순 기본)
+    case userId     // 사용자
+}
+```
 
-### Phase 3: Enhancement (3-4주)
-| # | 개선사항 | 예상 난이도 | 영향도 |
-|---|---------|-----------|--------|
-| 9 | 통계 대시보드 | 높음 | 높음 |
-| 10 | Request Info 전개/축소 | 낮음 | 낮음 |
-| 11 | 컨텍스트 메뉴 확장 | 낮음 | 낮음 |
+#### 🌟 강점:
+- 실용적인 정렬 기준 (특히 발생빈도)
+- 보조 정렬로 안정적인 순서 보장
 
 ---
 
-## 기술적 권장사항
+### 4. 오류 상세 뷰 ✅
+**파일:** `ErrorCloudItemView.swift`, `TraceDetailView.swift`, `ExpandableRequestInfoRow.swift`
 
-### 1. 데이터 모델 확장
-```swift
-struct ErrorCloudItem: Codable, Identifiable, Hashable {
-    // 기존 필드
-    var code: String?
-    var description: String?
-    var id: Int?
-    var msg: String?
-    var registerDt: String?
-    var requestInfo: String?
-    var restUrl: String?
-    var traceCn: String?
-    var userId: String?
+#### ✅ 구현된 기능:
+- 카드 기반 섹션별 정보 표시
+- 사용자 정보 및 로그 다운로드 (macOS)
+- 핵심 오류 정보 (코드, 설명, 메시지)
+- **스택 트레이스 상세 뷰어** (TraceDetailView)
+- **요청 정보 펼치기/접기** (ExpandableRequestInfoRow)
+- 오류 삭제 기능
+- 클립보드 복사 (컨텍스트 메뉴)
 
-    // 추가 필드 (서버에서 지원해야 함)
-    var severity: ErrorSeverity? // critical, high, medium, low
-    var count: Int? // 같은 오류 발생 횟수
-    var lastOccurredAt: String? // 마지막 발생 시간
-    var category: String? // 오류 분류
-    var tags: [String]? // 오류 태그
-}
+#### TraceDetailView의 고급 기능:
+- ✅ 스택트레이스 구문 분석 (Exception/CausedBy/AtFrame)
+- ✅ **검색 기능 (하이라이팅, 이전/다음 탐색)**
+- ✅ **at 블록 접기/펼치기**
+- ✅ 줄바꿈 토글
+- ✅ **색상 코딩** (Exception: 빨강, CausedBy: 주황)
+- ✅ 라인 번호 표시
 
-enum ErrorSeverity: String, Codable {
-    case critical = "critical"
-    case high = "high"
-    case medium = "medium"
-    case low = "low"
-}
-```
-
-### 2. 정렬/필터링 ViewModel 확장
-```swift
-@Published var sortBy: SortOption = .dateDescending
-@Published var filterBySeverity: ErrorSeverity? = nil
-@Published var filterByUserId: String? = nil
-@Published var filterByCode: String? = nil
-
-enum SortOption {
-    case dateDescending, dateAscending
-    case countDescending, countAscending
-    case codeAscending
-}
-
-var filteredAndSortedErrors: [ErrorCloudItem] {
-    var result = errorItems
-
-    // Apply filters
-    if let severity = filterBySeverity {
-        result = result.filter { $0.severity == severity }
-    }
-    if let userId = filterByUserId {
-        result = result.filter { $0.userId == userId }
-    }
-    if let code = filterByCode {
-        result = result.filter { $0.code?.contains(code) == true }
-    }
-
-    // Apply sorting
-    switch sortBy {
-    case .dateDescending:
-        result.sort {
-            (Date(from: $0.registerDt ?? "") ?? Date.distantPast) >
-            (Date(from: $1.registerDt ?? "") ?? Date.distantPast)
-        }
-    case .countDescending:
-        result.sort { ($0.count ?? 1) > ($1.count ?? 1) }
-    // ... other cases
-    }
-
-    return result
-}
-```
-
-### 3. Request Info 파싱 개선
-```swift
-extension Util {
-    // 현재: 단순 포맷팅
-    // 개선: JSON 또는 QueryString 파싱 및 포매팅
-
-    static func parseAndFormatRequestInfo(_ info: String) -> [(key: String, value: String)] {
-        // JSON 형식 감지
-        if let data = info.data(using: .utf8),
-           let jsonDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            return jsonDict.map { (key: String($0.key), value: String(describing: $0.value)) }
-        }
-
-        // QueryString 형식 감지
-        if info.contains("=") && info.contains("&") {
-            return info.split(separator: "&").compactMap { pair in
-                let parts = pair.split(separator: "=", maxSplits: 1)
-                guard parts.count == 2 else { return nil }
-                return (key: String(parts[0]), value: String(parts[1]))
-            }
-        }
-
-        // 기타: 그대로 반환
-        return [(key: "Raw", value: info)]
-    }
-}
-```
-
-### 4. 색상 시스템 확장 (AppDesign.swift)
-```swift
-extension AppColor {
-    // 기존: buildStatus, pipelineStatus, deployStatus, closeDeptStatus, envType
-
-    // 추가: 에러 심각도 색상
-    static func errorSeverity(_ severity: String?) -> Color {
-        switch severity {
-        case "critical": return Color.red
-        case "high":     return Color.orange
-        case "medium":   return Color.yellow
-        case "low":      return Color.blue
-        default:         return Color.gray
-        }
-    }
-}
-```
-
-### 5. TraceDetailView 개선
-- **라인별 선택 및 복사:** 드래그 선택해서 선택 부분만 복사
-- **파일로 내보내기:** Trace 전체를 .txt 또는 .log 파일로 저장
-- **정규식 검색:** 현재 case-insensitive 텍스트만 지원하는데 regex 지원
+#### 🌟 강점:
+- 매우 상세한 디버깅 정보 제공
+- **TraceDetailView의 구현 수준이 매우 높음 (프로덕션급)**
+- 사용자 친화적인 접기/펼치기 UI
 
 ---
 
-## 요약 및 결론
+### 5. 자동 새로고침 ✅
+**파일:** `AutoRefreshToggleView.swift`
 
-오류조회 화면은 **기본 기능은 잘 구현**되어 있으나 다음 영역에서 개선이 필요합니다:
+#### ✅ 구현된 기능:
+- **iOS/macOS 모두 지원** (이전 분석 문서 오류 수정)
+- 5초 간격 자동 새로고침
+- **진행도 표시 (프로그레스 바)**
+- 토글 ON/OFF
+- 토스트 알림 (시작/종료)
+- **중복 요청 방지** (isFetching 플래그)
+- **뷰 종료 시 타이머 정리** (onDisappear)
 
-| 영역 | 현 상태 | 개선 필요도 |
-|------|--------|-----------|
-| 기본 조회 및 표시 | ✅ 좋음 | ⭐⭐ |
-| 스택 트레이스 분석 | ✅ 좋음 | ⭐ |
-| 검색/필터링 | ⚠️ 제한적 | ⭐⭐⭐⭐ |
-| 정렬 옵션 | ❌ 없음 | ⭐⭐⭐⭐ |
-| 오류 심각도 표시 | ❌ 없음 | ⭐⭐⭐⭐⭐ |
-| 통계/분석 | ❌ 없음 | ⭐⭐⭐⭐ |
-| iOS/macOS 일치성 | ⚠️ 부분 불일치 | ⭐⭐⭐ |
-| 요청 정보 표시 | ⚠️ 가독성 낮음 | ⭐⭐⭐⭐ |
+#### 🌟 강점:
+- 실시간 모니터링에 유용
+- 메모리 누수 방지
+- 시각적 피드백
 
-**권장 개선 순서:**
-1. **Request Info 가독성** (빠른 개선, 높은 영향)
-2. **검색 필드 선택** (중간 난이도, 높은 영향)
-3. **오류 심각도** (서버 연동 필요, 높은 영향)
-4. **정렬/필터링** (중간 난이도, 높은 영향)
-5. **통계 대시보드** (장기 프로젝트, 높은 영향)
+---
+
+### 6. UX 향상 요소 ✅
+
+#### ✅ 구현된 기능:
+- **빈 상태 뷰** (EmptyStateView + EmptyStateContext)
+  - 로딩 중, 검색 결과 없음, 데이터 없음, 필터 결과 없음
+- **심각도 배지** (SeverityBadge)
+- **발생 횟수 배지** (OccurrenceCountBadge)
+  - 색상 구분: 1회(파랑), 2-5회(초록), 6-10회(주황), 11회+(빨강)
+- Pull-to-refresh (iOS)
+- 로딩 인디케이터
+- 접근성 라벨 (accessibilityLabel)
+
+#### 🌟 강점:
+- 다양한 상황별 빈 상태 메시지
+- 시각적 정보 전달
+- 접근성 고려
+
+---
+
+## 🔍 개선이 필요한 영역
+
+### 1. 에러 처리 및 복원력 ⚠️ (구현도: 70%)
+
+#### 문제점:
+1. **네트워크 오류 처리 부재**
+   - 현재: `fetchErrors()` 실패 시 빈 배열 반환 (`?? []`)
+   - 문제: 사용자가 네트워크 오류인지 데이터가 없는 건지 구분 불가
+
+2. **삭제 실패 처리 없음**
+   - `deleteError(id:)` 실패 시 피드백 없음
+   - 낙관적 UI 업데이트 미지원
+
+3. **자동 새로고침 실패 처리**
+   - 새로고침 중 오류 발생 시 무한 재시도 위험
+
+#### 개선 방안:
+```swift
+// 제안: Result 타입 사용
+@Published var errorLoadingState: LoadingState = .idle
+
+enum LoadingState {
+    case idle
+    case loading
+    case success([ErrorCloudItem])
+    case failure(Error)
+}
+
+// 개선된 fetchErrors
+func fetchErrors(startFrom: Date, endTo: Date) async {
+    errorLoadingState = .loading
+    do {
+        let items = try await errorService.fetchErrors(startFrom: startFrom, endTo: endTo)
+        errorLoadingState = .success(items)
+    } catch {
+        errorLoadingState = .failure(error)
+        // 토스트 알림 표시
+    }
+}
+```
+
+#### 📊 우선순위: **높음**
+#### ⏱️ 예상 작업량: 4-6시간
+
+---
+
+### 2. 성능 최적화 ⚠️ (구현도: 75%)
+
+#### 문제점:
+1. **대량 데이터 처리 비효율**
+   - `aggregateErrorOccurrences`가 매번 전체 배열 순회
+   - 검색어 변경 시마다 전체 필터링 재실행
+
+2. **검색 디바운싱 없음**
+   - 타이핑할 때마다 즉시 필터링 (성능 저하 가능)
+
+3. **LazyVStack 미사용**
+   - 리스트가 길어질 경우 렌더링 부담
+
+#### 개선 방안:
+```swift
+// 제안: 검색 디바운싱
+import Combine
+
+@Published var searchText = ""
+private var searchCancellable: AnyCancellable?
+
+init() {
+    searchCancellable = $searchText
+        .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+        .sink { [weak self] query in
+            self?.performSearch(query)
+        }
+}
+
+// 제안: 집계 결과 캐싱
+private var aggregatedCache: [ErrorCloudItem]?
+private var lastRawItems: [ErrorCloudItem] = []
+
+var aggregatedItems: [ErrorCloudItem] {
+    if lastRawItems != errorItems {
+        aggregatedCache = aggregateErrorOccurrences(errorItems)
+        lastRawItems = errorItems
+    }
+    return aggregatedCache ?? []
+}
+```
+
+#### 📊 우선순위: **중간**
+#### ⏱️ 예상 작업량: 3-5시간
+
+---
+
+### 3. 사용자 경험 개선 ⚠️ (구현도: 75%)
+
+#### 문제점:
+1. **삭제 확인 대화상자 없음**
+   - 실수로 삭제 가능 (특히 macOS에서 위험)
+   - 위치: `ErrorCloudItemView.swift:45-57`
+
+2. **대량 삭제 기능 미활성화**
+   - `deleteMultipleErrors(ids:)` 함수는 있으나 UI 연결 안 됨
+   - `isMultiSelectMode`와 `selectedErrors` 사용 안 됨
+
+3. **새로고침 후 스크롤 위치 유지**
+   - macOS에서는 `scrollTo`로 최상단 이동
+   - iOS에서는 스크롤 위치 유지 안 됨
+
+4. **오류 발생 시간 상대 표시 없음**
+   - "5분 전", "2시간 전" 같은 친근한 시간 표시
+
+5. **필터/정렬 상태 저장 없음**
+   - 앱 재시작 시 설정 초기화
+
+#### 개선 방안:
+```swift
+// 제안 1: 삭제 확인
+Button {
+    showDeleteConfirmation = true
+} label: {
+    Label("Delete Data", systemImage: "trash.fill")
+}
+.confirmationDialog("정말 삭제하시겠습니까?", isPresented: $showDeleteConfirmation) {
+    Button("삭제", role: .destructive) {
+        Task { await viewModel.deleteError(id: errorCloudItem.id ?? 0) }
+    }
+}
+
+// 제안 2: 대량 삭제 UI
+if isMultiSelectMode {
+    Button("선택 삭제 (\(selectedErrors.count))") {
+        Task { await viewModel.deleteMultipleErrors(ids: Array(selectedErrors)) }
+    }
+}
+
+// 제안 3: 필터/정렬 저장
+@AppStorage("errorSortField") var savedSortField: String = "date"
+@AppStorage("errorSeverityFilter") var savedSeverityFilter: String?
+```
+
+#### 📊 우선순위: **중간-높음**
+#### ⏱️ 예상 작업량: 6-8시간
+
+---
+
+### 4. 고급 기능 추가 (구현도: 0% - 미구현)
+
+#### 제안 기능:
+
+**4.1. 오류 통계 대시보드**
+- 심각도별 파이 차트
+- 시간대별 오류 발생 그래프
+- 가장 많이 발생한 오류 Top 10
+
+**4.2. 오류 알림 설정**
+- 특정 심각도 이상 발생 시 푸시 알림
+- 오류 발생 임계값 설정
+
+**4.3. 오류 그룹 관리**
+- 유사 오류 자동 그룹화
+- 그룹별 해결 상태 관리 (Open/In Progress/Resolved)
+
+**4.4. 오류 내보내기**
+- CSV/JSON 포맷으로 내보내기
+- 필터링된 결과 공유
+
+**4.5. 오류 코멘트 및 협업**
+- 오류별 메모/코멘트 추가
+- 담당자 지정
+
+#### 📊 우선순위: **낮음** (핵심 기능 안정화 우선)
+#### ⏱️ 예상 작업량: 20-30시간
+
+---
+
+### 5. 코드 품질 및 유지보수성 (구현도: 80%)
+
+#### 문제점:
+1. **중복 코드**
+   - iOS/macOS 화면에서 자동새로고침 로직 중복 (각 107줄씩)
+   - 심각도 개수 계산 로직 중복
+
+2. **하드코딩된 값**
+   - 자동 새로고침 간격 (5초)
+   - 진행도 바 너비 비율 (0.8)
+
+3. **테스트 부재**
+   - 필터링/정렬 로직 단위 테스트 없음
+
+#### 개선 방안:
+```swift
+// 제안 1: 상수 정의
+enum ErrorScreenConstants {
+    static let autoRefreshInterval: Double = 5.0
+    static let autoRefreshTimerInterval: Double = 0.01
+    static let progressBarWidthRatio: CGFloat = 0.8
+}
+
+// 제안 2: 단위 테스트 추가
+@Test("심각도 필터링 테스트")
+func testSeverityFiltering() {
+    let items = [
+        ErrorCloudItem(severity: .critical),
+        ErrorCloudItem(severity: .low)
+    ]
+    let filtered = viewModel.applySeverityFilter(items, filter: .critical)
+    #expect(filtered.count == 1)
+    #expect(filtered.first?.severity == .critical)
+}
+```
+
+#### 📊 우선순위: **중간**
+#### ⏱️ 예상 작업량: 5-7시간
+
+---
+
+## 📈 기능별 상세 구현도
+
+### 데이터 조회 및 표시 (95%)
+| 세부 기능 | 구현 여부 | 비고 |
+|----------|---------|------|
+| 날짜 범위 조회 | ✅ | SearchArea 컴포넌트 |
+| 오류 목록 표시 | ✅ | iOS/macOS 최적화 |
+| 중복 오류 집계 | ✅ | 우수한 구현 |
+| 오류 개수 표시 | ✅ | 요약 정보 제공 |
+| 페이지네이션 | ❌ | 대량 데이터 시 필요 |
+| 무한 스크롤 | ❌ | 선택적 구현 |
+
+### 검색 및 필터링 (90%)
+| 세부 기능 | 구현 여부 | 비고 |
+|----------|---------|------|
+| 다중 필드 검색 | ✅ | 4가지 필드 |
+| 심각도 필터 | ✅ | 4단계 구분 |
+| 검색 디바운싱 | ❌ | 성능 개선 필요 |
+| 고급 검색 (AND/OR) | ❌ | 향후 고려 |
+| 저장된 검색 조건 | ❌ | UX 개선 |
+
+### 정렬 기능 (90%)
+| 세부 기능 | 구현 여부 | 비고 |
+|----------|---------|------|
+| 다중 정렬 기준 | ✅ | 4가지 기준 |
+| 오름차순/내림차순 | ✅ | 완벽 구현 |
+| 보조 정렬 | ✅ | secondaryField |
+| 커스텀 정렬 | ❌ | 필요성 낮음 |
+
+### 오류 상세 보기 (85%)
+| 세부 기능 | 구현 여부 | 비고 |
+|----------|---------|------|
+| 기본 정보 표시 | ✅ | 카드 레이아웃 |
+| 스택트레이스 뷰어 | ✅ | 매우 우수 |
+| 요청 정보 표시 | ✅ | 펼치기/접기 |
+| 로그 다운로드 | ✅ | macOS만 |
+| 오류 삭제 | ✅ | 확인 대화상자 필요 |
+| 오류 편집 | ❌ | 필요성 낮음 |
+| 오류 공유 | ❌ | 향후 고려 |
+
+### 자동 새로고침 (80%)
+| 세부 기능 | 구현 여부 | 비고 |
+|----------|---------|------|
+| 토글 ON/OFF | ✅ | iOS/macOS 모두 |
+| 진행도 표시 | ✅ | 시각적 피드백 |
+| 중복 방지 | ✅ | isFetching |
+| 타이머 정리 | ✅ | 메모리 누수 방지 |
+| 오류 처리 | ❌ | 개선 필요 |
+| 간격 조정 | ❌ | 하드코딩됨 |
+
+### UX/접근성 (75%)
+| 세부 기능 | 구현 여부 | 비고 |
+|----------|---------|------|
+| 빈 상태 뷰 | ✅ | 4가지 컨텍스트 |
+| 로딩 인디케이터 | ✅ | |
+| Pull-to-refresh | ✅ | iOS |
+| 토스트 알림 | ✅ | |
+| 접근성 라벨 | ✅ | 부분 구현 |
+| VoiceOver 지원 | ⚠️ | 개선 여지 |
+| 다크모드 지원 | ✅ | 시스템 색상 사용 |
+| 삭제 확인 | ❌ | 필수 추가 |
+| 대량 작업 | ❌ | UI 미연결 |
+
+---
+
+## 🎯 우선순위별 개선 로드맵
+
+### Phase 1: 필수 개선 (1-2주)
+**목표:** 안정성 및 사용자 안전 확보
+
+1. **삭제 확인 대화상자 추가** (1-2시간)
+   - `confirmationDialog` 구현
+   - iOS/macOS 모두 적용
+
+2. **에러 처리 강화** (4-6시간)
+   - LoadingState enum 도입
+   - 네트워크 오류 시 재시도 UI
+   - 삭제 실패 피드백
+
+3. **자동 새로고침 오류 처리** (2-3시간)
+   - 연속 실패 시 자동 중지
+   - 토스트 알림으로 실패 알림
+
+**예상 총 작업시간:** 7-11시간
+
+### Phase 2: UX 개선 (2-3주)
+**목표:** 사용자 경험 향상
+
+1. **대량 삭제 UI 연결** (3-4시간)
+   - 다중 선택 모드 활성화
+   - 선택 카운트 표시
+   - 일괄 삭제 버튼
+
+2. **검색 디바운싱** (2-3시간)
+   - Combine 활용
+   - 성능 개선
+
+3. **필터/정렬 상태 저장** (3-4시간)
+   - AppStorage 활용
+   - 마지막 설정 복원
+
+4. **상대 시간 표시** (2-3시간)
+   - "5분 전" 포맷
+   - 실시간 업데이트
+
+**예상 총 작업시간:** 10-14시간
+
+### Phase 3: 성능 최적화 (1-2주)
+**목표:** 대량 데이터 처리 개선
+
+1. **집계 캐싱** (3-4시간)
+   - 메모이제이션
+   - 변경 감지
+
+2. **LazyVStack 적용** (1-2시간)
+   - 대량 리스트 렌더링 최적화
+
+3. **페이지네이션 검토** (선택사항)
+   - 서버 API 지원 필요 여부 확인
+
+**예상 총 작업시간:** 4-6시간
+
+### Phase 4: 고급 기능 (선택사항, 4-6주)
+**목표:** 차별화된 기능 추가
+
+1. **오류 통계 대시보드** (10-15시간)
+2. **오류 내보내기** (5-7시간)
+3. **오류 코멘트 시스템** (10-15시간)
+
+**예상 총 작업시간:** 25-37시간
+
+---
+
+## 🏆 현재 구현의 강점
+
+1. **우수한 아키텍처**
+   - MVVM 패턴 일관성
+   - 플랫폼별 최적화 (iOS/macOS)
+   - 컴포넌트 재사용성 높음
+
+2. **고급 UI 구현**
+   - TraceDetailView의 프로덕션급 품질
+   - 세련된 배지 시스템
+   - 상황별 빈 상태 처리
+
+3. **실용적인 기능**
+   - 중복 오류 자동 집계
+   - 심각도 자동 추론
+   - 다중 정렬/필터링
+
+4. **코드 품질**
+   - SwiftUI 모범 사례 준수
+   - 접근성 고려
+   - 깔끔한 파일 구조
+
+---
+
+## 📝 결론 및 권장사항
+
+### 현재 상태
+MobileAdminForCloud의 오류조회화면은 **85%의 높은 구현도**를 보이며, 핵심 기능은 대부분 완성되었습니다.
+
+#### ✅ 이미 완성된 주요 기능:
+- **심각도 시스템** (SeverityLevel, SeverityBadge, SeverityFilterView)
+- **오류 발생 횟수 추적** (aggregateErrorOccurrences, OccurrenceCountBadge)
+- **고급 정렬/필터링** (SortConfiguration, 4가지 정렬 기준, 심각도 필터)
+- **다중 필드 검색** (description, code, userId, restUrl)
+- **자동 새로고침** (iOS/macOS 모두 지원, AutoRefreshToggleView)
+- **요청 정보 펼치기** (ExpandableRequestInfoRow)
+- **상황별 빈 상태** (EmptyStateContext: 로딩/검색결과없음/데이터없음/필터결과없음)
+- **스택트레이스 뷰어** (TraceDetailView - 프로덕션급 품질)
+
+특히 **TraceDetailView의 구현 수준이 매우 인상적**이며, 실무에서 바로 사용 가능한 수준입니다.
+
+---
+
+### 즉시 개선 필요 (Phase 1) - 필수
+| 개선사항 | 이유 | 작업량 |
+|---------|------|--------|
+| ❗ 삭제 확인 대화상자 | 데이터 손실 방지 | 1-2시간 |
+| ❗ 네트워크 오류 처리 | 사용자 피드백 필요 | 4-6시간 |
+| ❗ 자동 새로고침 오류 처리 | 안정성 확보 | 2-3시간 |
+
+---
+
+### 중기 개선 권장 (Phase 2) - 중요
+| 개선사항 | 효과 | 작업량 |
+|---------|------|--------|
+| ⭐ 대량 삭제 UI 연결 | 작업 효율성 향상 | 3-4시간 |
+| ⭐ 검색 디바운싱 | 성능 개선 | 2-3시간 |
+| ⭐ 필터/정렬 상태 저장 | UX 향상 | 3-4시간 |
+| ⭐ 상대 시간 표시 | 가독성 향상 | 2-3시간 |
+
+---
+
+### 장기 고려 사항 (Phase 3-4) - 선택적
+- 성능 최적화 (집계 캐싱, LazyVStack)
+- 통계 대시보드 (차트, 그래프)
+- 오류 내보내기 (CSV/JSON)
+- 오류 코멘트 시스템
+
+---
+
+### 최종 평가
+
+#### 현재 구현 수준
+| 평가 항목 | 점수 | 평가 |
+|----------|------|------|
+| 기능 완성도 | ⭐⭐⭐⭐⭐ (85%) | 매우 우수 |
+| 코드 품질 | ⭐⭐⭐⭐ (80%) | 우수 |
+| 사용자 경험 | ⭐⭐⭐⭐ (75%) | 양호 |
+| 안정성 | ⭐⭐⭐ (70%) | 개선 필요 |
+| 성능 | ⭐⭐⭐⭐ (75%) | 양호 |
+| **종합 평가** | **⭐⭐⭐⭐ (85%)** | **실무 사용 가능** |
+
+#### 결론
+현재 구현은 **실무 사용 가능한 수준**이며, Phase 1의 필수 개선사항(7-11시간)만 반영하면 **프로덕션 배포 준비 완료** 상태가 됩니다.
+
+#### 특별히 우수한 점
+1. **TraceDetailView** - 검색, 하이라이팅, 구문 분석, 접기/펼치기 등 프로덕션급 품질
+2. **심각도 시스템** - 자동 추론, 색상 코딩, 필터링, 배지 등 완벽한 구현
+3. **정렬/필터 시스템** - 다중 정렬, 보조 정렬, 필터링 등 실용적 구현
+4. **플랫폼 최적화** - iOS/macOS 각각에 최적화된 UI/UX
+
+#### 권장사항
+1. **단기 (1-2주)**: Phase 1 필수 개선 완료 → 프로덕션 배포 가능
+2. **중기 (1-2개월)**: Phase 2 UX 개선 → 사용자 만족도 향상
+3. **장기 (3-6개월)**: Phase 3-4 고급 기능 → 차별화된 경쟁력 확보
+
+---
+
+**문서 작성:** Claude Code
+**분석 방법:** 전체 코드베이스 상세 검토 (2,000+ 라인)
+**마지막 업데이트:** 2026-02-15
 
