@@ -22,6 +22,19 @@ struct ErrorCloudListItem: View {
             }
             .padding(.top, AppSpacing.xxs)
 
+            // 심각도 및 발생 횟수 배지
+            HStack(spacing: AppSpacing.sm) {
+                let severity = errorCloudItem.severity ?? SeverityLevel.derived(from: errorCloudItem)
+                SeverityBadge(severity: severity, style: .compact)
+
+                if let count = errorCloudItem.occurrenceCount, count > 1 {
+                    OccurrenceCountBadge(count: count)
+                }
+
+                Spacer()
+            }
+            .padding(.top, AppSpacing.xxs)
+
             // 메타데이터
             HStack {
                 HStack(spacing: AppSpacing.xs) {
