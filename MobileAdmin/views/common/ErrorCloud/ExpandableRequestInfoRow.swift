@@ -84,7 +84,11 @@ struct ExpandableRequestInfoRow: View {
                             .lineLimit(nil)
                             .textSelection(.enabled)
                             .padding(AppSpacing.sm)
+                            #if os(iOS)
                             .background(Color(.secondarySystemGroupedBackground))
+                            #else
+                            .background(Color(.controlBackgroundColor))
+                            #endif
                             .cornerRadius(AppRadius.sm)
                     }
                     .scrollIndicators(.automatic)
