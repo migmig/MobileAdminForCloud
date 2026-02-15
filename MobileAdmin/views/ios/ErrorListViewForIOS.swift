@@ -16,12 +16,28 @@ struct ErrorListViewForIOS: View {
     let timeInterval: Double = 0.01
 
 
+    var severityFilterCount: Int {
+        var count = 0
+        if viewModel.severityFilter != nil { count += 1 }
+        return count
+    }
+
     var filteredErrorItems: [ErrorCloudItem] {
-        if searchText.isEmpty {
-            return viewModel.errorItems
-        } else {
-            return viewModel.errorItems.filter { searchField.matches(item: $0, query: searchText) }
+        // 1. 먼저 집계 (중복 카운팅)
+        var items = viewModel.aggregateErrorOccurrences(viewModel.errorItems)
+
+        // 2. 텍스트 검색 적용
+        if !searchText.isEmpty {
+            items = items.filter { searchField.matches(item: $0, query: searchText) }
         }
+
+        // 3. 심각도 필터 적용
+        items = viewModel.applySeverityFilter(items)
+
+        // 4. 정렬 적용
+        items = viewModel.applySorting(items)
+
+        return items
     }
 
     var emptyState: EmptyStateContext {
@@ -52,6 +68,16 @@ struct ErrorListViewForIOS: View {
                         .listRowBackground(Color.clear)
                     }
 
+                    // 정렬/필터 바 (Phase 2)
+                    Section {
+                        SortAndFilterBar(
+                            sortConfiguration: $viewModel.sortConfiguration,
+                            filterCount: severityFilterCount
+                        )
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+
                     // 검색 필드 선택
                     Section {
                         Picker("검색 필드", selection: $searchField) {
@@ -65,6 +91,16 @@ struct ErrorListViewForIOS: View {
                             }
                         }
                         .pickerStyle(.segmented)
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+
+                    // 심각도 필터 (Phase 2)
+                    Section {
+                        SeverityFilterView(
+                            selectedSeverity: $viewModel.severityFilter,
+                            severityItemCounts: calculateSeverityCount()
+                        )
                     }
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
@@ -162,6 +198,23 @@ struct ErrorListViewForIOS: View {
         timer = nil
         timerProgress = 0
         isFetching = false
+    }
+
+    /// 심각도별 오류 개수 계산
+    private func calculateSeverityCount() -> [SeverityLevel: Int] {
+        var counts: [SeverityLevel: Int] = [
+            .critical: 0,
+            .high: 0,
+            .medium: 0,
+            .low: 0
+        ]
+
+        for item in viewModel.errorItems {
+            let severity = item.severity ?? SeverityLevel.derived(from: item)
+            counts[severity, default: 0] += 1
+        }
+
+        return counts
     }
 
 }
