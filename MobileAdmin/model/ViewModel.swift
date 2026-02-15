@@ -13,6 +13,7 @@ class ViewModel: ObservableObject {
     @Published var sourcePipelineHistoryList: [SourcePipelineHistoryInfoHistoryList] = []
     @Published var sourceDeployList : [SourceInfoProjectInfo] = []
     @Published var sourceDeployHistoryList : [SourceDeployHistoryInfoHistoryList] = []
+    @Published var selectedErrors: Set<Int> = []
     @Published var lastError: NetworkError?
 
     let logger = Logger(label: "com.migmig.MobileAdmin.ViewModel")
