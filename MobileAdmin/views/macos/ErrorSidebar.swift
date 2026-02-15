@@ -11,6 +11,7 @@ struct ErrorSidebar: View {
     @ObservedObject var viewModel:ViewModel
     @Binding var selectedErrorItem:ErrorCloudItem?
     @State private var searchText = ""
+    @State private var searchField: SearchField = .description
     @State var isLoading:Bool = false
     @State var dateFrom:Date = Date()
     @State var dateTo:Date = Date()
@@ -20,14 +21,26 @@ struct ErrorSidebar: View {
     @State private var isFetching: Bool = false // 자동 조회 중복 방지
     @ObservedObject var toastManager = ToastManager()
     var timeInterval:Double = 0.01 // 타이머 간격
-   
+
    var filteredErrorItems: [ErrorCloudItem] {
        if searchText.isEmpty {
            return viewModel.errorItems
-       }else{
-           return viewModel.errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
+       } else {
+           return viewModel.errorItems.filter { searchField.matches(item: $0, query: searchText) }
        }
    }
+
+    var emptyState: EmptyStateContext {
+        if isLoading {
+            return .loading
+        } else if !searchText.isEmpty && filteredErrorItems.isEmpty {
+            return .noResults
+        } else if viewModel.errorItems.isEmpty {
+            return .noData
+        } else {
+            return .filterEmpty
+        }
+    }
     
     var body: some View {
         VStack{
@@ -44,6 +57,17 @@ struct ErrorSidebar: View {
             }
             .padding()
             .searchable(text: $searchText , placement: .automatic)
+
+            // 검색 필드 선택
+            Picker("검색 필드", selection: $searchField) {
+                ForEach(SearchField.allCases, id: \.self) { field in
+                    Text(field.displayName).tag(field)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.vertical, AppSpacing.sm)
+
             HStack{
                 if autoRefresh{
                     HStack {
@@ -95,12 +119,8 @@ struct ErrorSidebar: View {
                     }
                 }
                 .overlay {
-                    if !isLoading && filteredErrorItems.isEmpty {
-                        EmptyStateView(
-                            systemImage: "checkmark.shield",
-                            title: "오류가 없습니다",
-                            description: "조회 기간을 변경해 보세요"
-                        )
+                    if filteredErrorItems.isEmpty {
+                        EmptyStateView(context: emptyState)
                     }
                 }
                 .navigationTitle("오류 조회")

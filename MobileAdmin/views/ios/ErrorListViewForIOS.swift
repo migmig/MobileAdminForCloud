@@ -3,16 +3,36 @@ import SwiftUI
 struct ErrorListViewForIOS: View {
     @ObservedObject var viewModel:ViewModel
     @State private var searchText = ""
+    @State private var searchField: SearchField = .description
     @State private var isLoading: Bool = false
     @State private var dateFrom:Date = Date()
     @State private var dateTo:Date = Date()
+    @State private var emptyStateContext: EmptyStateContext = .noData
+    @State private var autoRefresh: Bool = false
+    @State private var timerProgress: Double = 0
+    @State private var timer: Timer? = nil
+    @State private var isFetching: Bool = false
+    @ObservedObject var toastManager = ToastManager()
+    let timeInterval: Double = 0.01
 
 
     var filteredErrorItems: [ErrorCloudItem] {
         if searchText.isEmpty {
             return viewModel.errorItems
-        }else{
-            return viewModel.errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
+        } else {
+            return viewModel.errorItems.filter { searchField.matches(item: $0, query: searchText) }
+        }
+    }
+
+    var emptyState: EmptyStateContext {
+        if isLoading {
+            return .loading
+        } else if !searchText.isEmpty && filteredErrorItems.isEmpty {
+            return .noResults
+        } else if viewModel.errorItems.isEmpty {
+            return .noData
+        } else {
+            return .filterEmpty
         }
     }
 
@@ -31,6 +51,50 @@ struct ErrorListViewForIOS: View {
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                     }
+
+                    // 검색 필드 선택
+                    Section {
+                        Picker("검색 필드", selection: $searchField) {
+                            ForEach(SearchField.allCases, id: \.self) { field in
+                                HStack(spacing: AppSpacing.xs) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(AppFont.caption)
+                                    Text(field.displayName)
+                                }
+                                .tag(field)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+
+                    // 자동새로고침 토글
+                    Section {
+                        AutoRefreshToggleView(
+                            isAutoRefresh: $autoRefresh,
+                            timerProgress: $timerProgress,
+                            isFetching: $isFetching,
+                            toastManager: toastManager
+                        )
+                        .onChange(of: autoRefresh) { _, newValue in
+                            if newValue {
+                                startAutoRefresh()
+                            } else {
+                                stopAutoRefresh()
+                            }
+                        }
+                        .onChange(of: isFetching) { _, newValue in
+                            if newValue && autoRefresh {
+                                Task {
+                                    viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
+                                    isFetching = false
+                                }
+                            }
+                        }
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
 
                     // 결과 요약
                     Section {
@@ -51,13 +115,9 @@ struct ErrorListViewForIOS: View {
 
                     // 오류 목록
                     Section {
-                        if !isLoading && filteredErrorItems.isEmpty {
-                            EmptyStateView(
-                                systemImage: "checkmark.shield",
-                                title: "오류가 없습니다",
-                                description: "조회 기간을 변경해 보세요"
-                            )
-                            .listRowBackground(Color.clear)
+                        if filteredErrorItems.isEmpty {
+                            EmptyStateView(context: emptyState)
+                                .listRowBackground(Color.clear)
                         }
                         ForEach(filteredErrorItems, id:\.id){ entry in
                             NavigationLink(destination: ErrorCloudItemView(viewModel:viewModel,
@@ -78,6 +138,30 @@ struct ErrorListViewForIOS: View {
             viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
             isLoading = false
         }
+    }
+
+    private func startAutoRefresh() {
+        timerProgress = 0
+        isFetching = false
+        timer = Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: true) { _ in
+            timerProgress += timeInterval
+            if timerProgress >= 5 && !isFetching {
+                isFetching = true
+                timerProgress = 0
+                Task { @MainActor in
+                    let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
+                    viewModel.errorItems = errorItems
+                    isFetching = false
+                }
+            }
+        }
+    }
+
+    private func stopAutoRefresh() {
+        timer?.invalidate()
+        timer = nil
+        timerProgress = 0
+        isFetching = false
     }
 
 }
