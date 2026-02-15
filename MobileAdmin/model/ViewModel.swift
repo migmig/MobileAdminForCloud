@@ -15,12 +15,6 @@ class ViewModel: ObservableObject {
     @Published var sourceDeployHistoryList : [SourceDeployHistoryInfoHistoryList] = []
     @Published var lastError: NetworkError?
 
-    // MARK: - Phase 2: 정렬, 필터링, 일괄 삭제
-    @Published var sortConfiguration: SortConfiguration = .default
-    @Published var severityFilter: SeverityLevel? = nil
-    @Published var selectedErrors: Set<Int> = []
-    @Published var isMultiSelectMode: Bool = false
-
     let logger = Logger(label: "com.migmig.MobileAdmin.ViewModel")
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
 
@@ -197,54 +191,6 @@ class ViewModel: ObservableObject {
 
     func downloadUserLog(_ sno: String) async throws -> URL {
         try await userLogService.downloadUserLog(sno)
-    }
-
-    // MARK: - Phase 2: 정렬, 필터링, 집계
-
-    /// 오류 아이템들을 정렬 설정에 따라 정렬
-    func applySorting(_ items: [ErrorCloudItem]) -> [ErrorCloudItem] {
-        sortConfiguration.sort(items)
-    }
-
-    /// 심각도 필터 적용
-    func applySeverityFilter(_ items: [ErrorCloudItem]) -> [ErrorCloudItem] {
-        guard let severityFilter = severityFilter else { return items }
-        return items.filter { $0.severity ?? SeverityLevel.derived(from: $0) == severityFilter }
-    }
-
-    /// 오류 발생 횟수 집계 (중복된 오류 카운팅)
-    func aggregateErrorOccurrences(_ items: [ErrorCloudItem]) -> [ErrorCloudItem] {
-        var dict: [String: (item: ErrorCloudItem, count: Int)] = [:]
-
-        for item in items {
-            let key = "\(item.code ?? "")-\(item.msg ?? "")"
-            if let existing = dict[key] {
-                var updated = existing.item
-                updated.occurrenceCount = (updated.occurrenceCount ?? 1) + 1
-                dict[key] = (updated, existing.count + 1)
-            } else {
-                var updated = item
-                updated.occurrenceCount = updated.occurrenceCount ?? 1
-                updated.ensureSeverity()
-                dict[key] = (updated, 1)
-            }
-        }
-
-        // 원본 순서 유지하며 반환
-        return items.compactMap { item in
-            let key = "\(item.code ?? "")-\(item.msg ?? "")"
-            return dict[key]?.item
-        }
-    }
-
-    /// 일괄 삭제
-    func deleteMultipleErrors(ids: [Int]) async {
-        for id in ids {
-            await deleteError(id: id)
-        }
-        // 선택된 항목 초기화
-        selectedErrors.removeAll()
-        isMultiSelectMode = false
     }
 
     /// 선택 토글

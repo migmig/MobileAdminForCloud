@@ -31,12 +31,7 @@ struct ErrorCloudItemView: View {
                 CardView(title: "요청 정보", systemImage: "network") {
                     InfoRowIcon(iconName: "link", title: "Request URL", value: errorCloudItem.restUrl)
                     InfoRowIcon(iconName: "calendar", title: "Register DT", value: Util.formatDateTime(errorCloudItem.registerDt))
-                    Divider()
-                        .padding(.vertical, AppSpacing.xs)
-                    ExpandableRequestInfoRow(
-                        requestInfo: errorCloudItem.requestInfo ?? "",
-                        onCopy: { Util.copyToClipboard(errorCloudItem.requestInfo ?? "") }
-                    )
+                    InfoRowIcon(iconName: "info.circle", title: "Request Info", value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
                 }
 
                 // MARK: - 삭제
