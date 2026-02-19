@@ -6,6 +6,7 @@ struct ErrorCloudItemView: View {
     @ObservedObject var viewModel: ViewModel
     var errorCloudItem: ErrorCloudItem
     @State private var isSheetPresented: Bool = false
+    @State private var isRequestInfoSheetPresented: Bool = false
 
     var body: some View {
         ScrollView {
@@ -31,7 +32,10 @@ struct ErrorCloudItemView: View {
                 CardView(title: "요청 정보", systemImage: "network") {
                     InfoRowIcon(iconName: "link", title: "Request URL", value: errorCloudItem.restUrl)
                     InfoRowIcon(iconName: "calendar", title: "Register DT", value: Util.formatDateTime(errorCloudItem.registerDt))
-                    InfoRowIcon(iconName: "info.circle", title: "Request Info", value: Util.formatRequestInfo(errorCloudItem.requestInfo ?? ""))
+                    RequestInfoRow(
+                        requestInfo: errorCloudItem.requestInfo,
+                        isSheetPresented: $isRequestInfoSheetPresented
+                    )
                 }
 
                 // MARK: - 삭제
@@ -57,6 +61,14 @@ struct ErrorCloudItemView: View {
         // MARK: - Trace Sheet
         .sheet(isPresented: $isSheetPresented) {
             TraceDetailView(traceContent: errorCloudItem.traceCn ?? "")
+                #if os(macOS)
+                .frame(minWidth: 700, minHeight: 500)
+                #endif
+        }
+
+        // MARK: - Request Info Sheet
+        .sheet(isPresented: $isRequestInfoSheetPresented) {
+            RequestInfoDetailView(requestInfo: errorCloudItem.requestInfo ?? "")
                 #if os(macOS)
                 .frame(minWidth: 700, minHeight: 500)
                 #endif
@@ -99,6 +111,56 @@ struct TraceRow: View {
         .padding(.vertical, AppSpacing.xs)
     }
 }
+/**
+ Request Info 상세 보기 Row - JSON 타입일 때 팝업으로 상세 표시
+ */
+struct RequestInfoRow: View {
+    var requestInfo: String?
+    @Binding var isSheetPresented: Bool
+
+    private var formattedPreview: String {
+        Util.formatRequestInfo(requestInfo ?? "")
+    }
+
+    var body: some View {
+        HStack(alignment: .top) {
+            Image(systemName: "info.circle")
+                .foregroundColor(AppColor.icon)
+                .font(AppFont.caption)
+                .frame(width: AppIconSize.xs)
+            Text("Request Info")
+                .font(AppFont.caption)
+                .foregroundColor(.secondary)
+            Spacer()
+            VStack(alignment: .trailing, spacing: AppSpacing.xs) {
+                Text(formattedPreview)
+                    .font(AppFont.mono)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .multilineTextAlignment(.trailing)
+
+                if requestInfo?.isEmpty == false {
+                    Button {
+                        isSheetPresented = true
+                    } label: {
+                        Label("상세 보기", systemImage: "arrow.up.right.square")
+                            .font(AppFont.caption)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+        }
+        .padding(.vertical, AppSpacing.xs)
+        .contextMenu {
+            Button("Copy") {
+                Util.copyToClipboard(formattedPreview)
+            }
+        }
+    }
+}
+
 // MARK: - Sub Views
 /**
  공통 정보 표시 Row
