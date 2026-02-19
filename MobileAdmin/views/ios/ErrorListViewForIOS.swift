@@ -6,7 +6,9 @@ struct ErrorListViewForIOS: View {
     @State private var isLoading: Bool = false
     @State private var dateFrom:Date = Date()
     @State private var dateTo:Date = Date()
-
+    @State private var userIdForLog: String = ""
+    @State private var isDownloadingLog: Bool = false
+    @State private var downloadedFileURL: URL? = nil
 
     var filteredErrorItems: [ErrorCloudItem] {
         if searchText.isEmpty {
@@ -30,6 +32,31 @@ struct ErrorListViewForIOS: View {
                         }
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
+                    }
+
+                    // MARK: - 사용자 로그 다운로드
+                    Section("사용자 로그 다운로드") {
+                        HStack {
+                            TextField("사용자 아이디 입력", text: $userIdForLog)
+                                .onSubmit { triggerUserLogDownload() }
+                            if let fileURL = downloadedFileURL {
+                                ShareLink(item: fileURL) {
+                                    Label("공유", systemImage: "square.and.arrow.up")
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+                            Button(action: triggerUserLogDownload) {
+                                if isDownloadingLog {
+                                    ProgressView().controlSize(.small)
+                                } else {
+                                    Image(systemName: "square.and.arrow.down.fill")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                            .disabled(userIdForLog.isEmpty || isDownloadingLog)
+                        }
                     }
 
                     // 결과 요약
@@ -77,6 +104,22 @@ struct ErrorListViewForIOS: View {
             isLoading = true
             viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
             isLoading = false
+        }
+    }
+
+    private func triggerUserLogDownload() {
+        guard !userIdForLog.isEmpty else { return }
+        isDownloadingLog = true
+        downloadedFileURL = nil
+        Task {
+            do {
+                let fileURL = try await viewModel.downloadUserLog(userIdForLog)
+                downloadedFileURL = fileURL
+            } catch {
+                // 다운로드 실패 시 파일 URL 초기화
+                downloadedFileURL = nil
+            }
+            isDownloadingLog = false
         }
     }
 

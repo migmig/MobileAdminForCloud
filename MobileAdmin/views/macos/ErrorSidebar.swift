@@ -19,6 +19,8 @@ struct ErrorSidebar: View {
     @State var timer: Timer? = nil // 타이머 객체
     @State private var isFetching: Bool = false // 자동 조회 중복 방지
     @ObservedObject var toastManager = ToastManager()
+    @State private var userIdForLog: String = ""
+    @State private var isDownloadingLog: Bool = false
     var timeInterval:Double = 0.01 // 타이머 간격
 
    var filteredErrorItems: [ErrorCloudItem] {
@@ -44,6 +46,27 @@ struct ErrorSidebar: View {
             }
             .padding()
             .searchable(text: $searchText , placement: .automatic)
+
+            // MARK: - 사용자 로그 다운로드
+            DisclosureGroup("사용자 로그 다운로드") {
+                HStack {
+                    TextField("사용자 아이디 입력", text: $userIdForLog)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit { triggerUserLogDownload() }
+                    Button(action: triggerUserLogDownload) {
+                        if isDownloadingLog {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Label("다운로드", systemImage: "square.and.arrow.down.fill")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(userIdForLog.isEmpty || isDownloadingLog)
+                }
+                .padding(.vertical, 4)
+            }
+            .padding(.horizontal)
+
             HStack{
                 if autoRefresh{
                     HStack {
@@ -122,6 +145,21 @@ struct ErrorSidebar: View {
         }
     }
     
+    private func triggerUserLogDownload() {
+        guard !userIdForLog.isEmpty else { return }
+        isDownloadingLog = true
+        Task {
+            do {
+                let fileURL = try await viewModel.downloadUserLog(userIdForLog)
+                NSWorkspace.shared.open(fileURL)
+                toastManager.showToast(message: "다운로드 완료: \(fileURL.lastPathComponent)")
+            } catch {
+                toastManager.showToast(message: "로그 다운로드 실패: \(userIdForLog)")
+            }
+            isDownloadingLog = false
+        }
+    }
+
     private func startAutoRefresh() {
         timerProgress = 0
         isFetching = false
