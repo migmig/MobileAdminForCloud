@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ErrorCloudListItem: View {
     let errorCloudItem: ErrorCloudItem
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             // 에러 메시지
@@ -12,18 +12,46 @@ struct ErrorCloudListItem: View {
                     .font(AppFont.listTitle)
                     .accessibilityHidden(true)
 
-                Text(errorCloudItem.description ?? errorCloudItem.msg ?? "Unknown Error")
-                    .font(AppFont.listTitle)
-                    .lineLimit(2)
-                    .truncationMode(.tail)
-                    .foregroundColor(.primary)
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(errorCloudItem.description ?? errorCloudItem.msg ?? "Unknown Error")
+                        .font(AppFont.listTitle)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .foregroundColor(.primary)
+
+                    // REST URL
+                    if let restUrl = errorCloudItem.restUrl, !restUrl.isEmpty {
+                        Text(restUrl)
+                            .font(AppFont.mono)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .foregroundColor(.secondary)
+                    }
+                }
 
                 Spacer()
             }
             .padding(.top, AppSpacing.xxs)
 
-            // 메타데이터
-            HStack {
+            // 하단 메타데이터
+            HStack(spacing: AppSpacing.sm) {
+                // 에러 코드 태그
+                if let code = errorCloudItem.code, !code.isEmpty {
+                    Text(code)
+                        .font(AppFont.captionSmall)
+                        .fontWeight(.medium)
+                        .foregroundColor(AppColor.error)
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.vertical, AppSpacing.xxs)
+                        .background(
+                            Capsule()
+                                .fill(AppColor.error.opacity(0.1))
+                        )
+                }
+
+                Spacer()
+
+                // 시간
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "clock")
                         .font(AppFont.captionSmall)
@@ -33,8 +61,7 @@ struct ErrorCloudListItem: View {
                 }
                 .foregroundColor(.secondary)
 
-                Spacer()
-
+                // 사용자
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "person.circle")
                         .font(AppFont.captionSmall)
@@ -58,16 +85,16 @@ traits: .fixedLayout(width: 400, height: 500)
     List{
         ForEach(0..<10){idx in
             ErrorCloudListItem(errorCloudItem: ErrorCloudItem(
-                code: "code\(idx)",
-                description: "description\(idx)",
+                code: "ERR_\(idx)0\(idx)",
+                description: "NullPointerException: Cannot invoke method on null object reference at UserService.getUser",
                 msg: "msg\(idx)",
                 registerDt : Util.getCurrentDateString(),
                 requestInfo: "requestInfo",
-                restUrl: "restUrl",
+                restUrl: "/api/v1/admin/users/findByEmail",
                 traceCn: "traceCn",
                 userId: "userId\(idx)"
             ))
         }
-    
+
     }
 }
