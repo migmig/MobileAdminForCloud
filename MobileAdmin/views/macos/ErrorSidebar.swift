@@ -151,7 +151,9 @@ struct ErrorSidebar: View {
         Task {
             do {
                 let fileURL = try await viewModel.downloadUserLog(userIdForLog)
+                #if os(macOS)
                 NSWorkspace.shared.open(fileURL)
+                #endif
                 toastManager.showToast(message: "다운로드 완료: \(fileURL.lastPathComponent)")
             } catch {
                 toastManager.showToast(message: "로그 다운로드 실패: \(userIdForLog)")
