@@ -39,9 +39,7 @@ struct EdcEducationCrseInfoDetail: View {
                 )
                 
                 crseTmeList = resp.gcpEdcCrseClAndTimeVO.gcpEdcCrseTmeList
-                crseTmeList.forEach{ item in
-                    print(URL(string:  Util.urlEncode(item.edcVidoUrl))!)
-                }
+                // crseTmeList loaded
             }
         }
     }

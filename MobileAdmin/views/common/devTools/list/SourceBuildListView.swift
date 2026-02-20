@@ -78,7 +78,6 @@ struct SourceBuildListView: View {
         .navigationTitle("소스빌드목록")
                   
         .onAppear(){
-            print("SourceBuildListViewIOS.onAppear()")
             if viewModel.buildProjects.isEmpty {
                 Task{
                     let projects = await viewModel.fetchSourceBuildList()

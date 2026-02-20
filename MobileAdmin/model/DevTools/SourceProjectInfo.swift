@@ -18,7 +18,7 @@ struct SourcePipelineInfoResult :Codable{
 }
 
 // MARK: - SourcePipelineInfoProjectList
-struct SourceInfoProjectInfo :Codable,Hashable{
+struct SourceInfoProjectInfo :Codable,Hashable,Identifiable{
    let id: Int
    let name: String
     init(){

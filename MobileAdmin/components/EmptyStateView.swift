@@ -11,12 +11,20 @@ struct EmptyStateView: View {
     var systemImage: String
     var title: String
     var description: String?
+    var iconColor: Color = .secondary.opacity(0.6)
+
+    init(systemImage: String, title: String, description: String? = nil) {
+        self.systemImage = systemImage
+        self.title = title
+        self.description = description
+        self.iconColor = .secondary.opacity(0.6)
+    }
 
     var body: some View {
         VStack(spacing: AppSpacing.md) {
             Image(systemName: systemImage)
                 .font(.system(size: 40))
-                .foregroundColor(.secondary.opacity(0.6))
+                .foregroundColor(iconColor)
             Text(title)
                 .font(AppFont.listTitle)
                 .foregroundColor(.secondary)

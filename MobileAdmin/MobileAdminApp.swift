@@ -11,6 +11,7 @@ import SwiftUI
 import SwiftData
 import LocalAuthentication
 import Foundation
+import Logging
 #if os(macOS)
 import AppKit
 #endif
@@ -31,10 +32,6 @@ struct MobileAdminApp: App {
             allowsSave: true
         )
         do{
-            let container = try ModelContainer(
-                for: schema,
-                configurations: configuration
-            )
             return try ModelContainer(for:schema,
                                       configurations: configuration)
         }catch{
@@ -73,6 +70,7 @@ extension UIApplication {
 
 #if os(iOS)
 class AppDelegate: NSObject, UIApplicationDelegate {
+    let logger = Logger(label:"com.migmig.MobileAdmin.AppDelegate")
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -80,9 +78,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // 푸시 알림 권한 요청
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if granted {
-                print("알림 권한 허용됨")
+                self.logger.info("알림 권한 허용됨")
             } else {
-                print("알림 권한 거부됨")
+                self.logger.warning("알림 권한 거부됨")
             }
         }
         UNUserNotificationCenter.current().delegate = self
@@ -99,12 +97,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     // 디바이스 토큰 등록 성공 시 호출
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        print("디바이스 토큰: \(token)")
+        logger.info("디바이스 토큰 등록 완료")
         // 서버로 토큰 전송 필요
     } 
     // 디바이스 토큰 등록 실패 시 호출
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        print("APNs 등록 실패: \(error.localizedDescription)")
+        logger.error("APNs 등록 실패: \(error.localizedDescription)")
     }
 }
 extension AppDelegate: UNUserNotificationCenterDelegate {
@@ -115,7 +113,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        print("푸시 알림 수신: \(notification.request.content.userInfo)")
+        logger.debug("푸시 알림 수신")
         completionHandler([.banner, .sound])
     }
     
@@ -125,7 +123,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        print("알림 클릭: \(response.notification.request.content.userInfo)")
+        logger.debug("알림 클릭")
         completionHandler()
     }
 }

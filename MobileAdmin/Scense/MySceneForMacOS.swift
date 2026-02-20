@@ -19,7 +19,7 @@ struct MySceneForMacOS: Scene {
                 )
                 .toastManager(toastManager:toastManager)
                 .onAppear{
-                    print(allEnvironment)
+                    logger.debug("\(allEnvironment)")
                     EnvironmentConfig.initializeUrls(from: allEnvironment)
                     logger.info("serverType:\(serverType)")
                     EnvironmentConfig.current = serverType

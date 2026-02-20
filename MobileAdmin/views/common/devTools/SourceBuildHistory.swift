@@ -41,7 +41,6 @@ struct SourceBuildHistory: View {
             }
         }
         .onAppear(){
-            print("history")
             Task{
                 let response = await viewModel.fetchSourceBuildHistory(
                     projectId

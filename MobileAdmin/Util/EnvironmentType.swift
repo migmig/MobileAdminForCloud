@@ -33,7 +33,7 @@ struct EnvironmentConfig {
         return environmentUrls[current] ?? "http://192.168.0.3:8080"  // 기본 URL 설정
     }
     #if DEBUG
-    static var current: EnvironmentType = .production
+    static var current: EnvironmentType = .development
     #else
     static var current: EnvironmentType = .production
     #endif

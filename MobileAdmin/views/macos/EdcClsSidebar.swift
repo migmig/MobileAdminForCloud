@@ -38,9 +38,7 @@ struct EdcClsSidebar: View {
              Task{
                  isLoading = true
                  let edcCrseClListResponse:EdcCrseClListResponse =  await viewModel.fetchClsLists()
-                 print(
-                     "\n\n\(String(describing: edcCrseClListResponse.edcCrseClAllList))\n\n"
-                 )
+                 // edcCrseClListResponse loaded
                  edcCrseCl = edcCrseClListResponse.edcCrseClAllList?.sorted(by:{$0.edcCrseId ?? 0 < $1.edcCrseId ?? 0}) ?? []
                  isLoading = false
              }

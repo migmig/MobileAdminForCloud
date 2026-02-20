@@ -12,7 +12,7 @@ struct MyCommands:Commands{
     var body :some Commands{
         CommandMenu("menu"){
             Button("menu1"){
-                print("menu1")
+                // menu1 action
             }
         }
     }

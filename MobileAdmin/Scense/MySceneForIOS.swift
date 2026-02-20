@@ -13,7 +13,7 @@ struct MySceneForIOS: Scene {
    @State var selectedEdcCrseCl:EdcCrseCl = .init()
    @State private var isLoading: Bool = false
    @State private var selectedTab: Int = 0 // 현재 선택된 탭
-   var isAuthenticated = true
+   @State private var isAuthenticated = false
    @State private var authenticationMessage = ""
    @Query var allEnvironment: [EnvironmentModel]
 
@@ -82,7 +82,7 @@ struct MySceneForIOS: Scene {
                        }
                        .ignoresSafeArea()
                    .onAppear{
-                       print(allEnvironment)
+                       logger.debug("\(allEnvironment)")
                        EnvironmentConfig.initializeUrls(from: allEnvironment)
                        logger.info("serverType:\(serverType)")
                        EnvironmentConfig.current = serverType
@@ -90,8 +90,8 @@ struct MySceneForIOS: Scene {
                    .onChange(of: selectedTab){oldValue,newValue in
                        withAnimation(.easeInOut(duration: 0.5)) {
                            selectedTab = newValue
-                           print(newValue)
-                           print(selectedTab)
+                           logger.debug("tab changed: \(newValue)")
+                           logger.debug("selectedTab: \(selectedTab)")
                        }
                    }
                }
@@ -111,7 +111,8 @@ struct MySceneForIOS: Scene {
            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
                DispatchQueue.main.async {
                    if success {
-                       self.authenticationMessage = "인증에 성공했습니다!"
+                       self.isAuthenticated = true
+                       self.authenticationMessage = ""
                    } else {
                        self.authenticationMessage = "인증에 실패했습니다."
                    }

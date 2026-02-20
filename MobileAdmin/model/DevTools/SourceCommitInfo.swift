@@ -32,7 +32,7 @@ struct SourceCommitInfoResult: Codable,Hashable {
 }
 
 // MARK: - SourceCommitInfoRepository
-struct SourceCommitInfoRepository: Codable,Hashable {
+struct SourceCommitInfoRepository: Codable,Hashable,Identifiable {
     let id: Int
     let name: String
     let permission: String?
