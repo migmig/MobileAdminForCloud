@@ -11,6 +11,9 @@ struct ErrorCloudItemView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.md) {
+                // MARK: - 에러 요약 헤더
+                errorSummaryHeader
+
                 // MARK: - 사용자 정보
                 CardView(title: "사용자", systemImage: "person.crop.circle") {
                     UserRow(userId: errorCloudItem.userId, viewModel: viewModel)
@@ -18,9 +21,13 @@ struct ErrorCloudItemView: View {
 
                 // MARK: - 핵심 정보
                 CardView(title: "오류 정보", systemImage: "exclamationmark.triangle") {
-                    InfoRowIcon(iconName: "qrcode", title: "Code", value: errorCloudItem.code)
-                    InfoRowIcon(iconName: "note.text", title: "Description", value: errorCloudItem.description)
-                    InfoRowIcon(iconName: "envelope", title: "Msg", value: errorCloudItem.msg)
+                    VStack(spacing: 0) {
+                        InfoRowIcon(iconName: "qrcode", title: "Code", value: errorCloudItem.code)
+                        Divider().padding(.leading, AppIconSize.xs + AppSpacing.sm)
+                        InfoRowIcon(iconName: "note.text", title: "Description", value: errorCloudItem.description)
+                        Divider().padding(.leading, AppIconSize.xs + AppSpacing.sm)
+                        InfoRowIcon(iconName: "envelope", title: "Msg", value: errorCloudItem.msg)
+                    }
                 }
 
                 // MARK: - Trace
@@ -30,12 +37,16 @@ struct ErrorCloudItemView: View {
 
                 // MARK: - 요청 정보
                 CardView(title: "요청 정보", systemImage: "network") {
-                    InfoRowIcon(iconName: "link", title: "Request URL", value: errorCloudItem.restUrl)
-                    InfoRowIcon(iconName: "calendar", title: "Register DT", value: Util.formatDateTime(errorCloudItem.registerDt))
-                    RequestInfoRow(
-                        requestInfo: errorCloudItem.requestInfo,
-                        isSheetPresented: $isRequestInfoSheetPresented
-                    )
+                    VStack(spacing: 0) {
+                        InfoRowIcon(iconName: "link", title: "Request URL", value: errorCloudItem.restUrl)
+                        Divider().padding(.leading, AppIconSize.xs + AppSpacing.sm)
+                        InfoRowIcon(iconName: "calendar", title: "Register DT", value: Util.formatDateTime(errorCloudItem.registerDt))
+                        Divider().padding(.leading, AppIconSize.xs + AppSpacing.sm)
+                        RequestInfoRow(
+                            requestInfo: errorCloudItem.requestInfo,
+                            isSheetPresented: $isRequestInfoSheetPresented
+                        )
+                    }
                 }
 
                 // MARK: - 삭제
@@ -57,7 +68,7 @@ struct ErrorCloudItemView: View {
             }
             .padding(AppSpacing.lg)
         }
-        
+
         // MARK: - Trace Sheet
         .sheet(isPresented: $isSheetPresented) {
             TraceDetailView(traceContent: errorCloudItem.traceCn ?? "")
@@ -73,13 +84,78 @@ struct ErrorCloudItemView: View {
                 .frame(minWidth: 700, minHeight: 500)
                 #endif
         }
-        
+
         // MARK: - Navigation Bar Title/Subtitle
         #if os(iOS)
-        .navigationTitle("에러 상세") 
+        .navigationTitle("에러 상세")
         #elseif os(macOS)
         .navigationTitle(Util.formatDateTime(errorCloudItem.registerDt))
         #endif
+    }
+
+    // MARK: - 에러 요약 헤더
+    private var errorSummaryHeader: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            // 에러 코드 + 시간
+            HStack {
+                if let code = errorCloudItem.code, !code.isEmpty {
+                    Text(code)
+                        .font(AppFont.captionSmall)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.vertical, AppSpacing.xs)
+                        .background(
+                            Capsule().fill(AppColor.error)
+                        )
+                }
+
+                Spacer()
+
+                if let dt = errorCloudItem.registerDt {
+                    Text(Util.formatDateTime(dt))
+                        .font(AppFont.caption)
+                        .monospacedDigit()
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            // 에러 메시지 (전문)
+            Text(errorCloudItem.description ?? errorCloudItem.msg ?? "Unknown Error")
+                .font(.system(.body, weight: .semibold))
+                .foregroundColor(.primary)
+                .textSelection(.enabled)
+
+            // REST URL
+            if let restUrl = errorCloudItem.restUrl, !restUrl.isEmpty {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "link")
+                        .font(AppFont.captionSmall)
+                        .foregroundColor(AppColor.icon)
+                    Text(restUrl)
+                        .font(AppFont.mono)
+                        .foregroundColor(.secondary)
+                        .textSelection(.enabled)
+                }
+            }
+
+            // 사용자
+            if let userId = errorCloudItem.userId, !userId.isEmpty {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "person.circle")
+                        .font(AppFont.captionSmall)
+                        .foregroundColor(AppColor.userIcon)
+                    Text(userId)
+                        .font(AppFont.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(AppSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardBackground()
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+        .cardShadow()
     }
 }
 /**
@@ -212,10 +288,10 @@ struct UserRow: View {
             Text(userId ?? "N/A")
                 .foregroundColor(.secondary)
                 .textSelection(.enabled) // ID 선택 가능하게
-            
+
             #if os(macOS)
             // Log Download 버튼 (macOS에서 강조)
-            
+
             Button {
                 if userId != "" {
                     Task {
@@ -248,18 +324,18 @@ struct UserRow: View {
     }
 }
 
- 
+
 #Preview {
     ForEach(0..<1){idx in
         ErrorCloudItemView(viewModel:ViewModel(),errorCloudItem: ErrorCloudItem(
-            code: "code\(idx)",
-            description: "description\(idx)",
+            code: "ERR_500",
+            description: "NullPointerException: Cannot invoke method on null object reference",
             msg: "msg\(idx)",
             registerDt : Util.getCurrentDateString(),
-            requestInfo: "requestInfo",
-            restUrl: "restUrl",
-            traceCn: "traceCn",
-            userId: "userId\(idx)"
+            requestInfo: "{\"userId\":\"testUser\",\"method\":\"POST\"}",
+            restUrl: "/api/v1/admin/users/findByEmail",
+            traceCn: "java.lang.NullPointerException\n\tat com.example.Service.method(Service.java:42)",
+            userId: "admin01"
         ))
     }
 }

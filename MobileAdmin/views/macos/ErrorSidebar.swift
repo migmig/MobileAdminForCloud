@@ -26,14 +26,21 @@ struct ErrorSidebar: View {
    var filteredErrorItems: [ErrorCloudItem] {
        if searchText.isEmpty {
            return viewModel.errorItems
-       }else{
-           return viewModel.errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
+       } else {
+           let query = searchText.lowercased()
+           return viewModel.errorItems.filter { item in
+               item.description?.localizedCaseInsensitiveContains(query) == true
+               || item.msg?.localizedCaseInsensitiveContains(query) == true
+               || item.code?.localizedCaseInsensitiveContains(query) == true
+               || item.userId?.localizedCaseInsensitiveContains(query) == true
+               || item.restUrl?.localizedCaseInsensitiveContains(query) == true
+           }
        }
    }
-    
+
     var body: some View {
         VStack{
-            
+
             SearchArea(dateFrom: $dateFrom,
                        dateTo: $dateTo,
                        isLoading: $isLoading,
@@ -45,7 +52,34 @@ struct ErrorSidebar: View {
                 }
             }
             .padding()
-            .searchable(text: $searchText , placement: .automatic)
+            .searchable(text: $searchText, placement: .automatic, prompt: "설명, 코드, 사용자, URL 검색")
+
+            // 빠른 날짜 프리셋
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    DatePresetButton(label: "오늘") {
+                        dateFrom = Calendar.current.startOfDay(for: Date())
+                        dateTo = Date()
+                        await fetchErrors()
+                    }
+                    DatePresetButton(label: "최근 3일") {
+                        dateFrom = Calendar.current.date(byAdding: .day, value: -3, to: Date()) ?? Date()
+                        dateTo = Date()
+                        await fetchErrors()
+                    }
+                    DatePresetButton(label: "최근 7일") {
+                        dateFrom = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+                        dateTo = Date()
+                        await fetchErrors()
+                    }
+                    DatePresetButton(label: "최근 30일") {
+                        dateFrom = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+                        dateTo = Date()
+                        await fetchErrors()
+                    }
+                }
+                .padding(.horizontal)
+            }
 
             // MARK: - 사용자 로그 다운로드
             DisclosureGroup("사용자 로그 다운로드") {
@@ -88,7 +122,7 @@ struct ErrorSidebar: View {
                             .padding(.horizontal)
                         }
                         .frame(height: 12) // 고정된 높이 설정
-                        
+
                         // 슬라이더 설명 텍스트
                         Text("자동 새로고침 진행: \(Int((timerProgress / 5) * 100))%")
                             .font(AppFont.monoDigit)
@@ -122,13 +156,16 @@ struct ErrorSidebar: View {
                         EmptyStateView(
                             systemImage: "checkmark.shield",
                             title: "오류가 없습니다",
-                            description: "조회 기간을 변경해 보세요"
+                            description: searchText.isEmpty ? "조회 기간을 변경해 보세요" : "검색어를 변경해 보세요"
                         )
                     }
                 }
                 .navigationTitle("오류 조회")
                 #if os(macOS)
-                .navigationSubtitle("  \(filteredErrorItems.count)개의 오류")
+                .navigationSubtitle(searchText.isEmpty
+                    ? "  \(filteredErrorItems.count)개의 오류"
+                    : "  \(filteredErrorItems.count)/\(viewModel.errorItems.count)개의 오류"
+                )
                 #endif
                 .navigationSplitViewColumnWidth(min:200,ideal: 200)
                 #if os(iOS)
@@ -144,7 +181,14 @@ struct ErrorSidebar: View {
             }
         }
     }
-    
+
+    private func fetchErrors() async {
+        isLoading = true
+        let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
+        viewModel.errorItems = errorItems
+        isLoading = false
+    }
+
     private func triggerUserLogDownload() {
         guard !userIdForLog.isEmpty else { return }
         isDownloadingLog = true
