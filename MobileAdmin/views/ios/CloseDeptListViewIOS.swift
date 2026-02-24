@@ -233,6 +233,7 @@ struct FilterChip: View {
             .padding(.vertical, AppSpacing.sm)
             .background(isSelected ? color.opacity(0.15) : Color.clear)
             .foregroundColor(isSelected ? color : .secondary)
+            .contentShape(Rectangle())
             .cornerRadius(AppRadius.xl)
             .overlay(
                 RoundedRectangle(cornerRadius: AppRadius.xl)
