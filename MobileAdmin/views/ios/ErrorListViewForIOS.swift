@@ -13,8 +13,15 @@ struct ErrorListViewForIOS: View {
     var filteredErrorItems: [ErrorCloudItem] {
         if searchText.isEmpty {
             return viewModel.errorItems
-        }else{
-            return viewModel.errorItems.filter{$0.description?.localizedCaseInsensitiveContains(searchText) == true}
+        } else {
+            let query = searchText.lowercased()
+            return viewModel.errorItems.filter { item in
+                item.description?.localizedCaseInsensitiveContains(query) == true
+                || item.msg?.localizedCaseInsensitiveContains(query) == true
+                || item.code?.localizedCaseInsensitiveContains(query) == true
+                || item.userId?.localizedCaseInsensitiveContains(query) == true
+                || item.restUrl?.localizedCaseInsensitiveContains(query) == true
+            }
         }
     }
 
@@ -29,6 +36,35 @@ struct ErrorListViewForIOS: View {
                             searchText = ""
                         }){
                             viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo:  dateTo) ?? []
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+
+                        // 빠른 날짜 프리셋
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: AppSpacing.sm) {
+                                DatePresetButton(label: "오늘") {
+                                    dateFrom = Calendar.current.startOfDay(for: Date())
+                                    dateTo = Date()
+                                    await fetchErrors()
+                                }
+                                DatePresetButton(label: "최근 3일") {
+                                    dateFrom = Calendar.current.date(byAdding: .day, value: -3, to: Date()) ?? Date()
+                                    dateTo = Date()
+                                    await fetchErrors()
+                                }
+                                DatePresetButton(label: "최근 7일") {
+                                    dateFrom = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+                                    dateTo = Date()
+                                    await fetchErrors()
+                                }
+                                DatePresetButton(label: "최근 30일") {
+                                    dateFrom = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+                                    dateTo = Date()
+                                    await fetchErrors()
+                                }
+                            }
+                            .padding(.vertical, AppSpacing.xs)
                         }
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
@@ -72,6 +108,11 @@ struct ErrorListViewForIOS: View {
                             Text("\(filteredErrorItems.count)건의 오류")
                                 .font(AppFont.caption)
                                 .foregroundColor(.secondary)
+                            if !searchText.isEmpty {
+                                Text("(전체 \(viewModel.errorItems.count)건)")
+                                    .font(AppFont.captionSmall)
+                                    .foregroundColor(.secondary)
+                            }
                             Spacer()
                         }
                     }
@@ -82,7 +123,7 @@ struct ErrorListViewForIOS: View {
                             EmptyStateView(
                                 systemImage: "checkmark.shield",
                                 title: "오류가 없습니다",
-                                description: "조회 기간을 변경해 보세요"
+                                description: searchText.isEmpty ? "조회 기간을 변경해 보세요" : "검색어를 변경해 보세요"
                             )
                             .listRowBackground(Color.clear)
                         }
@@ -94,7 +135,7 @@ struct ErrorListViewForIOS: View {
                         }
                     }
                 }
-                .searchable(text: $searchText, placement: .automatic)
+                .searchable(text: $searchText, placement: .automatic, prompt: "설명, 코드, 사용자, URL 검색")
                 .navigationTitle("오류 조회")
             }
         .loadingTask(isLoading: $isLoading) {
@@ -105,6 +146,12 @@ struct ErrorListViewForIOS: View {
             viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
             isLoading = false
         }
+    }
+
+    private func fetchErrors() async {
+        isLoading = true
+        viewModel.errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
+        isLoading = false
     }
 
     private func triggerUserLogDownload() {
@@ -123,6 +170,30 @@ struct ErrorListViewForIOS: View {
         }
     }
 
+}
+
+// MARK: - 날짜 프리셋 버튼
+struct DatePresetButton: View {
+    let label: String
+    let action: () async -> Void
+
+    var body: some View {
+        Button {
+            Task { await action() }
+        } label: {
+            Text(label)
+                .font(AppFont.captionSmall)
+                .fontWeight(.medium)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.xs)
+                .background(
+                    Capsule()
+                        .fill(Color.accentColor.opacity(0.1))
+                )
+                .foregroundColor(.accentColor)
+        }
+        .buttonStyle(.plain)
+    }
 }
 
 #Preview{
