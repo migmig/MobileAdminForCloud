@@ -231,6 +231,11 @@ def make_macos_icon(size):
 
 
 def save_icon(img, filename):
+    # iOS/macOS 앱 아이콘은 알파 채널 금지 → RGB로 플래튼
+    if img.mode == "RGBA":
+        bg = Image.new("RGB", img.size, (0, 0, 0))
+        bg.paste(img, mask=img.split()[3])
+        img = bg
     path = os.path.join(ICON_DIR, filename)
     img.save(path, "PNG")
     print(f"  저장: {path}  ({img.width}x{img.height})")
