@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct EdcClsSidebar: View {
-    @ObservedObject var viewModel:ViewModel = ViewModel()
-    @Binding var edcCrseCl:[EdcCrseCl]
+    @EnvironmentObject var educationViewModel: EducationViewModel
     @Binding var selectedEdcCrseCl:EdcCrseCl?
     @State var isLoading:Bool = false
     var body: some View {
@@ -17,9 +16,8 @@ struct EdcClsSidebar: View {
                 ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
             }
             List(selection:$selectedEdcCrseCl){
-                ForEach(edcCrseCl, id:\.self){  entry in
+                ForEach(educationViewModel.edcCrseCllist, id:\.self){  entry in
                     NavigationLink(destination : EdcCrseDetailView(
-                        viewModel: viewModel,
                         edcCrseClinfo:entry)){
                         HStack {
                             Image(systemName: SlidebarItem.gcpClsList.img)
@@ -31,18 +29,15 @@ struct EdcClsSidebar: View {
             }
          .navigationTitle("강의목록 조회")
 #if os(macOS)
-         .navigationSubtitle("  \(edcCrseCl.count)건의 강의")
+         .navigationSubtitle("  \(educationViewModel.edcCrseCllist.count)건의 강의")
 #endif
-         
+
          .onAppear(){
              Task{
                  isLoading = true
-                 let edcCrseClListResponse:EdcCrseClListResponse =  await viewModel.fetchClsLists()
-                 // edcCrseClListResponse loaded
-                 edcCrseCl = edcCrseClListResponse.edcCrseClAllList?.sorted(by:{$0.edcCrseId ?? 0 < $1.edcCrseId ?? 0}) ?? []
+                 await educationViewModel.fetchClsLists()
                  isLoading = false
              }
          }
     }
 }
- 

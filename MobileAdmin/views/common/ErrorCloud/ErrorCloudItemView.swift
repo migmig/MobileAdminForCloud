@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 #endif
 struct ErrorCloudItemView: View {
-    @ObservedObject var viewModel: ViewModel
+    @EnvironmentObject var errorViewModel: ErrorViewModel
     var errorCloudItem: ErrorCloudItem
     @State private var isSheetPresented: Bool = false
     @State private var isRequestInfoSheetPresented: Bool = false
@@ -16,7 +16,7 @@ struct ErrorCloudItemView: View {
 
                 // MARK: - 사용자 정보
                 CardView(title: "사용자", systemImage: "person.crop.circle") {
-                    UserRow(userId: errorCloudItem.userId, viewModel: viewModel)
+                    UserRow(userId: errorCloudItem.userId)
                 }
 
                 // MARK: - 핵심 정보
@@ -50,15 +50,13 @@ struct ErrorCloudItemView: View {
                 }
 
                 // MARK: - 삭제
-                HStack{
+                HStack {
                     Spacer()
-                    Button{
-                        if errorCloudItem.id  != nil {
-                            Task {
-                                await viewModel.deleteError(id: errorCloudItem.id ?? 0)
-                            }
+                    Button {
+                        if let id = errorCloudItem.id {
+                            Task { await errorViewModel.deleteError(id: id) }
                         }
-                    }label:{
+                    } label: {
                         Label("Delete Data", systemImage: "trash.fill")
                     }
                     .buttonStyle(.borderedProminent)
@@ -85,7 +83,6 @@ struct ErrorCloudItemView: View {
                 #endif
         }
 
-        // MARK: - Navigation Bar Title/Subtitle
         #if os(iOS)
         .navigationTitle("에러 상세")
         #elseif os(macOS)
@@ -96,7 +93,6 @@ struct ErrorCloudItemView: View {
     // MARK: - 에러 요약 헤더
     private var errorSummaryHeader: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            // 에러 코드 + 시간
             HStack {
                 if let code = errorCloudItem.code, !code.isEmpty {
                     Text(code)
@@ -105,13 +101,9 @@ struct ErrorCloudItemView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, AppSpacing.sm)
                         .padding(.vertical, AppSpacing.xs)
-                        .background(
-                            Capsule().fill(AppColor.error)
-                        )
+                        .background(Capsule().fill(AppColor.error))
                 }
-
                 Spacer()
-
                 if let dt = errorCloudItem.registerDt {
                     Text(Util.formatDateTime(dt))
                         .font(AppFont.caption)
@@ -120,13 +112,11 @@ struct ErrorCloudItemView: View {
                 }
             }
 
-            // 에러 메시지 (전문)
             Text(errorCloudItem.description ?? errorCloudItem.msg ?? "Unknown Error")
                 .font(.system(.body, weight: .semibold))
                 .foregroundColor(.primary)
                 .textSelection(.enabled)
 
-            // REST URL
             if let restUrl = errorCloudItem.restUrl, !restUrl.isEmpty {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "link")
@@ -139,7 +129,6 @@ struct ErrorCloudItemView: View {
                 }
             }
 
-            // 사용자
             if let userId = errorCloudItem.userId, !userId.isEmpty {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "person.circle")
@@ -158,9 +147,8 @@ struct ErrorCloudItemView: View {
         .cardShadow()
     }
 }
-/**
- Trace 상세 보기 Row
- */
+
+// MARK: - Trace Row
 struct TraceRow: View {
     var traceCn: String?
     @Binding var isSheetPresented: Bool
@@ -172,12 +160,8 @@ struct TraceRow: View {
                 .font(AppFont.mono)
                 .lineLimit(2)
                 .truncationMode(.tail)
-
             Spacer()
-
-            Button {
-                isSheetPresented = true
-            } label: {
+            Button { isSheetPresented = true } label: {
                 Label("상세 보기", systemImage: "arrow.up.right.square")
                     .font(AppFont.caption)
             }
@@ -187,9 +171,8 @@ struct TraceRow: View {
         .padding(.vertical, AppSpacing.xs)
     }
 }
-/**
- Request Info 상세 보기 Row - JSON 타입일 때 팝업으로 상세 표시
- */
+
+// MARK: - Request Info Row
 struct RequestInfoRow: View {
     var requestInfo: String?
     @Binding var isSheetPresented: Bool
@@ -215,11 +198,8 @@ struct RequestInfoRow: View {
                     .lineLimit(2)
                     .truncationMode(.tail)
                     .multilineTextAlignment(.trailing)
-
                 if requestInfo?.isEmpty == false {
-                    Button {
-                        isSheetPresented = true
-                    } label: {
+                    Button { isSheetPresented = true } label: {
                         Label("상세 보기", systemImage: "arrow.up.right.square")
                             .font(AppFont.caption)
                     }
@@ -230,17 +210,12 @@ struct RequestInfoRow: View {
         }
         .padding(.vertical, AppSpacing.xs)
         .contextMenu {
-            Button("Copy") {
-                Util.copyToClipboard(formattedPreview)
-            }
+            Button("Copy") { Util.copyToClipboard(formattedPreview) }
         }
     }
 }
 
-// MARK: - Sub Views
-/**
- 공통 정보 표시 Row
- */
+// MARK: - InfoRowIcon
 struct InfoRowIcon: View {
     var iconName: String
     var title: String
@@ -264,18 +239,15 @@ struct InfoRowIcon: View {
         }
         .padding(.vertical, AppSpacing.xs)
         .contextMenu {
-            Button("Copy") {
-                Util.copyToClipboard(value ?? "")
-            }
+            Button("Copy") { Util.copyToClipboard(value ?? "") }
         }
     }
 }
-/**
- 사용자 ID Row (복사/로그 다운로드 컨텍스트 메뉴 포함)
- */
+
+// MARK: - UserRow
 struct UserRow: View {
     var userId: String?
-    @ObservedObject var viewModel: ViewModel
+    @EnvironmentObject var errorViewModel: ErrorViewModel
 
     var body: some View {
         HStack {
@@ -287,17 +259,14 @@ struct UserRow: View {
             Spacer()
             Text(userId ?? "N/A")
                 .foregroundColor(.secondary)
-                .textSelection(.enabled) // ID 선택 가능하게
+                .textSelection(.enabled)
 
             #if os(macOS)
-            // Log Download 버튼 (macOS에서 강조)
-
             Button {
-                if userId != "" {
-                    Task {
-                        let fileURL = try await viewModel.downloadUserLog(userId ?? "")
-                        NSWorkspace.shared.open(fileURL)
-                    }
+                guard let uid = userId, !uid.isEmpty else { return }
+                Task {
+                    let fileURL = try await errorViewModel.downloadUserLog(uid)
+                    NSWorkspace.shared.open(fileURL)
                 }
             } label: {
                 Image(systemName: "square.and.arrow.down.fill")
@@ -309,13 +278,12 @@ struct UserRow: View {
         }
         .padding(.vertical, AppSpacing.xs)
         .contextMenu {
-            Button("Copy User ID") {
-                Util.copyToClipboard(userId ?? "")
-            }
+            Button("Copy User ID") { Util.copyToClipboard(userId ?? "") }
             #if os(macOS)
             Button("Log Download & Open") {
+                guard let uid = userId, !uid.isEmpty else { return }
                 Task {
-                    let fileURL = try await viewModel.downloadUserLog(userId ?? "")
+                    let fileURL = try await errorViewModel.downloadUserLog(uid)
                     NSWorkspace.shared.open(fileURL)
                 }
             }
@@ -324,18 +292,16 @@ struct UserRow: View {
     }
 }
 
-
 #Preview {
-    ForEach(0..<1){idx in
-        ErrorCloudItemView(viewModel:ViewModel(),errorCloudItem: ErrorCloudItem(
-            code: "ERR_500",
-            description: "NullPointerException: Cannot invoke method on null object reference",
-            msg: "msg\(idx)",
-            registerDt : Util.getCurrentDateString(),
-            requestInfo: "{\"userId\":\"testUser\",\"method\":\"POST\"}",
-            restUrl: "/api/v1/admin/users/findByEmail",
-            traceCn: "java.lang.NullPointerException\n\tat com.example.Service.method(Service.java:42)",
-            userId: "admin01"
-        ))
-    }
+    ErrorCloudItemView(errorCloudItem: ErrorCloudItem(
+        code: "ERR_500",
+        description: "NullPointerException",
+        msg: "msg",
+        registerDt: Util.getCurrentDateString(),
+        requestInfo: "{\"userId\":\"testUser\"}",
+        restUrl: "/api/v1/admin/users",
+        traceCn: "java.lang.NullPointerException",
+        userId: "admin01"
+    ))
+    .environmentObject(ErrorViewModel())
 }

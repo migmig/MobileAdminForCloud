@@ -47,7 +47,7 @@ struct CloseDeptStatus {
 }
 
 struct CloseDeptListViewIOS: View {
-    @EnvironmentObject var viewModel:ViewModel
+    @EnvironmentObject var closeDeptViewModel: CloseDeptViewModel
     @State var list:[Detail1] = []
     @State var closeGb = "4"
 
@@ -56,7 +56,7 @@ struct CloseDeptListViewIOS: View {
     }
 
     private func loadData() async {
-       let closeInfo = await viewModel.fetchCloseDeptList()
+       let closeInfo = await closeDeptViewModel.fetchCloseDeptList()
        list = closeInfo.detail1
    }
 
@@ -287,5 +287,5 @@ struct CloseDeptListItem: View {
 
 #Preview{
     CloseDeptListViewIOS()
-        .environmentObject(ViewModel())
+        .environmentObject(CloseDeptViewModel())
 }

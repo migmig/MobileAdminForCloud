@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct EdcClsSidebarIOS: View {
-    @ObservedObject var viewModel:ViewModel
+    @EnvironmentObject var educationViewModel: EducationViewModel
     @State var selectedEdcCrseCl:EdcCrseCl? = nil
     @State var isLoading:Bool = false
     var body: some View {
@@ -16,15 +16,15 @@ struct EdcClsSidebarIOS: View {
             ProgressView(" ").progressViewStyle(CircularProgressViewStyle())
         }
         List{
-            if !isLoading && viewModel.edcCrseCllist.isEmpty {
+            if !isLoading && educationViewModel.edcCrseCllist.isEmpty {
                 EmptyStateView(
                     systemImage: "graduationcap",
                     title: "교육 과정이 없습니다"
                 )
                 .listRowBackground(Color.clear)
             }
-            ForEach(viewModel.edcCrseCllist, id:\.id){  entry in
-                NavigationLink(destination:EdcCrseDetailView(viewModel:viewModel, edcCrseClinfo: entry)){
+            ForEach(educationViewModel.edcCrseCllist, id:\.id){  entry in
+                NavigationLink(destination:EdcCrseDetailView(edcCrseClinfo: entry)){
                     HStack {
                         Image(systemName: SlidebarItem.gcpClsList.img)
                             .font(.caption)
@@ -35,15 +35,13 @@ struct EdcClsSidebarIOS: View {
         }
         .navigationTitle("교육 조회")
         .onAppear(){
-            if viewModel.edcCrseCllist.isEmpty {
+            if educationViewModel.edcCrseCllist.isEmpty {
                 Task{
                     isLoading = true
-                    let edcCrseClListResponse:EdcCrseClListResponse =  await viewModel.fetchClsLists()
-                    viewModel.edcCrseCllist = edcCrseClListResponse.edcCrseClAllList ?? []
+                    await educationViewModel.fetchClsLists()
                     isLoading = false
                 }
             }
         }
     }
 }
- 

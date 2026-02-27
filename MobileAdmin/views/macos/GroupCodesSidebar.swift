@@ -7,9 +7,9 @@
 import SwiftUI
 
 struct GroupCodesSidebar: View {
-    @ObservedObject var viewModel: ViewModel
-    @Binding var groupCodes: [CmmnGroupCodeItem]?
+    @EnvironmentObject var codeViewModel: CodeViewModel
     @Binding var selectedGroupCode: CmmnGroupCodeItem?
+    @State private var groupCodes: [CmmnGroupCodeItem]? = nil
     @State private var searchText: String = ""
     @State private var isLoading: Bool = false
     @State private var useAtFilter: String = "all"
@@ -90,7 +90,7 @@ struct GroupCodesSidebar: View {
                 Button(action: {
                     Task {
                         isLoading = true
-                        groupCodes = await viewModel.fetchGroupCodeLists()
+                        groupCodes = await codeViewModel.fetchGroupCodeLists()
                         isLoading = false
                     }
                 }) {
@@ -103,15 +103,14 @@ struct GroupCodesSidebar: View {
         .navigationSubtitle("\(filteredGroupCodes.count)건의 코드")
         #endif
         .loadingTask(isLoading: $isLoading) {
-            groupCodes = await viewModel.fetchGroupCodeLists()
+            groupCodes = await codeViewModel.fetchGroupCodeLists()
         }
     }
 }
 
 #Preview {
     GroupCodesSidebar(
-        viewModel: ViewModel(),
-        groupCodes: .constant([]),
         selectedGroupCode: .constant(nil)
     )
+    .environmentObject(CodeViewModel())
 }

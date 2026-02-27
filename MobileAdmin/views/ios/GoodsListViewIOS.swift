@@ -1,50 +1,39 @@
 import SwiftUI
 
 struct GoodsListViewIOS: View {
-    @ObservedObject var viewModel:ViewModel
-    @State var goodsItems:[Goodsinfo] = []
-    @State private var filteredGoodsItems:[Goodsinfo] = []
-    @State private var isLoading:Bool = false
-    @State private var dateFrom:Date = Date()
-    @State private var dateTo:Date = Date()
-    @State private var arrGoods:[String] = []
-    @State private var selectedGoodsCd:[String] = []
-    @State private var searchText:String = ""
+    @EnvironmentObject var goodsViewModel: GoodsViewModel
+    @State var goodsItems: [Goodsinfo] = []
+    @State private var filteredGoodsItems: [Goodsinfo] = []
+    @State private var isLoading: Bool = false
+    @State private var dateFrom: Date = Date()
+    @State private var dateTo: Date = Date()
+    @State private var arrGoods: [String] = []
+    @State private var selectedGoodsCd: [String] = []
+    @State private var searchText: String = ""
 
-
-    var filteredGoods:[Goodsinfo]{
-        if searchText.isEmpty{
-            return filteredGoodsItems
-        }else{
-            return filteredGoodsItems.filter{item in
-                item.userId?.localizedCaseInsensitiveContains(searchText) == true
-            }
+    var filteredGoods: [Goodsinfo] {
+        guard !searchText.isEmpty else { return filteredGoodsItems }
+        return filteredGoodsItems.filter {
+            $0.userId?.localizedCaseInsensitiveContains(searchText) == true
         }
     }
 
     var body: some View {
-        List{
-            // 검색 영역
+        List {
             Section {
                 SearchArea(dateFrom: $dateFrom,
                            dateTo: $dateTo,
                            isLoading: $isLoading,
-                           clearAction:{
-                                selectedGoodsCd.removeAll()
-                            searchText = ""
-                            }){
-                    goodsItems = await viewModel.fetchGoods(dateFrom, dateTo) ?? []
-                    let arr  = Set(goodsItems.flatMap{item in
-                        item.goods.map{$0.goodsCd}
-                    })
-                    arrGoods = Array(arr)
-                    filteredGoodsItems = goodsItems
+                           clearAction: {
+                    selectedGoodsCd.removeAll()
+                    searchText = ""
+                }) {
+                    await loadGoods()
                 }
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
 
-            // 필터
             Section {
                 FilteredGoodsItem(
                     arrGoods: $arrGoods,
@@ -75,7 +64,6 @@ struct GoodsListViewIOS: View {
                 }
             }
 
-            // 상품 목록
             Section {
                 if filteredGoods.isEmpty && !isLoading {
                     EmptyStateView(
@@ -85,10 +73,8 @@ struct GoodsListViewIOS: View {
                     )
                     .listRowBackground(Color.clear)
                 }
-                ForEach(filteredGoods){ entry in
-                    NavigationLink(destination:{
-                        GoodsDetailView(goodsinfo: entry)
-                    }){
+                ForEach(filteredGoods) { entry in
+                    NavigationLink(destination: GoodsDetailView(goodsinfo: entry)) {
                         GoodsItemListItem(
                             goodsItem: entry,
                             selectedGoodsCd: selectedGoodsCd
@@ -99,21 +85,25 @@ struct GoodsListViewIOS: View {
         }
         .searchable(text: $searchText, placement: .automatic)
         .navigationTitle("상품 조회")
-        .onAppear() {
-            Task{
-                isLoading = true;
-                isLoading = false;
-            }
+        .loadingTask(isLoading: $isLoading) {
+            await loadGoods()
         }
         .refreshable {
-            Task{
-                isLoading = true;
-                isLoading = false;
-            }
+            await loadGoods()
         }
+    }
+
+    private func loadGoods() async {
+        isLoading = true
+        goodsItems = await goodsViewModel.fetchGoods(dateFrom, dateTo)
+        let codes = Set(goodsItems.flatMap { $0.goods.map { $0.goodsCd } })
+        arrGoods = Array(codes)
+        filteredGoodsItems = goodsItems
+        isLoading = false
     }
 }
 
-#Preview{
-    GoodsListViewIOS(viewModel: .init()  )
+#Preview {
+    GoodsListViewIOS()
+        .environmentObject(GoodsViewModel())
 }

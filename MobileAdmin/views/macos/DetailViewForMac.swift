@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct DetailViewForMac: View {
-    @EnvironmentObject var viewModel: ViewModel
     @EnvironmentObject var toastManager: ToastManager
     @EnvironmentObject var nav: NavigationState
 
@@ -14,26 +13,22 @@ struct DetailViewForMac: View {
         switch nav.selectedSidebarItem {
         case .errerlist:
             ErrorCloudItemView(
-                viewModel: viewModel,
                 errorCloudItem: nav.selectedErrorItem ?? ErrorCloudItem()
             )
 
         case .toast:
             ToastView(toastItem: $nav.toast)
-                .environmentObject(viewModel)
 
         case .goodsInfo:
             GoodsDetailView(goodsinfo: nav.selectedGoods ?? Goodsinfo())
 
         case .gcpClsList:
             EdcCrseDetailView(
-                viewModel: viewModel,
                 edcCrseClinfo: nav.selectedEdcCrseCl ?? EdcCrseCl("", "")
             )
 
         case .codeList:
             CodeDetailView(
-                viewModel: viewModel,
                 cmmnGroupCodeItem: nav.selectedGroupCode ?? CmmnGroupCodeItem(
                     cmmnGroupCode: "",
                     cmmnGroupCodeNm: "",
@@ -63,35 +58,28 @@ struct DetailViewForMac: View {
 
         case .sourceBuild:
             if let sourceBuildProject = nav.selectedBuild {
-                SourceBuildDetail(viewModel: viewModel,
-                                  selectedProject: sourceBuildProject)
+                SourceBuildDetail(selectedProject: sourceBuildProject)
             } else {
                 Text("Select a row to view details.")
             }
 
         case .sourcePipeline:
             if let sourcePipeline = nav.selectedPipeline {
-                SourcePipelineDetail(
-                    viewModel: viewModel,
-                    selectedPipeline: sourcePipeline)
+                SourcePipelineDetail(selectedPipeline: sourcePipeline)
             } else {
                 Text("Select a row to view details.")
             }
 
         case .sourceCommit:
             if let sourceCommit = nav.selectedCommit {
-                SourceCommitDetail(
-                    viewModel: viewModel,
-                    selectedSourceCommit: sourceCommit)
+                SourceCommitDetail(selectedSourceCommit: sourceCommit)
             } else {
                 Text("Select a row to view details.")
             }
 
         case .sourceDeploy:
             if let sourceDeploy = nav.selectedDeploy {
-                SourceDeployDetail(
-                    viewModel: viewModel,
-                    selectedDeploy: sourceDeploy)
+                SourceDeployDetail(selectedDeploy: sourceDeploy)
             } else {
                 Text("Select a row to view details.")
             }
@@ -106,7 +94,14 @@ struct DetailViewForMac: View {
     traits: .fixedLayout(width: 600, height: 3200)
 ){
     DetailViewForMac()
-        .environmentObject(ViewModel())
         .environmentObject(ToastManager())
         .environmentObject(NavigationState())
+        .environmentObject(ErrorViewModel())
+        .environmentObject(EducationViewModel())
+        .environmentObject(CodeViewModel())
+        .environmentObject(BuildViewModel())
+        .environmentObject(PipelineViewModel())
+        .environmentObject(CommitViewModel())
+        .environmentObject(DeployViewModel())
+        .environmentObject(ToastViewModel())
 }

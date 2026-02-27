@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct HomeViewForIOS: View {
-    @EnvironmentObject var viewModel:ViewModel
-
     private let menuItems: [(SlidebarItem, String, Color)] = [
         (.errerlist,    "서비스 오류 로그를 조회합니다",   .red),
         (.goodsInfo,    "상품 정보 이력을 조회합니다",     .orange),
@@ -42,9 +40,9 @@ struct HomeViewForIOS: View {
     @ViewBuilder
     private func destinationView(for item: SlidebarItem) -> some View {
         switch item {
-        case .errerlist: ErrorListViewForIOS(viewModel: viewModel)
-        case .goodsInfo: GoodsListViewIOS(viewModel: viewModel)
-        case .codeList:  CodeListViewIOS(viewModel: viewModel)
+        case .errerlist: ErrorListViewForIOS()
+        case .goodsInfo: GoodsListViewIOS()
+        case .codeList:  CodeListViewIOS()
         default: EmptyView()
         }
     }
