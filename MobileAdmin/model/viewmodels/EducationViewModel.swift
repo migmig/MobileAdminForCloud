@@ -9,7 +9,7 @@ class EducationViewModel: ObservableObject {
 
     func fetchClsLists() async {
         let result = await educationService.fetchClsLists()
-        edcCrseCllist = result.result.edcCrseCl
+        edcCrseCllist = result.edcCrseClAllList ?? []
     }
 
     func fetchClsInfo(edcCrseId: Int) async -> EdcCrseResponse {
