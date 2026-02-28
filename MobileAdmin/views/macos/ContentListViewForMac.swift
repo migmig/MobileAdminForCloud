@@ -17,7 +17,7 @@ struct ContentListViewForMac: View {
     @ViewBuilder
     private func makeSidebar(for item: SlidebarItem) -> some View {
         switch item {
-        case .errerlist:
+        case .errorlist:
             ErrorSidebar(selectedErrorItem: $nav.selectedErrorItem)
 
         case .toast:

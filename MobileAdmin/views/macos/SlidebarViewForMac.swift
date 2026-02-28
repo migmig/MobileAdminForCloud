@@ -10,7 +10,7 @@ import SwiftUI
 enum SlidebarItem: Hashable,CaseIterable{
     static var allCases: [SlidebarItem]{
         return [
-                .errerlist,
+                .errorlist,
                 .toast,
                 .goodsInfo,
                 .gcpClsList,
@@ -21,7 +21,7 @@ enum SlidebarItem: Hashable,CaseIterable{
     }
     static var CloudTools: [SlidebarItem]{
         return [
-            .errerlist,
+            .errorlist,
             .toast,
             .gcpClsList,
             .codeList,
@@ -45,7 +45,7 @@ enum SlidebarItem: Hashable,CaseIterable{
     }
     // Hashable 프로토콜을 준수하도록 변경
 
-    case errerlist,
+    case errorlist,
          toast,
          goodsInfo,
          gcpClsList,
@@ -61,7 +61,7 @@ enum SlidebarItem: Hashable,CaseIterable{
     
     var title: String{
         switch self{
-        case .errerlist:
+        case .errorlist:
             return "오류 조회"
         case .toast:
             return "토스트관리"
@@ -87,7 +87,7 @@ enum SlidebarItem: Hashable,CaseIterable{
     }
     var img: String{
         switch self{
-        case .errerlist:
+        case .errorlist:
             return "exclamationmark.triangle.fill"
         case .toast:
             return "bell.badge"
@@ -112,7 +112,7 @@ enum SlidebarItem: Hashable,CaseIterable{
         }
     }
     static let groups: [(String, [SlidebarItem])] = [
-           ("클라우드", [.errerlist, .codeList]),
+           ("클라우드", [.errorlist, .codeList]),
            ("내부시스템", [.goodsInfo, .closeDeptList]),
            ("개발도구", [.sourceBuild, .sourceDeploy, .sourcePipeline])
        ]

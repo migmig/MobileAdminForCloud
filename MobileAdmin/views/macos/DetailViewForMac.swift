@@ -11,7 +11,7 @@ struct DetailViewForMac: View {
     @ViewBuilder
     private var detailContent: some View {
         switch nav.selectedSidebarItem {
-        case .errerlist:
+        case .errorlist:
             ErrorCloudItemView(
                 errorCloudItem: nav.selectedErrorItem ?? ErrorCloudItem()
             )
