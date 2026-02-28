@@ -36,6 +36,7 @@ struct ContentViewForMac: View {
                     .environmentObject(navigationState)
                     .environmentObject(toastManager)
                     .environmentObject(errorViewModel)
+                    .environmentObject(goodsViewModel)
                     .environmentObject(codeViewModel)
                     .environmentObject(buildViewModel)
                     .environmentObject(pipelineViewModel)
@@ -43,6 +44,7 @@ struct ContentViewForMac: View {
                     .environmentObject(deployViewModel)
                     .environmentObject(educationViewModel)
                     .environmentObject(toastViewModel)
+                    .environmentObject(closeDeptViewModel)
             }
         }
     }
