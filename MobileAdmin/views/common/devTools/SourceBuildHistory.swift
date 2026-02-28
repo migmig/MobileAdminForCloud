@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SourceBuildHistory: View {
-    @ObservedObject var viewModel:ViewModel
+    @EnvironmentObject var buildViewModel: BuildViewModel
     var projectId: Int
     @State var sourceBuildHistoryInfoHistory:[SourceBuildHistoryInfoHistory] = []
     func getBuildColor(status:String) -> Color{
@@ -42,9 +42,7 @@ struct SourceBuildHistory: View {
         }
         .onAppear(){
             Task{
-                let response = await viewModel.fetchSourceBuildHistory(
-                    projectId
-                )
+                let response = await buildViewModel.fetchSourceBuildHistory(projectId)
                 sourceBuildHistoryInfoHistory = response?.result?.history ?? []
             }
         }
@@ -52,6 +50,6 @@ struct SourceBuildHistory: View {
 }
 
 #Preview {
-    SourceBuildHistory(viewModel:ViewModel(),
-                       projectId:3334)
+    SourceBuildHistory(projectId:3334)
+        .environmentObject(BuildViewModel())
 }

@@ -3,7 +3,7 @@ import SwiftUI
 import Logging
 
 struct ToastView: View {
-    @EnvironmentObject var viewModel:ViewModel
+    @EnvironmentObject var toastViewModel: ToastViewModel
     @StateObject var toastManager: ToastManager = ToastManager()
     @Binding var toastItem:Toast
     @State var isLoading: Bool = false // 로딩중
@@ -70,8 +70,8 @@ struct ToastView: View {
                                 .onChange(of: useYn) {
                                     Task{
                                         toastItem.useYn = useYn ? "Y" : "N"
-                                        await viewModel.setNoticeVisible(toastData: toastItem)
-                                        toastItem = await viewModel.fetchToasts()
+                                        await toastViewModel.setNoticeVisible(toastData: toastItem)
+                                        toastItem = await toastViewModel.fetchToasts()
                                         DispatchQueue.main.async{
                                             useYn = (
                                                 toastItem.useYn == "Y"
@@ -91,7 +91,7 @@ struct ToastView: View {
                         // 저장 로직
                         Task{
                             toastItem.noticeCn = strCn.replacingOccurrences(of:"\n", with: "\\n")
-                            await viewModel.setToastData(toastData: toastItem)
+                            await toastViewModel.setToastData(toastData: toastItem)
                             logger.info("저장완료")
                             toastManager.showToast(message:"저장되었습니다.")
                         }
@@ -116,7 +116,7 @@ struct ToastView: View {
             .onAppear{
                 Task{
                     isLoading = true;
-                    toastItem = await viewModel.fetchToasts()
+                    toastItem = await toastViewModel.fetchToasts()
                     useYn = (toastItem.useYn == "Y")
                     strCn = toastItem.noticeCn.replacingOccurrences(of:"\\n", with: "\n")
                     isLoading = false;
@@ -133,7 +133,7 @@ struct ToastView: View {
                 Button(action: {
                     Task{
                         isLoading = true
-                        toastItem = await viewModel.fetchToasts()
+                        toastItem = await toastViewModel.fetchToasts()
                         useYn = (toastItem.useYn == "Y")
                         strCn = toastItem.noticeCn.replacingOccurrences(of:"\\n", with: "\n")
                         isLoading = false
@@ -161,6 +161,6 @@ struct ToastView: View {
         noticeCn: "내용",
         useYn: "Y"
     )))
-        .environmentObject(ViewModel())
+        .environmentObject(ToastViewModel())
 }
 

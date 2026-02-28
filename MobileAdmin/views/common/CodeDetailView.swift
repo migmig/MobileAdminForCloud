@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CodeDetailView: View {
-    @ObservedObject var viewModel: ViewModel
+    @EnvironmentObject var codeViewModel: CodeViewModel
     var cmmnGroupCodeItem: CmmnGroupCodeItem
     @State private var isLoading: Bool = false
     @State private var cmmnCodeItems: [CmmnCodeItem] = []
@@ -49,7 +49,7 @@ struct CodeDetailView: View {
     private func fnSearch() {
         Task {
             withAnimation { isLoading = true }
-            cmmnCodeItems = await viewModel.fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
+            cmmnCodeItems = await codeViewModel.fetchCodeListByGroupCode(cmmnGroupCodeItem.cmmnGroupCode)
             withAnimation { isLoading = false }
         }
     }
@@ -176,7 +176,6 @@ struct CodeDetailView: View {
     traits: .fixedLayout(width: 600, height: 1200)
 ) {
     CodeDetailView(
-        viewModel: ViewModel(),
         cmmnGroupCodeItem: CmmnGroupCodeItem(
             cmmnGroupCode: "8005",
             cmmnGroupCodeNm: "그룹코드명",
@@ -189,4 +188,5 @@ struct CodeDetailView: View {
             groupEstbs7Value: "수정일",
             useAt: "N"
         ))
+    .environmentObject(CodeViewModel())
 }

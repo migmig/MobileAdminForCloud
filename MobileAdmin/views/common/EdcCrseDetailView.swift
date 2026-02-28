@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct EdcCrseDetailView: View {
-    @ObservedObject var viewModel : ViewModel
+    @EnvironmentObject var educationViewModel: EducationViewModel
     var edcCrseClinfo : EdcCrseCl
 
     var body: some View {
@@ -52,7 +52,6 @@ struct EdcCrseDetailView: View {
                     InfoRowCustom(title: "회차정보"){
                         NavigationLink(
                             destination: EdcEducationCrseInfoDetail(
-                                viewModel:viewModel,
                                 edcCrseId: edcCrseClinfo.edcCrseId!
                             )
                         ){
@@ -67,9 +66,6 @@ struct EdcCrseDetailView: View {
 }
 #Preview
 {
-    EdcCrseDetailView(
-        viewModel: ViewModel(),
-        edcCrseClinfo: EdcCrseCl(
-        )
-    )
+    EdcCrseDetailView(edcCrseClinfo: EdcCrseCl())
+        .environmentObject(EducationViewModel())
 }

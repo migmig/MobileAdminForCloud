@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CloseDeptSidebar: View {
-    @ObservedObject var viewModel:ViewModel
+    @EnvironmentObject var closeDeptViewModel: CloseDeptViewModel
     @Binding var list:[Detail1]
     @Binding var selectedCloseDept:Detail1?
     @State var closeGb = "4"
@@ -22,7 +22,7 @@ struct CloseDeptSidebar: View {
     }
 
     private func loadData() async {
-       let closeInfo = await viewModel.fetchCloseDeptList()
+       let closeInfo = await closeDeptViewModel.fetchCloseDeptList()
        list = closeInfo.detail1
    }
 
@@ -91,8 +91,8 @@ struct CloseDeptSidebar: View {
  
 #Preview {
     CloseDeptSidebar(
-        viewModel: ViewModel(),
         list: .constant([]),
         selectedCloseDept: .constant(nil)
     )
+    .environmentObject(CloseDeptViewModel())
 }

@@ -9,7 +9,7 @@ import SwiftUI
 import AVKit
 
 struct EdcEducationCrseInfoDetail: View {
-    @ObservedObject var viewModel : ViewModel
+    @EnvironmentObject var educationViewModel: EducationViewModel
     @State private var crseTmeList:[GcpEdcCrseTmeList] = []
     @StateObject private var videoViewModel = VideoPlayerViewModel()
 //    private let player: AVPlayer
@@ -34,12 +34,10 @@ struct EdcEducationCrseInfoDetail: View {
         }
         .onAppear(){
             Task{
-                let resp:EdcCrseResponse  = await viewModel.fetchClsInfo(
+                let resp:EdcCrseResponse = await educationViewModel.fetchClsInfo(
                     edcCrseId: edcCrseId
                 )
-                
                 crseTmeList = resp.gcpEdcCrseClAndTimeVO.gcpEdcCrseTmeList
-                // crseTmeList loaded
             }
         }
     }

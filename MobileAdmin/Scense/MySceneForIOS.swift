@@ -7,12 +7,19 @@ import LocalAuthentication
 struct MySceneForIOS: Scene {
    let logger = Logger(label:"com.migmig.MobileAdmin.MyScene")
    @AppStorage("serverType") var serverType:EnvironmentType = .local
-   @StateObject private var viewModel = ViewModel()
-   @State var toast:Toast = Toast(applcBeginDt: nil, applcEndDt: nil, noticeHder: "", noticeSj: "", noticeCn: "", useYn: "")
-   @State var edcCrseCl:[EdcCrseCl] = []
-   @State var selectedEdcCrseCl:EdcCrseCl = .init()
-   @State private var isLoading: Bool = false
-   @State private var selectedTab: Int = 0 // 현재 선택된 탭
+   // 도메인별 ViewModel (각자 필요한 상태만 관리)
+   @StateObject private var errorViewModel     = ErrorViewModel()
+   @StateObject private var goodsViewModel     = GoodsViewModel()
+   @StateObject private var codeViewModel      = CodeViewModel()
+   @StateObject private var buildViewModel     = BuildViewModel()
+   @StateObject private var pipelineViewModel  = PipelineViewModel()
+   @StateObject private var commitViewModel    = CommitViewModel()
+   @StateObject private var deployViewModel    = DeployViewModel()
+   @StateObject private var educationViewModel = EducationViewModel()
+   @StateObject private var toastViewModel     = ToastViewModel()
+   @StateObject private var closeDeptViewModel = CloseDeptViewModel()
+
+   @State private var selectedTab: Int = 0
    @State private var isAuthenticated = false
    @State private var authenticationMessage = ""
    @Query var allEnvironment: [EnvironmentModel]
@@ -77,7 +84,16 @@ struct MySceneForIOS: Scene {
                                        Label(tabItem.1, systemImage: tabItem.2)
                                    }
                                    .tag(tabItem.0)
-                                   .environmentObject(viewModel)
+                                   .environmentObject(errorViewModel)
+                                   .environmentObject(goodsViewModel)
+                                   .environmentObject(codeViewModel)
+                                   .environmentObject(buildViewModel)
+                                   .environmentObject(pipelineViewModel)
+                                   .environmentObject(commitViewModel)
+                                   .environmentObject(deployViewModel)
+                                   .environmentObject(educationViewModel)
+                                   .environmentObject(toastViewModel)
+                                   .environmentObject(closeDeptViewModel)
                            }
                        }
                        .ignoresSafeArea()

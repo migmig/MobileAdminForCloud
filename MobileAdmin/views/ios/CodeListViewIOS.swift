@@ -1,14 +1,7 @@
-//
-//  CodeListViewIOS.swift
-//  MobileAdmin
-//
-//  Created by mig_mac_air_m2 on 11/19/24.
-//
-
 import SwiftUI
 
 struct CodeListViewIOS: View {
-    @ObservedObject var viewModel: ViewModel
+    @EnvironmentObject var codeViewModel: CodeViewModel
     @State private var cmmnGroupCodeItems: [CmmnGroupCodeItem] = []
     @State private var isLoading = false
     @State private var searchText: String = ""
@@ -27,7 +20,7 @@ struct CodeListViewIOS: View {
 
     private func loadData() async {
         isLoading = true
-        cmmnGroupCodeItems = await viewModel.fetchGroupCodeLists()
+        cmmnGroupCodeItems = await codeViewModel.fetchGroupCodeLists()
         isLoading = false
     }
 
@@ -48,9 +41,7 @@ struct CodeListViewIOS: View {
                             count: count(for: filter.code),
                             isSelected: useAtFilter == filter.code,
                             color: UseAtStatus.color(for: filter.code == "all" ? "Y" : filter.code),
-                            action: {
-                                withAnimation { useAtFilter = filter.code }
-                            }
+                            action: { withAnimation { useAtFilter = filter.code } }
                         )
                     }
                 }
@@ -58,7 +49,6 @@ struct CodeListViewIOS: View {
                 .padding(.vertical, AppSpacing.sm)
             }
 
-            // MARK: - 결과 건수
             HStack {
                 Text("\(filteredList.count)건")
                     .font(AppFont.caption)
@@ -68,22 +58,19 @@ struct CodeListViewIOS: View {
             .padding(.horizontal, AppSpacing.lg)
             .padding(.bottom, AppSpacing.xs)
 
-            // MARK: - 리스트
             List {
                 if isLoading {
                     HStack {
                         Spacer()
-                        ProgressView()
-                            .controlSize(.small)
+                        ProgressView().controlSize(.small)
                         Text("로딩 중...")
                             .font(AppFont.caption)
                             .foregroundColor(.secondary)
                         Spacer()
                     }
                 }
-
                 ForEach(filteredList, id: \.self) { item in
-                    NavigationLink(destination: CodeDetailView(viewModel: viewModel, cmmnGroupCodeItem: item)) {
+                    NavigationLink(destination: CodeDetailView(cmmnGroupCodeItem: item)) {
                         GroupCodeListItem(item: item)
                     }
                 }
@@ -98,13 +85,11 @@ struct CodeListViewIOS: View {
                 }
             }
             .searchable(text: $searchText, placement: .automatic)
-            .refreshable {
-                await loadData()
-            }
+            .refreshable { await loadData() }
         }
         .navigationTitle("코드 조회")
         .loadingTask(isLoading: $isLoading) {
-            cmmnGroupCodeItems = await viewModel.fetchGroupCodeLists()
+            cmmnGroupCodeItems = await codeViewModel.fetchGroupCodeLists()
         }
     }
 }
@@ -150,6 +135,7 @@ struct GroupCodeListItem: View {
 
 #Preview {
     NavigationStack {
-        CodeListViewIOS(viewModel: ViewModel())
+        CodeListViewIOS()
+            .environmentObject(CodeViewModel())
     }
 }

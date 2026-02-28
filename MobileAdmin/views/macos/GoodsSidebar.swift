@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct GoodsSidebar: View {
-    @ObservedObject var viewModel:ViewModel = ViewModel()
+    @EnvironmentObject var goodsViewModel: GoodsViewModel
     @Binding var selectedGoods:Goodsinfo?
     @State   var isLoading:Bool = false
     @State var dateFrom:Date = Date()
     @State var dateTo:Date = Date()
     @State private var arrGoods:[String] = []
     @State private var selectedGoodsCd:[String] = []
+    @State private var goodsItems:[Goodsinfo] = []
     @State private var filteredGoodsItems:[Goodsinfo] = []
     @State private var searchText:String = ""
     
@@ -34,18 +35,18 @@ struct GoodsSidebar: View {
                    isLoading: $isLoading,
                    clearAction:{
                         selectedGoodsCd.removeAll()
-            
+
                     }
         ){
-            viewModel.goodsItems = await viewModel.fetchGoods(dateFrom, dateTo) ?? []
-            let arr  = Set(viewModel.goodsItems.flatMap{item in
+            goodsItems = await goodsViewModel.fetchGoods(dateFrom, dateTo) ?? []
+            let arr  = Set(goodsItems.flatMap{item in
                 item.goods.map{$0.goodsCd}
             })
             arrGoods = Array(arr)
             if searchText.isEmpty {
-                filteredGoodsItems = viewModel.goodsItems
+                filteredGoodsItems = goodsItems
             }else{
-                filteredGoodsItems = viewModel.goodsItems.filter{item in
+                filteredGoodsItems = goodsItems.filter{item in
                     item.userId?.localizedCaseInsensitiveContains(searchText) == true
                 }
             }
@@ -60,7 +61,7 @@ struct GoodsSidebar: View {
             arrGoods: $arrGoods,
             selectedGoodsCd: $selectedGoodsCd,
             filteredGoodsItems: $filteredGoodsItems,
-            goodsItems: $viewModel.goodsItems
+            goodsItems: $goodsItems
         )
         .padding(.horizontal)
         
@@ -70,9 +71,9 @@ struct GoodsSidebar: View {
                 Button("Clear"){
                     selectedGoodsCd = []
                     if searchText.isEmpty {
-                        filteredGoodsItems = viewModel.goodsItems
+                        filteredGoodsItems = goodsItems
                     }else{
-                        filteredGoodsItems = viewModel.goodsItems.filter{item in
+                        filteredGoodsItems = goodsItems.filter{item in
                             item.userId?.localizedCaseInsensitiveContains(searchText) == true
                         }
                     }
@@ -119,4 +120,5 @@ struct GoodsSidebar: View {
     GoodsSidebar(
         selectedGoods: .constant(Goodsinfo("UT000000", "20111104"))
     )
+    .environmentObject(GoodsViewModel())
 }

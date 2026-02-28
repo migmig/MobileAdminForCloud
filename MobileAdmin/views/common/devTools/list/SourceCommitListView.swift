@@ -1,26 +1,15 @@
-//
-//  SourceBuildListViewIOS.swift
-//  MobileAdmin
-//
-//  Created by mig_mac_air_m2 on 1/14/25.
-//
-
 import SwiftUI
 
 struct SourceCommitListView: View {
-    @ObservedObject var viewModel:ViewModel
-    @Binding var selectedCommit:SourceCommitInfoRepository?
-    @State var searchText:String = ""
+    @EnvironmentObject var commitViewModel: CommitViewModel
+    @Binding var selectedCommit: SourceCommitInfoRepository?
+
     var body: some View {
-           // VStack{
-        List(selection: $selectedCommit){
-            ForEach(viewModel.sourceCommitInfoRepository, id:\.id){ item in
+        List(selection: $selectedCommit) {
+            ForEach(commitViewModel.sourceCommitInfoRepository, id: \.id) { item in
                 #if os(iOS)
-                NavigationLink(destination:{
-                    SourceCommitDetail(viewModel:viewModel,
-                                       selectedSourceCommit: item)
-                }){
-                    HStack{
+                NavigationLink(destination: SourceCommitDetail(selectedSourceCommit: item)) {
+                    HStack {
                         Image(systemName: SlidebarItem.sourceCommit.img)
                             .foregroundColor(AppColor.link)
                         Text(item.name)
@@ -28,8 +17,8 @@ struct SourceCommitListView: View {
                 }
                 #endif
                 #if os(macOS)
-                NavigationLink(value: item){
-                    HStack{
+                NavigationLink(value: item) {
+                    HStack {
                         Image(systemName: SlidebarItem.sourceCommit.img)
                             .foregroundColor(AppColor.link)
                         Text(item.name)
@@ -37,34 +26,22 @@ struct SourceCommitListView: View {
                 }
                 #endif
             }
-#if os(macOS)
-.font(AppFont.sidebarItem)
-#endif
-                }
-                 
-            //}
-            .navigationTitle("소스커밋목록")
-//            .onChange(of: selectedSourceCommitInfoRepository?.id) {_, newValue in
-//            }
-            .onAppear(){
-                if viewModel.sourceCommitInfoRepository.isEmpty {
-                    Task{
-                        let repoInfo = await viewModel.fetchSourceCommitList()
-                        
-                        await MainActor.run{
-                            viewModel.sourceCommitInfoRepository = repoInfo.result.repository
-                                .sorted(by: {$0.id  < $1.id  })
-                        }
-                         
-                    }
-                }
+            #if os(macOS)
+            .font(AppFont.sidebarItem)
+            #endif
+        }
+        .navigationTitle("소스커밋목록")
+        .onAppear {
+            if commitViewModel.sourceCommitInfoRepository.isEmpty {
+                Task { await commitViewModel.fetchSourceCommitList() }
             }
-        //}
+        }
     }
 }
- 
-#Preview{
-    NavigationStack{
-        SourceCommitListView(viewModel: ViewModel(), selectedCommit: .constant(nil))
+
+#Preview {
+    NavigationStack {
+        SourceCommitListView(selectedCommit: .constant(nil))
+            .environmentObject(CommitViewModel())
     }
 }

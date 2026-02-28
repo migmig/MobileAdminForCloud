@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ContentListViewForMac: View {
-    @EnvironmentObject var viewModel: ViewModel
     @EnvironmentObject var nav: NavigationState
     @State private var isLoading: Bool = false
 
@@ -19,8 +18,7 @@ struct ContentListViewForMac: View {
     private func makeSidebar(for item: SlidebarItem) -> some View {
         switch item {
         case .errerlist:
-            ErrorSidebar(viewModel: viewModel,
-                         selectedErrorItem: $nav.selectedErrorItem)
+            ErrorSidebar(selectedErrorItem: $nav.selectedErrorItem)
 
         case .toast:
             List {
@@ -37,43 +35,26 @@ struct ContentListViewForMac: View {
             GoodsSidebar(selectedGoods: $nav.selectedGoods)
 
         case .gcpClsList:
-            EdcClsSidebar(viewModel: viewModel,
-                          edcCrseCl: $nav.edcCrseCl,
-                          selectedEdcCrseCl: $nav.selectedEdcCrseCl)
+            EdcClsSidebar(selectedEdcCrseCl: $nav.selectedEdcCrseCl)
 
         case .codeList:
-            GroupCodesSidebar(viewModel: viewModel,
-                              groupCodes: $nav.groupCodes,
-                              selectedGroupCode: $nav.selectedGroupCode)
+            GroupCodesSidebar(selectedGroupCode: $nav.selectedGroupCode)
 
         case .closeDeptList:
-            CloseDeptSidebar(viewModel: viewModel,
-                             list: $nav.closeDeptList,
+            CloseDeptSidebar(list: $nav.closeDeptList,
                              selectedCloseDept: $nav.selectedCloseDept)
 
         case .sourceCommit:
-            SourceCommitListView(
-                viewModel: viewModel,
-                selectedCommit: $nav.selectedCommit
-            )
+            SourceCommitListView(selectedCommit: $nav.selectedCommit)
 
         case .sourceBuild:
-            SourceBuildListView(
-                viewModel: viewModel,
-                selected: $nav.selectedBuild
-            )
+            SourceBuildListView(selected: $nav.selectedBuild)
 
         case .sourceDeploy:
-            SourceDeployListView(
-                viewModel: viewModel,
-                selectedDeploy: $nav.selectedDeploy
-            )
+            SourceDeployListView(selectedDeploy: $nav.selectedDeploy)
 
         case .sourcePipeline:
-            SourcePipelineListView(
-                viewModel: viewModel,
-                selectedPipeline: $nav.selectedPipeline
-            )
+            SourcePipelineListView(selectedPipeline: $nav.selectedPipeline)
 
         default:
             Text("알 수 없는 항목입니다.")
@@ -83,6 +64,14 @@ struct ContentListViewForMac: View {
 
 #Preview {
     ContentListViewForMac()
-        .environmentObject(ViewModel())
         .environmentObject(NavigationState())
+        .environmentObject(ErrorViewModel())
+        .environmentObject(GoodsViewModel())
+        .environmentObject(CodeViewModel())
+        .environmentObject(EducationViewModel())
+        .environmentObject(CloseDeptViewModel())
+        .environmentObject(BuildViewModel())
+        .environmentObject(PipelineViewModel())
+        .environmentObject(CommitViewModel())
+        .environmentObject(DeployViewModel())
 }

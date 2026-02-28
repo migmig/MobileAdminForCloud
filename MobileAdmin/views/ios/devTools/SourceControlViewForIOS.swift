@@ -8,20 +8,18 @@
 import SwiftUI
 
 struct SourceControlViewForIOS: View {
-    @EnvironmentObject var viewModel:ViewModel
-    @State var selectedPipeline:SourceInfoProjectInfo?
-    @State var selectedBuild:SourceBuildProject?
-    @State var selectedDeploy:SourceInfoProjectInfo?
-    @State var selectedCommit:SourceCommitInfoRepository?
+    @State var selectedPipeline: SourceInfoProjectInfo?
+    @State var selectedBuild: SourceBuildProject?
+    @State var selectedDeploy: SourceInfoProjectInfo?
 
     private var menuItems: [(SlidebarItem, String, Color, AnyView)] {
         [
             (.sourceBuild,    "빌드 프로젝트를 관리합니다",   .blue,
-             AnyView(SourceBuildListView(viewModel: viewModel, selected: $selectedBuild))),
+             AnyView(SourceBuildListView(selected: $selectedBuild))),
             (.sourceDeploy,   "배포 스테이지를 관리합니다",   .green,
-             AnyView(SourceDeployListView(viewModel: viewModel, selectedDeploy: $selectedDeploy))),
+             AnyView(SourceDeployListView(selectedDeploy: $selectedDeploy))),
             (.sourcePipeline, "파이프라인 이력을 조회합니다", .purple,
-             AnyView(SourcePipelineListView(viewModel: viewModel, selectedPipeline: $selectedPipeline))),
+             AnyView(SourcePipelineListView(selectedPipeline: $selectedPipeline))),
         ]
     }
 
@@ -49,8 +47,10 @@ struct SourceControlViewForIOS: View {
     }
 }
 
-#Preview(
-) {
-    SourceControlViewForIOS().environmentObject(ViewModel() )
+#Preview {
+    SourceControlViewForIOS()
+        .environmentObject(BuildViewModel())
+        .environmentObject(DeployViewModel())
+        .environmentObject(PipelineViewModel())
 }
  

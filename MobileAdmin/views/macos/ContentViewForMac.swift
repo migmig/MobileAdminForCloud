@@ -1,7 +1,16 @@
 import SwiftUI
 
 struct ContentViewForMac: View {
-    @StateObject var viewModel: ViewModel = ViewModel()
+    @StateObject private var errorViewModel     = ErrorViewModel()
+    @StateObject private var goodsViewModel     = GoodsViewModel()
+    @StateObject private var codeViewModel      = CodeViewModel()
+    @StateObject private var buildViewModel     = BuildViewModel()
+    @StateObject private var pipelineViewModel  = PipelineViewModel()
+    @StateObject private var commitViewModel    = CommitViewModel()
+    @StateObject private var deployViewModel    = DeployViewModel()
+    @StateObject private var educationViewModel = EducationViewModel()
+    @StateObject private var toastViewModel     = ToastViewModel()
+    @StateObject private var closeDeptViewModel = CloseDeptViewModel()
     @StateObject var navigationState: NavigationState = NavigationState()
     @ObservedObject var toastManager: ToastManager
 
@@ -10,14 +19,32 @@ struct ContentViewForMac: View {
             SlidebarViewForMac(selection: $navigationState.selectedSidebarItem)
         } content: {
             ContentListViewForMac()
-                .environmentObject(viewModel)
                 .environmentObject(navigationState)
+                .environmentObject(errorViewModel)
+                .environmentObject(goodsViewModel)
+                .environmentObject(codeViewModel)
+                .environmentObject(buildViewModel)
+                .environmentObject(pipelineViewModel)
+                .environmentObject(commitViewModel)
+                .environmentObject(deployViewModel)
+                .environmentObject(educationViewModel)
+                .environmentObject(toastViewModel)
+                .environmentObject(closeDeptViewModel)
         } detail: {
             NavigationStack {
                 DetailViewForMac()
-                    .environmentObject(viewModel)
                     .environmentObject(navigationState)
                     .environmentObject(toastManager)
+                    .environmentObject(errorViewModel)
+                    .environmentObject(goodsViewModel)
+                    .environmentObject(codeViewModel)
+                    .environmentObject(buildViewModel)
+                    .environmentObject(pipelineViewModel)
+                    .environmentObject(commitViewModel)
+                    .environmentObject(deployViewModel)
+                    .environmentObject(educationViewModel)
+                    .environmentObject(toastViewModel)
+                    .environmentObject(closeDeptViewModel)
             }
         }
     }

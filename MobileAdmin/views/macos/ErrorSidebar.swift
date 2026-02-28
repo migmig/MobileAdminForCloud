@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ErrorSidebar: View {
-    @ObservedObject var viewModel:ViewModel
+    @EnvironmentObject var errorViewModel: ErrorViewModel
     @Binding var selectedErrorItem:ErrorCloudItem?
     @State private var searchText = ""
     @State var isLoading:Bool = false
@@ -25,10 +25,10 @@ struct ErrorSidebar: View {
 
    var filteredErrorItems: [ErrorCloudItem] {
        if searchText.isEmpty {
-           return viewModel.errorItems
+           return errorViewModel.errorItems
        } else {
            let query = searchText.lowercased()
-           return viewModel.errorItems.filter { item in
+           return errorViewModel.errorItems.filter { item in
                item.description?.localizedCaseInsensitiveContains(query) == true
                || item.msg?.localizedCaseInsensitiveContains(query) == true
                || item.code?.localizedCaseInsensitiveContains(query) == true
@@ -46,9 +46,7 @@ struct ErrorSidebar: View {
                        isLoading: $isLoading,
                        clearAction: {searchText = ""}){
                 Task{
-                        let errorItems = await viewModel.fetchErrors(startFrom: dateFrom,
-                                                                     endTo:  dateTo) ?? []
-                        viewModel.errorItems = errorItems
+                    await errorViewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo)
                 }
             }
             .padding()
@@ -164,7 +162,7 @@ struct ErrorSidebar: View {
                 #if os(macOS)
                 .navigationSubtitle(searchText.isEmpty
                     ? "  \(filteredErrorItems.count)개의 오류"
-                    : "  \(filteredErrorItems.count)/\(viewModel.errorItems.count)개의 오류"
+                    : "  \(filteredErrorItems.count)/\(errorViewModel.errorItems.count)개의 오류"
                 )
                 #endif
                 .navigationSplitViewColumnWidth(min:200,ideal: 200)
@@ -172,11 +170,10 @@ struct ErrorSidebar: View {
                 .navigationBarTitleDisplayMode(.inline)
                 #endif
                 .loadingTask(isLoading: $isLoading) {
-                    let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
-                    viewModel.errorItems = errorItems
+                    await errorViewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo)
                 }
-                .onChange(of:viewModel.errorItems){_,_ in
-                    proxy.scrollTo(viewModel.errorItems.first, anchor: .top)
+                .onChange(of: errorViewModel.errorItems) { _, _ in
+                    proxy.scrollTo(errorViewModel.errorItems.first, anchor: .top)
                 }
             }
         }
@@ -184,8 +181,7 @@ struct ErrorSidebar: View {
 
     private func fetchErrors() async {
         isLoading = true
-        let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
-        viewModel.errorItems = errorItems
+        await errorViewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo)
         isLoading = false
     }
 
@@ -194,7 +190,7 @@ struct ErrorSidebar: View {
         isDownloadingLog = true
         Task {
             do {
-                let fileURL = try await viewModel.downloadUserLog(userIdForLog)
+                let fileURL = try await errorViewModel.downloadUserLog(userIdForLog)
                 #if os(macOS)
                 NSWorkspace.shared.open(fileURL)
                 #endif
@@ -215,8 +211,7 @@ struct ErrorSidebar: View {
                 isFetching = true
                 timerProgress = 0
                 Task { @MainActor in
-                    let errorItems = await viewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo) ?? []
-                    viewModel.errorItems = errorItems
+                    await errorViewModel.fetchErrors(startFrom: dateFrom, endTo: dateTo)
                     isFetching = false
                 }
             }
@@ -230,10 +225,7 @@ struct ErrorSidebar: View {
         isFetching = false
     }
 }
- #Preview {
-    ErrorSidebar(
-        viewModel: ViewModel(),
-        selectedErrorItem: .constant(nil
-        )
-    )
+#Preview {
+    ErrorSidebar(selectedErrorItem: .constant(nil))
+        .environmentObject(ErrorViewModel())
 }
