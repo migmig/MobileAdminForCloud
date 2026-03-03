@@ -4,17 +4,19 @@ struct ErrorCloudListItem: View {
     let errorCloudItem: ErrorCloudItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
             // 에러 메시지
             HStack(alignment: .top, spacing: AppSpacing.sm) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(AppColor.error)
                     .font(AppFont.listTitle)
                     .accessibilityHidden(true)
+                    .padding(.top, 2) // 약간 내려서 첫 번째 줄과 정렬
 
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     Text(errorCloudItem.description ?? errorCloudItem.msg ?? "Unknown Error")
                         .font(AppFont.listTitle)
+                        .fontWeight(.semibold)
                         .lineLimit(2)
                         .truncationMode(.tail)
                         .foregroundColor(.primary)
@@ -22,7 +24,7 @@ struct ErrorCloudListItem: View {
                     // REST URL
                     if let restUrl = errorCloudItem.restUrl, !restUrl.isEmpty {
                         Text(restUrl)
-                            .font(AppFont.mono)
+                            .font(AppFont.caption)
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .foregroundColor(.secondary)
@@ -55,6 +57,7 @@ struct ErrorCloudListItem: View {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "clock")
                         .font(AppFont.captionSmall)
+                        .foregroundStyle(.tertiary)
                     Text(Util.formattedDate(errorCloudItem.registerDt ?? "").prefix(19))
                         .font(AppFont.caption)
                         .monospacedDigit()
@@ -65,6 +68,7 @@ struct ErrorCloudListItem: View {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "person.circle")
                         .font(AppFont.captionSmall)
+                        .foregroundStyle(.tertiary)
                     Text(errorCloudItem.userId ?? "N/A")
                         .font(AppFont.caption)
                         .fontWeight(.medium)
@@ -73,7 +77,7 @@ struct ErrorCloudListItem: View {
             }
             .padding(.bottom, AppSpacing.xxs)
         }
-        .padding(.vertical, AppSpacing.xs)
+        .padding(.vertical, AppSpacing.sm)
     }
 }
 
