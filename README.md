@@ -132,8 +132,14 @@ MobileAdminApp -> MySceneForMacOS -> NavigationSplitView (3-단)
 이는 네이티브 Xcode 프로젝트입니다 (SPM, CocoaPods, Carthage 사용 안함). 다음 명령어로 빌드합니다:
 
 ```bash
+빌드 시 `ADMIN_CI` 환경 변수를 주입해야 합니다. (보안상의 이유로 소스코드에 하드코딩되지 않습니다)
+
+```bash
 # 빌드 (Xcode 및 macOS 필요)
-xcodebuild -project MobileAdmin.xcodeproj -scheme MobileAdmin -destination 'platform=iOS Simulator,name=iPhone 16'
+xcodebuild -project MobileAdmin.xcodeproj \
+  -scheme MobileAdmin \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  ADMIN_CI="여기에_실제_adminCI_토큰_입력"
 
 # 테스트 실행
 xcodebuild test -project MobileAdmin.xcodeproj -scheme MobileAdmin -testPlan MobileAdmin -destination 'platform=iOS Simulator,name=iPhone 16'
@@ -206,7 +212,7 @@ xcodebuild test -project MobileAdmin.xcodeproj -scheme MobileAdmin -testPlan Mob
 
 ## 보안 고려사항
 
-- **adminCI** 자격 증명은 `Info.plist`에 포함되어 있음 (Base64 인코딩) - 노출하지 말 것
+- **adminCI** 자격 증명은 소스 코드에 저장되지 않습니다. 대신 `Info.plist`에는 `$(ADMIN_CI)` 변수가 설정되어 있으며, 빌드 시 `xcconfig` 파일이나 `xcodebuild` 명령어를 통해 환경 변수(`ADMIN_CI`)로 주입해야 합니다.
 - JWT 토큰은 정적 메모리에 유지됨 (디스크에 영구 저장되지 않음)
 - ATS 설정에 `NSAllowsArbitraryLoads = true` 포함 (일반 HTTP 허용 - 로컬/개발 환경에 필요)
 - iOS에서는 생체 인증을 통해 앱 접근 제어

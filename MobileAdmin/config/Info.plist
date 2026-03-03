@@ -10,6 +10,6 @@
 	<key>UIBackgroundModes</key>
 	<array/>
 	<key>adminCI</key>
-	<string>QQi4nORX5GzJXq2YWfre9HpW8UkAd0F4AuxQsd2a/hb1JSRnfzk+b+vqTKjQhcVOZNXCLaIQyNF6yKxihjrQlw==</string>
+	<string>$(ADMIN_CI)</string>
 </dict>
 </plist>
