@@ -12,6 +12,10 @@ struct CodeDetailView: View {
     @State private var isLoading: Bool = false
     @State private var cmmnCodeItems: [CmmnCodeItem] = []
 
+    // MARK: - 정렬 상태
+    @State private var sortColumn: String? = nil
+    @State private var sortAscending: Bool = true
+
     // MARK: - 동적 기타항목 컬럼
     private var activeExtraColumns: [(String, KeyPath<CmmnCodeItem, String>)] {
         let all: [(String?, KeyPath<CmmnCodeItem, String>)] = [
@@ -126,6 +130,51 @@ struct CodeDetailView: View {
         .cornerRadius(AppRadius.lg)
     }
 
+    // MARK: - 정렬 헬퍼 함수
+    private func toggleSort(column: String) {
+        if sortColumn == column {
+            sortAscending.toggle()
+        } else {
+            sortColumn = column
+            sortAscending = true
+        }
+    }
+
+    private func sortIndicator(for column: String) -> some View {
+        Group {
+            if sortColumn == column {
+                Image(systemName: sortAscending ? "arrow.up" : "arrow.down")
+                    .font(.caption2)
+            }
+        }
+    }
+
+    // MARK: - 정렬된 데이터
+    private var sortedCmmnCodeItems: [CmmnCodeItem] {
+        guard let sortCol = sortColumn else { return cmmnCodeItems }
+
+        return cmmnCodeItems.sorted { item1, item2 in
+            let isAsc = sortAscending
+
+            switch sortCol {
+            case "코드":
+                return isAsc ? item1.cmmnCode < item2.cmmnCode : item1.cmmnCode > item2.cmmnCode
+            case "코드명":
+                return isAsc ? item1.cmmnCodeNm < item2.cmmnCodeNm : item1.cmmnCodeNm > item2.cmmnCodeNm
+            case "사용여부":
+                return isAsc ? item1.useAt < item2.useAt : item1.useAt > item2.useAt
+            default:
+                // 동적 컬럼(기타항목) 정렬
+                if let matchedColumn = activeExtraColumns.first(where: { $0.0 == sortCol }) {
+                    let val1 = item1[keyPath: matchedColumn.1]
+                    let val2 = item2[keyPath: matchedColumn.1]
+                    return isAsc ? val1 < val2 : val1 > val2
+                }
+                return false
+            }
+        }
+    }
+
     // MARK: - 상세코드 테이블
     private var codeTable: some View {
         CardView(title: "상세코드 (\(cmmnCodeItems.count)건)", systemImage: "tablecells") {
@@ -133,11 +182,42 @@ struct CodeDetailView: View {
                 VStack(spacing: 0) {
                     // 헤더
                     HStack {
-                        Text("코드").frame(width: 100)
-                        Text("코드명").frame(width: 200)
-                        Text("사용여부").frame(width: 80)
+                        Button(action: { toggleSort(column: "코드") }) {
+                            HStack {
+                                Text("코드")
+                                sortIndicator(for: "코드")
+                            }
+                        }
+                        .frame(width: 100)
+                        .foregroundColor(.primary)
+
+                        Button(action: { toggleSort(column: "코드명") }) {
+                            HStack {
+                                Text("코드명")
+                                sortIndicator(for: "코드명")
+                            }
+                        }
+                        .frame(width: 200)
+                        .foregroundColor(.primary)
+
+                        Button(action: { toggleSort(column: "사용여부") }) {
+                            HStack {
+                                Text("사용여부")
+                                sortIndicator(for: "사용여부")
+                            }
+                        }
+                        .frame(width: 80)
+                        .foregroundColor(.primary)
+
                         ForEach(activeExtraColumns, id: \.0) { header, _ in
-                            Text(header).frame(width: 150)
+                            Button(action: { toggleSort(column: header) }) {
+                                HStack {
+                                    Text(header)
+                                    sortIndicator(for: header)
+                                }
+                            }
+                            .frame(width: 150)
+                            .foregroundColor(.primary)
                         }
                     }
                     .fontWeight(.bold)
@@ -145,11 +225,12 @@ struct CodeDetailView: View {
                     .padding(.vertical, AppSpacing.sm)
                     .tertiaryBackground()
                     .cornerRadius(AppRadius.sm)
+                    .buttonStyle(.plain)
 
                     Divider()
 
                     // 데이터 행
-                    ForEach(Array(cmmnCodeItems.enumerated()), id: \.element.id) { index, item in
+                    ForEach(Array(sortedCmmnCodeItems.enumerated()), id: \.element.id) { index, item in
                         HStack {
                             Text(item.cmmnCode)
                                 .fontWeight(.medium)
