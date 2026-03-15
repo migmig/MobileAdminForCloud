@@ -139,11 +139,12 @@ class Util{
         let outputFormatter = DateFormatter()
         outputFormatter.dateFormat = "yyyy-MM-dd"
         
-        if(input == nil){
+        guard let input, !input.isEmpty else {
             return ""
         }
+
         // 입력 문자열을 Date 객체로 변환
-        if let date = inputFormatter.date(from: input!) {
+        if let date = inputFormatter.date(from: input) {
             // Date 객체를 yyyy-MM-dd 형식의 문자열로 변환
             return outputFormatter.string(from: date)
         } else {
