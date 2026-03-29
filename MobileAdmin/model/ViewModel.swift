@@ -245,12 +245,21 @@ class ViewModel: ObservableObject {
             kubernetesError = nil
         } catch {
             isKubectlAvailable = false
+            kubeContexts = []
+            kubeNamespaces = []
+            kubePods = []
+            kubeDeployments = []
+            kubeServices = []
+            kubeConfigMaps = []
+            kubeSecrets = []
+            clearSelectedKubernetesResources()
             kubernetesError = error.localizedDescription
         }
     }
 
     @MainActor
     func switchKubernetesContext(to name: String) async {
+        let previousContext = selectedKubeContext
         do {
             try await kubernetesService.useContext(name)
             selectedKubeContext = name
@@ -259,6 +268,7 @@ class ViewModel: ObservableObject {
             resetKubernetesOperationalState()
             await refreshKubernetesOverview()
         } catch {
+            selectedKubeContext = previousContext
             kubernetesError = error.localizedDescription
         }
     }
@@ -339,6 +349,7 @@ class ViewModel: ObservableObject {
             selectedPodLogs = try await kubernetesService.fetchPodLogs(name: selectedKubePod.name, namespace: selectedKubeNamespace)
             kubernetesError = nil
         } catch {
+            selectedPodLogs = ""
             kubernetesError = error.localizedDescription
         }
     }

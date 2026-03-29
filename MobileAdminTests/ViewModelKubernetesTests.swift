@@ -20,6 +20,11 @@ final class StubKubernetesService: KubernetesServicing {
     var switchedContexts: [String] = []
     var fetchedRolloutStatuses: [(namespace: String, name: String)] = []
     var fetchedEventsRequests: [(namespace: String, resourceKind: String, resourceName: String)] = []
+    var useContextError: Error?
+    var rolloutStatusError: Error?
+    var eventsError: Error?
+    var checkAvailabilityError: Error?
+    var podLogsError: Error?
 
     init(
         currentContext: String = "",
@@ -47,10 +52,16 @@ final class StubKubernetesService: KubernetesServicing {
         self.logs = logs
     }
 
-    func checkAvailability() async throws {}
+    func checkAvailability() async throws {
+        if let checkAvailabilityError { throw checkAvailabilityError }
+    }
     func fetchCurrentContext() async throws -> String { currentContext }
     func fetchContexts() async throws -> [KubernetesContextInfo] { contexts }
-    func useContext(_ name: String) async throws { switchedContexts.append(name); currentContext = name }
+    func useContext(_ name: String) async throws {
+        if let useContextError { throw useContextError }
+        switchedContexts.append(name)
+        currentContext = name
+    }
     func fetchNamespaces() async throws -> [KubernetesNamespaceInfo] { namespaces }
     func fetchPods(namespace: String) async throws -> [KubernetesPodInfo] { pods }
     func fetchDeployments(namespace: String) async throws -> [KubernetesDeploymentInfo] { deployments }
@@ -58,14 +69,19 @@ final class StubKubernetesService: KubernetesServicing {
     func fetchConfigMaps(namespace: String) async throws -> [KubernetesConfigMapInfo] { configMaps }
     func fetchSecrets(namespace: String) async throws -> [KubernetesSecretInfo] { secrets }
     func fetchRolloutStatus(deployment: String, namespace: String) async throws -> String {
+        if let rolloutStatusError { throw rolloutStatusError }
         fetchedRolloutStatuses.append((namespace, deployment))
         return rolloutStatus
     }
     func fetchEvents(namespace: String, resourceKind: String, resourceName: String) async throws -> [KubernetesEventInfo] {
+        if let eventsError { throw eventsError }
         fetchedEventsRequests.append((namespace, resourceKind, resourceName))
         return events
     }
-    func fetchPodLogs(name: String, namespace: String) async throws -> String { logs }
+    func fetchPodLogs(name: String, namespace: String) async throws -> String {
+        if let podLogsError { throw podLogsError }
+        return logs
+    }
     func scaleDeployment(name: String, namespace: String, replicas: Int) async throws { scaledDeployments.append((namespace, name, replicas)) }
     func rolloutRestartDeployment(name: String, namespace: String) async throws { restartedDeployments.append((namespace, name)) }
     func deletePod(name: String, namespace: String) async throws { deletedPods.append((namespace, name)) }
@@ -182,5 +198,120 @@ struct ViewModelKubernetesTests {
         #expect(viewModel.selectedKubeNamespace == "prod")
         #expect(viewModel.selectedRolloutStatus.isEmpty)
         #expect(viewModel.kubeEvents.isEmpty)
+    }
+
+    @Test func loadSelectedDeploymentOperationalDetails_whenEventsFail_clearsRolloutAndEvents_setsError_stopsLoading() async {
+        let service = StubKubernetesService(
+            rolloutStatus: "deployment \"api\" successfully rolled out",
+            events: []
+        )
+        service.eventsError = KubernetesCommandError.commandFailed(stderr: "events failed", exitCode: 1, command: "kubectl get events")
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+        viewModel.selectedRolloutStatus = "old rollout"
+        viewModel.kubeEvents = [KubernetesEventInfo(type: "Warning", reason: "Old", message: "old", involvedKind: "Deployment", involvedName: "api", timestampText: "2026-03-29T09:00:00Z")]
+
+        await viewModel.loadSelectedDeploymentOperationalDetails()
+
+        #expect(viewModel.selectedRolloutStatus.isEmpty)
+        #expect(viewModel.kubeEvents.isEmpty)
+        #expect(viewModel.kubernetesError?.contains("events failed") == true)
+        #expect(viewModel.isKubernetesActionLoading == false)
+    }
+
+    @Test func loadSelectedPodOperationalDetails_whenEventsFail_clearsEvents_setsError_stopsLoading() async {
+        let service = StubKubernetesService(events: [])
+        service.eventsError = KubernetesCommandError.commandFailed(stderr: "pod events failed", exitCode: 1, command: "kubectl get events")
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        viewModel.kubeEvents = [KubernetesEventInfo(type: "Warning", reason: "Old", message: "old", involvedKind: "Pod", involvedName: "api-123", timestampText: "2026-03-29T09:00:00Z")]
+
+        await viewModel.loadSelectedPodOperationalDetails()
+
+        #expect(viewModel.kubeEvents.isEmpty)
+        #expect(viewModel.kubernetesError?.contains("pod events failed") == true)
+        #expect(viewModel.isKubernetesActionLoading == false)
+    }
+
+    @Test func switchKubernetesContext_clearsSelectionsAndPodLogs_beforeRefresh() async {
+        let service = StubKubernetesService(currentContext: "prod-cluster")
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+        viewModel.selectedKubeService = KubernetesServiceInfo(name: "api", type: "ClusterIP", primaryAddress: "10.0.0.12", portCount: 1, externalAddress: nil)
+        viewModel.selectedKubeConfigMap = KubernetesConfigMapInfo(name: "app-config", immutable: false, textData: ["A": "1"], textKeyNames: ["A"], binaryKeyNames: [])
+        viewModel.selectedKubeSecret = KubernetesSecretInfo(name: "app-secret", type: "Opaque", immutable: false, keyNames: ["token"])
+        viewModel.selectedPodLogs = "stale logs"
+
+        await viewModel.switchKubernetesContext(to: "prod-cluster")
+
+        #expect(viewModel.selectedKubePod == nil)
+        #expect(viewModel.selectedKubeDeployment == nil)
+        #expect(viewModel.selectedKubeService == nil)
+        #expect(viewModel.selectedKubeConfigMap == nil)
+        #expect(viewModel.selectedKubeSecret == nil)
+        #expect(viewModel.selectedPodLogs.isEmpty)
+    }
+
+    @Test func switchKubernetesContext_whenUseContextFails_keepsPreviousContextAndSetsError() async {
+        let service = StubKubernetesService(currentContext: "dev-cluster")
+        service.useContextError = KubernetesCommandError.commandFailed(stderr: "use-context failed", exitCode: 1, command: "kubectl config use-context prod")
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeContext = "dev-cluster"
+
+        await viewModel.switchKubernetesContext(to: "prod-cluster")
+
+        #expect(viewModel.selectedKubeContext == "dev-cluster")
+        #expect(viewModel.kubernetesError?.contains("use-context failed") == true)
+    }
+
+    @Test func refreshKubernetesOverview_whenAvailabilityFails_clearsResourceListsAndSetsError() async {
+        let service = StubKubernetesService(
+            currentContext: "prod-cluster",
+            contexts: [KubernetesContextInfo(name: "prod-cluster")],
+            namespaces: [KubernetesNamespaceInfo(name: "prod")],
+            pods: [KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)],
+            deployments: [KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)],
+            services: [KubernetesServiceInfo(name: "api", type: "ClusterIP", primaryAddress: "10.0.0.12", portCount: 1, externalAddress: nil)],
+            configMaps: [KubernetesConfigMapInfo(name: "app-config", immutable: false, textData: ["A": "1"], textKeyNames: ["A"], binaryKeyNames: [])],
+            secrets: [KubernetesSecretInfo(name: "app-secret", type: "Opaque", immutable: false, keyNames: ["token"])]
+        )
+        service.checkAvailabilityError = KubernetesCommandError.kubectlNotInstalled
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.kubeContexts = [KubernetesContextInfo(name: "stale-context")]
+        viewModel.kubeNamespaces = [KubernetesNamespaceInfo(name: "stale-ns")]
+        viewModel.kubePods = [KubernetesPodInfo(name: "stale-pod", phase: "Failed", containerCount: 1, readyCount: 0)]
+        viewModel.kubeDeployments = [KubernetesDeploymentInfo(name: "stale-deploy", replicas: 1, readyReplicas: 0, availableReplicas: 0)]
+        viewModel.kubeServices = [KubernetesServiceInfo(name: "stale-service", type: "ClusterIP", primaryAddress: "10.0.0.9", portCount: 1, externalAddress: nil)]
+        viewModel.kubeConfigMaps = [KubernetesConfigMapInfo(name: "stale-cm", immutable: false, textData: [:], textKeyNames: [], binaryKeyNames: [])]
+        viewModel.kubeSecrets = [KubernetesSecretInfo(name: "stale-secret", type: "Opaque", immutable: false, keyNames: ["token"])]
+
+        await viewModel.refreshKubernetesOverview()
+
+        #expect(viewModel.isKubectlAvailable == false)
+        #expect(viewModel.kubeContexts.isEmpty)
+        #expect(viewModel.kubeNamespaces.isEmpty)
+        #expect(viewModel.kubePods.isEmpty)
+        #expect(viewModel.kubeDeployments.isEmpty)
+        #expect(viewModel.kubeServices.isEmpty)
+        #expect(viewModel.kubeConfigMaps.isEmpty)
+        #expect(viewModel.kubeSecrets.isEmpty)
+        #expect(viewModel.kubernetesError?.contains("kubectl") == true)
+    }
+
+    @Test func refreshPodLogs_whenFetchFails_clearsStaleLogsAndSetsError() async {
+        let service = StubKubernetesService(logs: "")
+        service.podLogsError = KubernetesCommandError.commandFailed(stderr: "log fetch failed", exitCode: 1, command: "kubectl logs api-123")
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        viewModel.selectedPodLogs = "stale logs"
+
+        await viewModel.refreshPodLogs()
+
+        #expect(viewModel.selectedPodLogs.isEmpty)
+        #expect(viewModel.kubernetesError?.contains("log fetch failed") == true)
     }
 }

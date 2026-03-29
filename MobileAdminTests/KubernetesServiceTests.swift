@@ -215,4 +215,42 @@ struct KubernetesServiceTests {
             Issue.record("Expected KubernetesCommandError but got \(error)")
         }
     }
+
+    @Test func fetchEvents_prefersEventTime_thenLastTimestamp_thenFirstTimestamp_andSortsDescending() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "events", "-n", "prod", "-o", "json"]: .success(
+                KubectlCommandResult(
+                    stdout: #"{"items":[{"type":"Normal","reason":"First","message":"first","firstTimestamp":"2026-03-29T09:00:00Z","involvedObject":{"kind":"Pod","name":"api-123"}},{"type":"Normal","reason":"Last","message":"last","lastTimestamp":"2026-03-29T10:00:00Z","involvedObject":{"kind":"Pod","name":"api-123"}},{"type":"Normal","reason":"Event","message":"event","eventTime":"2026-03-29T11:00:00Z","involvedObject":{"kind":"Pod","name":"api-123"}}]}"#,
+                    stderr: "",
+                    exitCode: 0
+                )
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let events = try await service.fetchEvents(namespace: "prod", resourceKind: "Pod", resourceName: "api-123")
+
+        #expect(events.map(\.reason) == ["Event", "Last", "First"])
+        #expect(events.map(\.timestampText) == ["2026-03-29T11:00:00Z", "2026-03-29T10:00:00Z", "2026-03-29T09:00:00Z"])
+    }
+
+    @Test func fetchServices_prefersExternalName_thenClusterIPs_thenClusterIP_andCapturesLoadBalancerAddress() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "services", "-n", "prod", "-o", "json"]: .success(
+                KubectlCommandResult(
+                    stdout: #"{"items":[{"metadata":{"name":"external-name"},"spec":{"type":"ExternalName","externalName":"db.example.com","ports":[]},"status":{}},{"metadata":{"name":"cluster-ips"},"spec":{"type":"ClusterIP","clusterIPs":["10.0.0.20","10.0.0.21"],"ports":[{"port":80}]},"status":{"loadBalancer":{"ingress":[{"hostname":"api.example.com"}]}}},{"metadata":{"name":"cluster-ip"},"spec":{"type":"ClusterIP","clusterIP":"10.0.0.30","ports":[{"port":443}]},"status":{}}]}"#,
+                    stderr: "",
+                    exitCode: 0
+                )
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let services = try await service.fetchServices(namespace: "prod")
+
+        #expect(services[0].primaryAddress == "db.example.com")
+        #expect(services[1].primaryAddress == "10.0.0.20")
+        #expect(services[1].externalAddress == "api.example.com")
+        #expect(services[2].primaryAddress == "10.0.0.30")
+    }
 }
