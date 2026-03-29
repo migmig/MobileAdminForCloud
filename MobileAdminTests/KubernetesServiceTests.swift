@@ -253,4 +253,46 @@ struct KubernetesServiceTests {
         #expect(services[1].externalAddress == "api.example.com")
         #expect(services[2].primaryAddress == "10.0.0.30")
     }
+
+    @Test func fetchPodDescribe_passesPodCommandArguments() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["describe", "pod", "api-123", "-n", "prod"]: .success(
+                KubectlCommandResult(stdout: "Name: api-123\nStatus: Running\n", stderr: "", exitCode: 0)
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let describe = try await service.fetchPodDescribe(name: "api-123", namespace: "prod")
+
+        #expect(describe == "Name: api-123\nStatus: Running")
+        #expect(runner.recordedArguments == [["describe", "pod", "api-123", "-n", "prod"]])
+    }
+
+    @Test func fetchDeploymentDescribe_passesDeploymentCommandArguments() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["describe", "deployment", "api", "-n", "prod"]: .success(
+                KubectlCommandResult(stdout: "Name: api\nReplicas: 3\n", stderr: "", exitCode: 0)
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let describe = try await service.fetchDeploymentDescribe(name: "api", namespace: "prod")
+
+        #expect(describe == "Name: api\nReplicas: 3")
+        #expect(runner.recordedArguments == [["describe", "deployment", "api", "-n", "prod"]])
+    }
+
+    @Test func fetchResourceYAML_passesKindNameNamespaceAndYamlFlag() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "service", "api", "-n", "prod", "-o", "yaml"]: .success(
+                KubectlCommandResult(stdout: "kind: Service\nmetadata:\n  name: api\n", stderr: "", exitCode: 0)
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let yaml = try await service.fetchResourceYAML(kind: "service", name: "api", namespace: "prod")
+
+        #expect(yaml == "kind: Service\nmetadata:\n  name: api")
+        #expect(runner.recordedArguments == [["get", "service", "api", "-n", "prod", "-o", "yaml"]])
+    }
 }

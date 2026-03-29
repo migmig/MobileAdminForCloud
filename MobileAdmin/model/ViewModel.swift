@@ -32,10 +32,13 @@ class ViewModel: ObservableObject {
     @Published var selectedPodLogs: String = ""
     @Published var kubeEvents: [KubernetesEventInfo] = []
     @Published var selectedRolloutStatus: String = ""
+    @Published var selectedDescribeText: String = ""
+    @Published var selectedYAMLText: String = ""
     @Published var kubernetesError: String?
     @Published var isKubernetesLoading = false
     @Published var isKubectlAvailable = false
     @Published var isKubernetesActionLoading = false
+    @Published var isKubernetesDocumentLoading = false
 
     let logger = Logger(label: "com.migmig.MobileAdmin.ViewModel")
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
@@ -216,6 +219,7 @@ class ViewModel: ObservableObject {
         isKubernetesLoading = true
         defer { isKubernetesLoading = false }
         resetKubernetesOperationalState()
+        resetKubernetesDocumentState()
 
         do {
             try await kubernetesService.checkAvailability()
@@ -266,6 +270,7 @@ class ViewModel: ObservableObject {
             selectedKubeNamespace = ""
             clearSelectedKubernetesResources()
             resetKubernetesOperationalState()
+            resetKubernetesDocumentState()
             await refreshKubernetesOverview()
         } catch {
             selectedKubeContext = previousContext
@@ -281,12 +286,19 @@ class ViewModel: ObservableObject {
         selectedKubeConfigMap = nil
         selectedKubeSecret = nil
         selectedPodLogs = ""
+        resetKubernetesDocumentState()
     }
 
     @MainActor
     func resetKubernetesOperationalState() {
         kubeEvents = []
         selectedRolloutStatus = ""
+    }
+
+    @MainActor
+    func resetKubernetesDocumentState() {
+        selectedDescribeText = ""
+        selectedYAMLText = ""
     }
 
     @MainActor
@@ -337,6 +349,68 @@ class ViewModel: ObservableObject {
             kubernetesError = nil
         } catch {
             resetKubernetesOperationalState()
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func loadSelectedPodDocuments() async {
+        guard let selectedKubePod else {
+            resetKubernetesDocumentState()
+            return
+        }
+
+        isKubernetesDocumentLoading = true
+        defer { isKubernetesDocumentLoading = false }
+        resetKubernetesDocumentState()
+
+        do {
+            selectedDescribeText = try await kubernetesService.fetchPodDescribe(name: selectedKubePod.name, namespace: selectedKubeNamespace)
+            selectedYAMLText = try await kubernetesService.fetchResourceYAML(kind: "pod", name: selectedKubePod.name, namespace: selectedKubeNamespace)
+            kubernetesError = nil
+        } catch {
+            resetKubernetesDocumentState()
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func loadSelectedDeploymentDocuments() async {
+        guard let selectedKubeDeployment else {
+            resetKubernetesDocumentState()
+            return
+        }
+
+        isKubernetesDocumentLoading = true
+        defer { isKubernetesDocumentLoading = false }
+        resetKubernetesDocumentState()
+
+        do {
+            selectedDescribeText = try await kubernetesService.fetchDeploymentDescribe(name: selectedKubeDeployment.name, namespace: selectedKubeNamespace)
+            selectedYAMLText = try await kubernetesService.fetchResourceYAML(kind: "deployment", name: selectedKubeDeployment.name, namespace: selectedKubeNamespace)
+            kubernetesError = nil
+        } catch {
+            resetKubernetesDocumentState()
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func loadSelectedServiceDocuments() async {
+        guard let selectedKubeService else {
+            resetKubernetesDocumentState()
+            return
+        }
+
+        isKubernetesDocumentLoading = true
+        defer { isKubernetesDocumentLoading = false }
+        resetKubernetesDocumentState()
+
+        do {
+            selectedYAMLText = try await kubernetesService.fetchResourceYAML(kind: "service", name: selectedKubeService.name, namespace: selectedKubeNamespace)
+            kubernetesError = nil
+        } catch {
+            resetKubernetesDocumentState()
             kubernetesError = error.localizedDescription
         }
     }

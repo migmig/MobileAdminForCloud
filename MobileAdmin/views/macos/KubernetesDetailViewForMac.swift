@@ -9,6 +9,7 @@ struct KubernetesDetailViewForMac: View {
     @State private var replicaCount: Int = 1
     @State private var showDeleteConfirmation = false
     @State private var revealedSecretKeys: Set<String> = []
+    @State private var inspectorMode: KubernetesInspectorMode = .overview
 
     var body: some View {
         content
@@ -16,6 +17,8 @@ struct KubernetesDetailViewForMac: View {
 
     private var content: some View {
         List {
+            inspectorModeSection
+
             Section("Context") {
                 InfoRow(title: "Current Context", value: viewModel.selectedKubeContext)
 
@@ -25,7 +28,7 @@ struct KubernetesDetailViewForMac: View {
                 }
             }
 
-            if let deployment = nav.selectedKubeDeployment {
+            if inspectorMode == .overview, let deployment = nav.selectedKubeDeployment {
                 Section("Deployment") {
                     InfoRow(title: "이름", value: deployment.name)
                     InfoRow(title: "Ready", value: "\(deployment.readyReplicas)/\(deployment.replicas)")
@@ -58,6 +61,9 @@ struct KubernetesDetailViewForMac: View {
                     }
                 }
 
+            }
+
+            if inspectorMode == .ops, let deployment = nav.selectedKubeDeployment {
                 Section("Rollout Status") {
                     if viewModel.isKubernetesActionLoading {
                         ProgressView()
@@ -72,7 +78,7 @@ struct KubernetesDetailViewForMac: View {
                 }
             }
 
-            if let service = nav.selectedKubeService {
+            if inspectorMode == .overview, let service = nav.selectedKubeService {
                 Section("Service") {
                     InfoRow(title: "이름", value: service.name)
                     InfoRow(title: "타입", value: service.type)
@@ -84,7 +90,7 @@ struct KubernetesDetailViewForMac: View {
                 }
             }
 
-            if let configMap = nav.selectedKubeConfigMap {
+            if inspectorMode == .overview, let configMap = nav.selectedKubeConfigMap {
                 Section("ConfigMap") {
                     InfoRow(title: "이름", value: configMap.name)
                     InfoRow(title: "Immutable", value: configMap.immutable ? "true" : "false")
@@ -97,7 +103,7 @@ struct KubernetesDetailViewForMac: View {
                 }
             }
 
-            if let secret = nav.selectedKubeSecret {
+            if inspectorMode == .overview, let secret = nav.selectedKubeSecret {
                 Section("Secret") {
                     InfoRow(title: "이름", value: secret.name)
                     InfoRow(title: "타입", value: secret.type)
@@ -117,7 +123,7 @@ struct KubernetesDetailViewForMac: View {
                 }
             }
 
-            if let pod = nav.selectedKubePod {
+            if inspectorMode == .overview, let pod = nav.selectedKubePod {
                 Section("Pod") {
                     InfoRow(title: "이름", value: pod.name)
                     InfoRow(title: "상태", value: pod.phase)
@@ -140,6 +146,9 @@ struct KubernetesDetailViewForMac: View {
                     }
                 }
 
+            }
+
+            if inspectorMode == .ops, let pod = nav.selectedKubePod {
                 Section("Logs") {
                     ScrollView {
                         Text(viewModel.selectedPodLogs.isEmpty ? "로그가 없습니다" : viewModel.selectedPodLogs)
@@ -150,7 +159,7 @@ struct KubernetesDetailViewForMac: View {
                 }
             }
 
-            if nav.selectedKubeDeployment != nil || nav.selectedKubePod != nil {
+            if inspectorMode == .ops, nav.selectedKubeDeployment != nil || nav.selectedKubePod != nil {
                 Section("Events") {
                     if viewModel.isKubernetesActionLoading {
                         ProgressView()
@@ -164,14 +173,100 @@ struct KubernetesDetailViewForMac: View {
                     }
                 }
             }
+
+            if inspectorMode == .describe {
+                Section("Describe") {
+                    if viewModel.isKubernetesDocumentLoading {
+                        ProgressView()
+                    } else if selectedResourceSupportsDescribe {
+                        RawKubernetesTextView(
+                            text: viewModel.selectedDescribeText,
+                            emptyText: "Describe 내용이 없습니다"
+                        )
+                    } else {
+                        Text("이 리소스는 Describe를 지원하지 않습니다")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            if inspectorMode == .yaml {
+                Section("YAML") {
+                    if viewModel.isKubernetesDocumentLoading {
+                        ProgressView()
+                    } else if selectedResourceSupportsYAML {
+                        RawKubernetesTextView(
+                            text: viewModel.selectedYAMLText,
+                            emptyText: "YAML 내용이 없습니다"
+                        )
+                    } else {
+                        Text("이 리소스는 YAML 보기를 지원하지 않습니다")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
         .navigationTitle("Kubernetes Detail")
         .onChange(of: nav.selectedKubeDeployment) { _, newValue in
             viewModel.selectedKubeDeployment = newValue
             replicaCount = newValue?.replicas ?? 1
+            resetInspectorModeForCurrentSelection()
         }
-        .onChange(of: nav.selectedKubeSecret) { _, _ in
+        .onChange(of: nav.selectedKubePod) { _, newValue in
+            viewModel.selectedKubePod = newValue
+            resetInspectorModeForCurrentSelection()
+        }
+        .onChange(of: nav.selectedKubeService) { _, newValue in
+            viewModel.selectedKubeService = newValue
+            resetInspectorModeForCurrentSelection()
+        }
+        .onChange(of: nav.selectedKubeConfigMap) { _, newValue in
+            viewModel.selectedKubeConfigMap = newValue
+            resetInspectorModeForCurrentSelection()
+        }
+        .onChange(of: nav.selectedKubeSecret) { _, newValue in
+            viewModel.selectedKubeSecret = newValue
             revealedSecretKeys = []
+            resetInspectorModeForCurrentSelection()
+        }
+    }
+
+    private var inspectorModeSection: some View {
+        Section("Inspector") {
+            Picker("Mode", selection: $inspectorMode) {
+                Text("Overview").tag(KubernetesInspectorMode.overview)
+                if selectedResourceSupportsOps {
+                    Text("Ops").tag(KubernetesInspectorMode.ops)
+                }
+                if selectedResourceSupportsDescribe {
+                    Text("Describe").tag(KubernetesInspectorMode.describe)
+                }
+                if selectedResourceSupportsYAML {
+                    Text("YAML").tag(KubernetesInspectorMode.yaml)
+                }
+            }
+        }
+    }
+
+    private var selectedResourceSupportsDescribe: Bool {
+        nav.selectedKubePod != nil || nav.selectedKubeDeployment != nil
+    }
+
+    private var selectedResourceSupportsOps: Bool {
+        nav.selectedKubePod != nil || nav.selectedKubeDeployment != nil
+    }
+
+    private var selectedResourceSupportsYAML: Bool {
+        nav.selectedKubePod != nil || nav.selectedKubeDeployment != nil || nav.selectedKubeService != nil
+    }
+
+    private func resetInspectorModeForCurrentSelection() {
+        if inspectorMode == .ops, !selectedResourceSupportsOps {
+            inspectorMode = .overview
+        } else if inspectorMode == .describe, !selectedResourceSupportsDescribe {
+            inspectorMode = .overview
+        } else if inspectorMode == .yaml, !selectedResourceSupportsYAML {
+            inspectorMode = .overview
         }
     }
 
@@ -194,6 +289,15 @@ struct KubernetesDetailViewForMac: View {
         NSPasteboard.general.setString(value, forType: .string)
         #endif
     }
+}
+
+private enum KubernetesInspectorMode: String, CaseIterable, Identifiable {
+    case overview
+    case ops
+    case describe
+    case yaml
+
+    var id: String { rawValue }
 }
 
 private struct SecretKeyRow: View {
@@ -264,6 +368,21 @@ private struct KubernetesEventRow: View {
                 .font(.caption)
         }
         .padding(.vertical, 2)
+    }
+}
+
+private struct RawKubernetesTextView: View {
+    let text: String
+    let emptyText: String
+
+    var body: some View {
+        ScrollView {
+            Text(text.isEmpty ? emptyText : text)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.system(.body, design: .monospaced))
+                .textSelection(.enabled)
+        }
+        .frame(minHeight: 240)
     }
 }
 

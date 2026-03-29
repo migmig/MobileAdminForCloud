@@ -78,6 +78,7 @@ struct KubernetesListViewForMac: View {
             Task {
                 await viewModel.refreshPodLogs()
                 await viewModel.loadSelectedPodOperationalDetails()
+                await viewModel.loadSelectedPodDocuments()
             }
         }
     }
@@ -159,7 +160,10 @@ struct KubernetesListViewForMac: View {
                     nav.selectedKubeDeployment = deployment
                     viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeDeployment = deployment
-                    Task { await viewModel.loadSelectedDeploymentOperationalDetails() }
+                    Task {
+                        await viewModel.loadSelectedDeploymentOperationalDetails()
+                        await viewModel.loadSelectedDeploymentDocuments()
+                    }
                 } label: {
                     KubernetesDeploymentRow(deployment: deployment)
                 }
@@ -182,6 +186,7 @@ struct KubernetesListViewForMac: View {
                     viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeService = service
                     viewModel.resetKubernetesOperationalState()
+                    Task { await viewModel.loadSelectedServiceDocuments() }
                 } label: {
                     KubernetesServiceRow(service: service)
                 }
@@ -204,6 +209,7 @@ struct KubernetesListViewForMac: View {
                     viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeConfigMap = configMap
                     viewModel.resetKubernetesOperationalState()
+                    viewModel.resetKubernetesDocumentState()
                 } label: {
                     KubernetesConfigMapRow(configMap: configMap)
                 }
@@ -226,6 +232,7 @@ struct KubernetesListViewForMac: View {
                     viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeSecret = secret
                     viewModel.resetKubernetesOperationalState()
+                    viewModel.resetKubernetesDocumentState()
                 } label: {
                     KubernetesSecretRow(secret: secret)
                 }

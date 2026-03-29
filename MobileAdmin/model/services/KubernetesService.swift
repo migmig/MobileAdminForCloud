@@ -13,6 +13,9 @@ protocol KubernetesServicing {
     func fetchSecrets(namespace: String) async throws -> [KubernetesSecretInfo]
     func fetchRolloutStatus(deployment: String, namespace: String) async throws -> String
     func fetchEvents(namespace: String, resourceKind: String, resourceName: String) async throws -> [KubernetesEventInfo]
+    func fetchPodDescribe(name: String, namespace: String) async throws -> String
+    func fetchDeploymentDescribe(name: String, namespace: String) async throws -> String
+    func fetchResourceYAML(kind: String, name: String, namespace: String) async throws -> String
     func fetchPodLogs(name: String, namespace: String) async throws -> String
     func scaleDeployment(name: String, namespace: String, replicas: Int) async throws
     func rolloutRestartDeployment(name: String, namespace: String) async throws
@@ -164,6 +167,21 @@ struct KubernetesService: KubernetesServicing {
                 )
             }
             .sorted { $0.timestampText > $1.timestampText }
+    }
+
+    func fetchPodDescribe(name: String, namespace: String) async throws -> String {
+        let result = try await runner.run(arguments: ["describe", "pod", name, "-n", namespace])
+        return result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func fetchDeploymentDescribe(name: String, namespace: String) async throws -> String {
+        let result = try await runner.run(arguments: ["describe", "deployment", name, "-n", namespace])
+        return result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func fetchResourceYAML(kind: String, name: String, namespace: String) async throws -> String {
+        let result = try await runner.run(arguments: ["get", kind, name, "-n", namespace, "-o", "yaml"])
+        return result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func fetchPodLogs(name: String, namespace: String) async throws -> String {

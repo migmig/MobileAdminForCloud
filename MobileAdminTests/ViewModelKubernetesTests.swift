@@ -25,6 +25,12 @@ final class StubKubernetesService: KubernetesServicing {
     var eventsError: Error?
     var checkAvailabilityError: Error?
     var podLogsError: Error?
+    var podDescribeText: String = ""
+    var deploymentDescribeText: String = ""
+    var resourceYAMLText: String = ""
+    var fetchedPodDescribeRequests: [(namespace: String, name: String)] = []
+    var fetchedDeploymentDescribeRequests: [(namespace: String, name: String)] = []
+    var fetchedYAMLRequests: [(namespace: String, kind: String, name: String)] = []
 
     init(
         currentContext: String = "",
@@ -77,6 +83,18 @@ final class StubKubernetesService: KubernetesServicing {
         if let eventsError { throw eventsError }
         fetchedEventsRequests.append((namespace, resourceKind, resourceName))
         return events
+    }
+    func fetchPodDescribe(name: String, namespace: String) async throws -> String {
+        fetchedPodDescribeRequests.append((namespace, name))
+        return podDescribeText
+    }
+    func fetchDeploymentDescribe(name: String, namespace: String) async throws -> String {
+        fetchedDeploymentDescribeRequests.append((namespace, name))
+        return deploymentDescribeText
+    }
+    func fetchResourceYAML(kind: String, name: String, namespace: String) async throws -> String {
+        fetchedYAMLRequests.append((namespace, kind, name))
+        return resourceYAMLText
     }
     func fetchPodLogs(name: String, namespace: String) async throws -> String {
         if let podLogsError { throw podLogsError }
@@ -313,5 +331,68 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedPodLogs.isEmpty)
         #expect(viewModel.kubernetesError?.contains("log fetch failed") == true)
+    }
+
+    @Test func loadSelectedPodDocuments_setsDescribeAndYAML() async {
+        let service = StubKubernetesService()
+        service.podDescribeText = "Name: api-123\nStatus: Running"
+        service.resourceYAMLText = "kind: Pod\nmetadata:\n  name: api-123"
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+
+        await viewModel.loadSelectedPodDocuments()
+
+        #expect(viewModel.selectedDescribeText == "Name: api-123\nStatus: Running")
+        #expect(viewModel.selectedYAMLText == "kind: Pod\nmetadata:\n  name: api-123")
+        #expect(service.fetchedPodDescribeRequests == [(namespace: "prod", name: "api-123")])
+        #expect(service.fetchedYAMLRequests == [(namespace: "prod", kind: "pod", name: "api-123")])
+    }
+
+    @Test func loadSelectedDeploymentDocuments_setsDescribeAndYAML() async {
+        let service = StubKubernetesService()
+        service.deploymentDescribeText = "Name: api\nReplicas: 3"
+        service.resourceYAMLText = "kind: Deployment\nmetadata:\n  name: api"
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+
+        await viewModel.loadSelectedDeploymentDocuments()
+
+        #expect(viewModel.selectedDescribeText == "Name: api\nReplicas: 3")
+        #expect(viewModel.selectedYAMLText == "kind: Deployment\nmetadata:\n  name: api")
+        #expect(service.fetchedDeploymentDescribeRequests == [(namespace: "prod", name: "api")])
+        #expect(service.fetchedYAMLRequests == [(namespace: "prod", kind: "deployment", name: "api")])
+    }
+
+    @Test func loadSelectedServiceDocuments_setsYAMLAndClearsDescribe() async {
+        let service = StubKubernetesService()
+        service.resourceYAMLText = "kind: Service\nmetadata:\n  name: api"
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedDescribeText = "stale describe"
+        viewModel.selectedKubeService = KubernetesServiceInfo(name: "api", type: "ClusterIP", primaryAddress: "10.0.0.12", portCount: 1, externalAddress: nil)
+
+        await viewModel.loadSelectedServiceDocuments()
+
+        #expect(viewModel.selectedDescribeText.isEmpty)
+        #expect(viewModel.selectedYAMLText == "kind: Service\nmetadata:\n  name: api")
+        #expect(service.fetchedYAMLRequests == [(namespace: "prod", kind: "service", name: "api")])
+    }
+
+    @Test func refreshKubernetesOverview_clearsStaleDescribeAndYAML() async {
+        let service = StubKubernetesService(
+            currentContext: "prod-cluster",
+            contexts: [KubernetesContextInfo(name: "prod-cluster")],
+            namespaces: [KubernetesNamespaceInfo(name: "prod")]
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedDescribeText = "stale describe"
+        viewModel.selectedYAMLText = "stale yaml"
+
+        await viewModel.refreshKubernetesOverview()
+
+        #expect(viewModel.selectedDescribeText.isEmpty)
+        #expect(viewModel.selectedYAMLText.isEmpty)
     }
 }
