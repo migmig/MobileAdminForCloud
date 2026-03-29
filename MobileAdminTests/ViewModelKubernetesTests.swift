@@ -31,6 +31,7 @@ final class StubKubernetesService: KubernetesServicing {
     var fetchedPodDescribeRequests: [(namespace: String, name: String)] = []
     var fetchedDeploymentDescribeRequests: [(namespace: String, name: String)] = []
     var fetchedYAMLRequests: [(namespace: String, kind: String, name: String)] = []
+    var fetchedPodLogsRequests: [(namespace: String, name: String)] = []
 
     init(
         currentContext: String = "",
@@ -98,6 +99,7 @@ final class StubKubernetesService: KubernetesServicing {
     }
     func fetchPodLogs(name: String, namespace: String) async throws -> String {
         if let podLogsError { throw podLogsError }
+        fetchedPodLogsRequests.append((namespace, name))
         return logs
     }
     func scaleDeployment(name: String, namespace: String, replicas: Int) async throws { scaledDeployments.append((namespace, name, replicas)) }
@@ -394,5 +396,134 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedDescribeText.isEmpty)
         #expect(viewModel.selectedYAMLText.isEmpty)
+    }
+
+    @Test func refreshSelectedOperationsOnce_whenDeploymentSelected_fetchesRolloutAndEvents() async {
+        let service = StubKubernetesService(
+            rolloutStatus: "deployment \"api\" successfully rolled out",
+            events: [KubernetesEventInfo(type: "Normal", reason: "Scaled", message: "Scaled up", involvedKind: "Deployment", involvedName: "api", timestampText: "2026-03-29T10:00:00Z")]
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+
+        await viewModel.refreshSelectedOperationsOnce()
+
+        #expect(viewModel.selectedRolloutStatus == "deployment \"api\" successfully rolled out")
+        #expect(viewModel.kubeEvents.map(\.reason) == ["Scaled"])
+        #expect(service.fetchedRolloutStatuses == [(namespace: "prod", name: "api")])
+        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Deployment", resourceName: "api")])
+    }
+
+    @Test func refreshSelectedOperationsOnce_whenPodSelected_fetchesLogsAndEvents() async {
+        let service = StubKubernetesService(
+            events: [KubernetesEventInfo(type: "Warning", reason: "BackOff", message: "Back-off restarting failed container", involvedKind: "Pod", involvedName: "api-123", timestampText: "2026-03-29T11:00:00Z")],
+            logs: "latest logs"
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+
+        await viewModel.refreshSelectedOperationsOnce()
+
+        #expect(viewModel.selectedPodLogs == "latest logs")
+        #expect(viewModel.kubeEvents.map(\.reason) == ["BackOff"])
+        #expect(service.fetchedPodLogsRequests == [(namespace: "prod", name: "api-123")])
+        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Pod", resourceName: "api-123")])
+    }
+
+    @Test func startKubernetesAutoRefreshIfNeeded_whenUnsupportedSelection_doesNotRunAndTurnsOffToggle() async {
+        let service = StubKubernetesService()
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeService = KubernetesServiceInfo(name: "api", type: "ClusterIP", primaryAddress: "10.0.0.12", portCount: 1, externalAddress: nil)
+        viewModel.isKubernetesAutoRefreshEnabled = true
+
+        await viewModel.startKubernetesAutoRefreshIfNeeded()
+
+        #expect(viewModel.isKubernetesAutoRefreshEnabled == false)
+        #expect(viewModel.kubernetesAutoRefreshTask == nil)
+        #expect(service.fetchedRolloutStatuses.isEmpty)
+        #expect(service.fetchedEventsRequests.isEmpty)
+        #expect(service.fetchedPodLogsRequests.isEmpty)
+    }
+
+    @Test func stopKubernetesAutoRefresh_resetsToggleAndTask() async {
+        let service = StubKubernetesService(logs: "ok")
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        viewModel.kubernetesAutoRefreshInterval = 0.05
+        viewModel.isKubernetesAutoRefreshEnabled = true
+
+        await viewModel.startKubernetesAutoRefreshIfNeeded()
+        #expect(viewModel.kubernetesAutoRefreshTask != nil)
+
+        await viewModel.stopKubernetesAutoRefresh()
+
+        #expect(viewModel.isKubernetesAutoRefreshEnabled == false)
+        #expect(viewModel.kubernetesAutoRefreshTask == nil)
+    }
+
+    @Test func clearSelectedKubernetesResources_stopsKubernetesAutoRefresh() async {
+        let service = StubKubernetesService(logs: "ok")
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        viewModel.kubernetesAutoRefreshInterval = 0.05
+        viewModel.isKubernetesAutoRefreshEnabled = true
+
+        await viewModel.startKubernetesAutoRefreshIfNeeded()
+        #expect(viewModel.kubernetesAutoRefreshTask != nil)
+
+        await viewModel.clearSelectedKubernetesResources()
+
+        #expect(viewModel.isKubernetesAutoRefreshEnabled == false)
+        #expect(viewModel.kubernetesAutoRefreshTask == nil)
+    }
+
+    @Test func switchKubernetesContext_stopsKubernetesAutoRefresh() async {
+        let service = StubKubernetesService(
+            currentContext: "dev-cluster",
+            contexts: [KubernetesContextInfo(name: "dev-cluster"), KubernetesContextInfo(name: "prod-cluster")],
+            namespaces: [KubernetesNamespaceInfo(name: "prod")],
+            pods: [KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)]
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        viewModel.kubernetesAutoRefreshInterval = 0.05
+        viewModel.isKubernetesAutoRefreshEnabled = true
+
+        await viewModel.startKubernetesAutoRefreshIfNeeded()
+        #expect(viewModel.kubernetesAutoRefreshTask != nil)
+
+        await viewModel.switchKubernetesContext(to: "prod-cluster")
+
+        #expect(viewModel.isKubernetesAutoRefreshEnabled == false)
+        #expect(viewModel.kubernetesAutoRefreshTask == nil)
+    }
+
+    @Test func refreshKubernetesOverview_whenNamespaceChanges_stopsKubernetesAutoRefresh() async {
+        let service = StubKubernetesService(
+            currentContext: "prod-cluster",
+            contexts: [KubernetesContextInfo(name: "prod-cluster")],
+            namespaces: [KubernetesNamespaceInfo(name: "prod")],
+            pods: [KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)]
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "stale"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        viewModel.kubernetesAutoRefreshInterval = 0.05
+        viewModel.isKubernetesAutoRefreshEnabled = true
+
+        await viewModel.startKubernetesAutoRefreshIfNeeded()
+        #expect(viewModel.kubernetesAutoRefreshTask != nil)
+
+        await viewModel.refreshKubernetesOverview()
+
+        #expect(viewModel.selectedKubeNamespace == "prod")
+        #expect(viewModel.isKubernetesAutoRefreshEnabled == false)
+        #expect(viewModel.kubernetesAutoRefreshTask == nil)
     }
 }

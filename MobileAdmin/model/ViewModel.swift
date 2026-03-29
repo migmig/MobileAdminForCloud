@@ -16,19 +16,61 @@ class ViewModel: ObservableObject {
     @Published var selectedErrors: Set<Int> = []
     @Published var lastError: NetworkError?
     @Published var kubeContexts: [KubernetesContextInfo] = []
-    @Published var selectedKubeContext: String = ""
+    @Published var selectedKubeContext: String = "" {
+        didSet {
+            if selectedKubeContext != oldValue {
+                stopKubernetesAutoRefreshSync()
+            }
+        }
+    }
     @Published var kubeNamespaces: [KubernetesNamespaceInfo] = []
-    @Published var selectedKubeNamespace: String = ""
+    @Published var selectedKubeNamespace: String = "" {
+        didSet {
+            if selectedKubeNamespace != oldValue {
+                stopKubernetesAutoRefreshSync()
+            }
+        }
+    }
     @Published var kubePods: [KubernetesPodInfo] = []
-    @Published var selectedKubePod: KubernetesPodInfo?
+    @Published var selectedKubePod: KubernetesPodInfo? {
+        didSet {
+            if selectedKubePod?.name != oldValue?.name {
+                stopKubernetesAutoRefreshSync()
+            }
+        }
+    }
     @Published var kubeDeployments: [KubernetesDeploymentInfo] = []
-    @Published var selectedKubeDeployment: KubernetesDeploymentInfo?
+    @Published var selectedKubeDeployment: KubernetesDeploymentInfo? {
+        didSet {
+            if selectedKubeDeployment?.name != oldValue?.name {
+                stopKubernetesAutoRefreshSync()
+            }
+        }
+    }
     @Published var kubeServices: [KubernetesServiceInfo] = []
-    @Published var selectedKubeService: KubernetesServiceInfo?
+    @Published var selectedKubeService: KubernetesServiceInfo? {
+        didSet {
+            if selectedKubeService?.name != oldValue?.name {
+                stopKubernetesAutoRefreshSync()
+            }
+        }
+    }
     @Published var kubeConfigMaps: [KubernetesConfigMapInfo] = []
-    @Published var selectedKubeConfigMap: KubernetesConfigMapInfo?
+    @Published var selectedKubeConfigMap: KubernetesConfigMapInfo? {
+        didSet {
+            if selectedKubeConfigMap?.name != oldValue?.name {
+                stopKubernetesAutoRefreshSync()
+            }
+        }
+    }
     @Published var kubeSecrets: [KubernetesSecretInfo] = []
-    @Published var selectedKubeSecret: KubernetesSecretInfo?
+    @Published var selectedKubeSecret: KubernetesSecretInfo? {
+        didSet {
+            if selectedKubeSecret?.name != oldValue?.name {
+                stopKubernetesAutoRefreshSync()
+            }
+        }
+    }
     @Published var selectedPodLogs: String = ""
     @Published var kubeEvents: [KubernetesEventInfo] = []
     @Published var selectedRolloutStatus: String = ""
@@ -39,6 +81,10 @@ class ViewModel: ObservableObject {
     @Published var isKubectlAvailable = false
     @Published var isKubernetesActionLoading = false
     @Published var isKubernetesDocumentLoading = false
+    @Published var isKubernetesAutoRefreshEnabled = false
+    @Published var kubernetesAutoRefreshInterval: TimeInterval = 5
+
+    var kubernetesAutoRefreshTask: Task<Void, Never>?
 
     let logger = Logger(label: "com.migmig.MobileAdmin.ViewModel")
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
@@ -280,6 +326,7 @@ class ViewModel: ObservableObject {
 
     @MainActor
     func clearSelectedKubernetesResources() {
+        stopKubernetesAutoRefreshSync()
         selectedKubePod = nil
         selectedKubeDeployment = nil
         selectedKubeService = nil
@@ -426,6 +473,106 @@ class ViewModel: ObservableObject {
             selectedPodLogs = ""
             kubernetesError = error.localizedDescription
         }
+    }
+
+    @MainActor
+    func refreshSelectedOperationsOnce() async {
+        switch kubernetesOperationalRefreshTarget {
+        case .deployment:
+            await loadSelectedDeploymentOperationalDetails()
+        case .pod:
+            await refreshPodLogs()
+            await loadSelectedPodOperationalDetails()
+        case .unsupported, .none:
+            resetKubernetesOperationalState()
+        }
+    }
+
+    @MainActor
+    func startKubernetesAutoRefreshIfNeeded() async {
+        if !isKubernetesAutoRefreshEnabled {
+            stopKubernetesAutoRefreshSync(resetToggle: false)
+            return
+        }
+
+        guard canAutoRefreshSelectedOperations else {
+            stopKubernetesAutoRefreshSync()
+            return
+        }
+
+        stopKubernetesAutoRefreshSync(resetToggle: false)
+
+        let intervalSeconds = max(kubernetesAutoRefreshInterval, 0.1)
+        kubernetesAutoRefreshTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { break }
+
+                let shouldContinue = await MainActor.run {
+                    self.isKubernetesAutoRefreshEnabled && self.canAutoRefreshSelectedOperations
+                }
+
+                if !shouldContinue { break }
+
+                await self.refreshSelectedOperationsOnce()
+
+                do {
+                    try await Task.sleep(nanoseconds: UInt64(intervalSeconds * 1_000_000_000))
+                } catch {
+                    break
+                }
+            }
+
+            await MainActor.run {
+                self?.kubernetesAutoRefreshTask = nil
+            }
+        }
+    }
+
+    @MainActor
+    func stopKubernetesAutoRefresh() {
+        stopKubernetesAutoRefreshSync()
+    }
+
+    private enum KubernetesOperationalRefreshTarget {
+        case deployment
+        case pod
+        case unsupported
+        case none
+    }
+
+    @MainActor
+    private var kubernetesOperationalRefreshTarget: KubernetesOperationalRefreshTarget {
+        if selectedKubeDeployment != nil {
+            return .deployment
+        }
+
+        if selectedKubePod != nil {
+            return .pod
+        }
+
+        if selectedKubeService != nil || selectedKubeConfigMap != nil || selectedKubeSecret != nil {
+            return .unsupported
+        }
+
+        return .none
+    }
+
+    @MainActor
+    private var canAutoRefreshSelectedOperations: Bool {
+        switch kubernetesOperationalRefreshTarget {
+        case .deployment, .pod:
+            return true
+        case .unsupported, .none:
+            return false
+        }
+    }
+
+    private func stopKubernetesAutoRefreshSync(resetToggle: Bool = true) {
+        if resetToggle {
+            isKubernetesAutoRefreshEnabled = false
+        }
+        kubernetesAutoRefreshTask?.cancel()
+        kubernetesAutoRefreshTask = nil
     }
 
     func scaleSelectedDeployment(to replicas: Int) async throws {

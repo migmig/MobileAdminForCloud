@@ -64,7 +64,18 @@ struct KubernetesDetailViewForMac: View {
             }
 
             if inspectorMode == .ops, let deployment = nav.selectedKubeDeployment {
+                Section("Live Refresh") {
+                    Toggle("Auto Refresh", isOn: $viewModel.isKubernetesAutoRefreshEnabled)
+                    Text("\(Int(viewModel.kubernetesAutoRefreshInterval))초 간격으로 현재 선택 리소스를 갱신합니다")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Rollout Status") {
+                    Button("Refresh") {
+                        Task { await viewModel.loadSelectedDeploymentOperationalDetails() }
+                    }
+
                     if viewModel.isKubernetesActionLoading {
                         ProgressView()
                     } else if viewModel.selectedRolloutStatus.isEmpty {
@@ -149,7 +160,18 @@ struct KubernetesDetailViewForMac: View {
             }
 
             if inspectorMode == .ops, let pod = nav.selectedKubePod {
+                Section("Live Refresh") {
+                    Toggle("Auto Refresh", isOn: $viewModel.isKubernetesAutoRefreshEnabled)
+                    Text("\(Int(viewModel.kubernetesAutoRefreshInterval))초 간격으로 현재 선택 리소스를 갱신합니다")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Logs") {
+                    Button("Refresh") {
+                        Task { await viewModel.refreshPodLogs() }
+                    }
+
                     ScrollView {
                         Text(viewModel.selectedPodLogs.isEmpty ? "로그가 없습니다" : viewModel.selectedPodLogs)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -161,6 +183,10 @@ struct KubernetesDetailViewForMac: View {
 
             if inspectorMode == .ops, nav.selectedKubeDeployment != nil || nav.selectedKubePod != nil {
                 Section("Events") {
+                    Button("Refresh") {
+                        Task { await viewModel.refreshSelectedOperationsOnce() }
+                    }
+
                     if viewModel.isKubernetesActionLoading {
                         ProgressView()
                     } else if viewModel.kubeEvents.isEmpty {
@@ -228,6 +254,23 @@ struct KubernetesDetailViewForMac: View {
             viewModel.selectedKubeSecret = newValue
             revealedSecretKeys = []
             resetInspectorModeForCurrentSelection()
+        }
+        .onChange(of: viewModel.isKubernetesAutoRefreshEnabled) { _, isEnabled in
+            Task {
+                if isEnabled {
+                    await viewModel.startKubernetesAutoRefreshIfNeeded()
+                } else {
+                    await viewModel.stopKubernetesAutoRefresh()
+                }
+            }
+        }
+        .onChange(of: inspectorMode) { _, newValue in
+            if newValue != .ops {
+                Task { await viewModel.stopKubernetesAutoRefresh() }
+            }
+        }
+        .onDisappear {
+            Task { await viewModel.stopKubernetesAutoRefresh() }
         }
     }
 
