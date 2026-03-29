@@ -75,6 +75,11 @@ struct ContentListViewForMac: View {
                 selectedPipeline: $nav.selectedPipeline
             )
 
+        case .sourceKubernetes:
+            KubernetesListViewForMac()
+                .environmentObject(viewModel)
+                .environmentObject(nav)
+
         default:
             Text("알 수 없는 항목입니다.")
         }

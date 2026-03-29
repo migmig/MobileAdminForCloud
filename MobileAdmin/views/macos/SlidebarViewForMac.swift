@@ -16,7 +16,8 @@ enum SlidebarItem: Hashable,CaseIterable{
                 .gcpClsList,
                 .codeList,
                 .closeDeptList,
-                .sourceBuild
+                .sourceBuild,
+                .sourceKubernetes
         ]
     }
     static var CloudTools: [SlidebarItem]{
@@ -40,7 +41,8 @@ enum SlidebarItem: Hashable,CaseIterable{
             .sourceCommit,
                 .sourceBuild,
                 .sourceDeploy,
-                .sourcePipeline
+                .sourcePipeline,
+                .sourceKubernetes
         ]
     }
     // Hashable 프로토콜을 준수하도록 변경
@@ -54,7 +56,8 @@ enum SlidebarItem: Hashable,CaseIterable{
          sourceCommit,
          sourceBuild,
          sourceDeploy,
-         sourcePipeline
+         sourcePipeline,
+         sourceKubernetes
          
     
     case collection(String)
@@ -81,6 +84,8 @@ enum SlidebarItem: Hashable,CaseIterable{
             return "Src Deploy"
         case .sourcePipeline:
             return "Src Pipeline"
+        case .sourceKubernetes:
+            return "Kubernetes"
         case .collection(let title):
             return title
         }
@@ -107,15 +112,17 @@ enum SlidebarItem: Hashable,CaseIterable{
             return "rectangle.connected.to.line.below"
         case .sourceBuild:
             return "gearshape.2"
+        case .sourceKubernetes:
+            return "shippingbox.circle"
         case .collection(let title):
             return title
         }
     }
     static let groups: [(String, [SlidebarItem])] = [
-           ("클라우드", [.errerlist, .codeList]),
-           ("내부시스템", [.goodsInfo, .closeDeptList]),
-           ("개발도구", [.sourceBuild, .sourceDeploy, .sourcePipeline])
-       ]
+            ("클라우드", [.errerlist, .codeList]),
+            ("내부시스템", [.goodsInfo, .closeDeptList]),
+            ("개발도구", [.sourceBuild, .sourceDeploy, .sourcePipeline, .sourceKubernetes])
+        ]
 }
 
 

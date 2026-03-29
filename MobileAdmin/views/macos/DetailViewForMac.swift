@@ -96,6 +96,11 @@ struct DetailViewForMac: View {
                 Text("Select a row to view details.")
             }
 
+        case .sourceKubernetes:
+            KubernetesDetailViewForMac()
+                .environmentObject(viewModel)
+                .environmentObject(nav)
+
         default:
             Text(" ")
         }
