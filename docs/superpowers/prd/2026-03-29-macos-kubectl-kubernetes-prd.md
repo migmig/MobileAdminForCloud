@@ -31,6 +31,8 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - Read secrets in the selected namespace using a safe default view
 - Allow explicit per-key secret reveal only through deliberate user action
 - Allow searching/filtering across the Kubernetes resource lists shown in the macOS screen
+- Allow resource-specific sorting for Services, ConfigMaps, and Secrets in the macOS screen
+- Allow copying a Secret value only after that key has been explicitly revealed
 - Read pod logs
 - Run these controlled actions:
   - deployment scale
@@ -63,6 +65,7 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - Inspection flows work without requiring manual Terminal use for the supported operations.
 - Secrets are displayed with safe defaults and do not expose raw values automatically.
 - Users can quickly narrow services, config maps, and secrets through in-screen search/filtering.
+- Users can sort services, config maps, and secrets by useful resource-specific criteria.
 - Dangerous or unsupported commands are not exposed.
 - Failure cases are understandable to the user.
 
@@ -81,6 +84,7 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - Operational actions need confirmation and clear status reporting to avoid unsafe UX.
 - Secret display can leak sensitive data if the UI shows decoded values by default.
 - Search/filter behavior can become misleading if resource matching is inconsistent across types.
+- Secret copy behavior can leak sensitive data if copy is allowed while values are still masked.
 
 ## Acceptance Criteria
 
@@ -90,5 +94,7 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - Secret views show metadata and key names/count by default, not raw values.
 - Secret values are only revealed when the user explicitly requests them per key.
 - The Kubernetes resource lists support search/filtering for faster navigation.
+- Secret copy is gated behind explicit reveal for the selected key.
+- Services, ConfigMaps, and Secrets support user-visible sort options in the Kubernetes screen.
 - Missing binary, missing kubeconfig, bad context, and non-zero exit codes are surfaced cleanly.
 - The design remains extensible for future Kubernetes resources without requiring an architectural rewrite.

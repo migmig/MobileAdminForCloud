@@ -39,6 +39,7 @@ This repository already favors service-based feature access such as `BuildServic
 - list secrets for selected namespace
 - fetch logs for selected pod
 - support in-screen filtering/search across Kubernetes resources
+- support resource-specific sort options for Services, ConfigMaps, and Secrets
 
 ### Write/operation actions
 
@@ -97,6 +98,7 @@ For these additional resources, prefer the following safe/stable fields:
 
 Secret values must not be shown by default. The safe default is metadata plus key names/count only.
 If the product exposes secret values at all, reveal must be explicit, per key, and off by default.
+Copy behavior must follow the same boundary: a Secret value is copyable only after that key has been explicitly revealed.
 
 ### 3. ViewModel integration
 
@@ -120,6 +122,7 @@ Expected state shape:
 - `kubernetesError`
 - `isKubernetesLoading`
 - local UI state for search text and revealed secret keys
+- local UI state for search text, resource sort options, and revealed secret keys
 
 The `ViewModel` should delegate all real work to `KubernetesService`, matching the repository's newer pattern.
 
@@ -149,6 +152,8 @@ Suggested layout:
   - config map key/value detail
   - secret metadata plus key names only by default
   - explicit per-key secret reveal action
+  - copy action for revealed secret values only
+  - sort controls for Services, ConfigMaps, and Secrets
 
 The UI should be macOS-only and should not force new patterns onto iOS files.
 
@@ -193,6 +198,7 @@ Design rules:
 - The app relies on the host's existing Kubernetes credentials and does not store new credentials.
 - Secret values are not auto-decoded or auto-rendered in the default UI.
 - If secret values are revealable, the reveal interaction must be explicit and limited to the selected key.
+- Secret copy must be disabled until the matching key is revealed.
 
 ## File Placement
 
@@ -220,6 +226,7 @@ Final file names can adapt to nearby repository naming patterns during planning.
 - runner result mapping from process output to typed result/error
 - service decoding of JSON fixtures for contexts, namespaces, pods, deployments, services, config maps, secrets
 - filtering and reveal-helper logic for the new resource types
+- sorting helper logic and copy-gating helper logic for the new resource types
 - service command construction for scale/restart/delete actions
 - view model state update behavior for success and failure paths
 

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a macOS-only Kubernetes DevTools feature that uses the host machine's installed `kubectl` to inspect contexts, namespaces, pods, deployments, services, config maps, secrets, and logs, supports explicit per-key secret reveal, and runs scale / rollout restart / pod delete actions.
+**Goal:** Add a macOS-only Kubernetes DevTools feature that uses the host machine's installed `kubectl` to inspect contexts, namespaces, pods, deployments, services, config maps, secrets, and logs, supports explicit per-key secret reveal/copy, supports resource-specific sorting, and runs scale / rollout restart / pod delete actions.
 
 **Architecture:** Keep the existing `ViewModel -> Service` structure and isolate local process execution behind a `KubectlRunner`. Decode supported `kubectl -o json` responses into focused `Codable` models, expose macOS-only UI in the DevTools navigation, and use typed errors plus explicit confirmation for mutating actions.
 
@@ -23,14 +23,14 @@
 - Create: `MobileAdmin/model/DevTools/KubernetesSecretInfo.swift` — secret list/detail models using safe defaults.
 - Modify: `MobileAdmin/model/DevTools/KubernetesServiceInfo.swift` — resource search helpers.
 - Modify: `MobileAdmin/model/DevTools/KubernetesConfigMapInfo.swift` — resource search helpers and config map detail payloads.
-- Modify: `MobileAdmin/model/DevTools/KubernetesSecretInfo.swift` — explicit reveal helpers plus search helpers.
+- Modify: `MobileAdmin/model/DevTools/KubernetesSecretInfo.swift` — explicit reveal/copy helpers plus search helpers.
 - Create: `MobileAdmin/views/macos/KubernetesListViewForMac.swift` — macOS list pane for namespaces, pods, deployments.
 - Create: `MobileAdmin/views/macos/KubernetesDetailViewForMac.swift` — macOS detail pane for logs and actions.
 - Create: `MobileAdminTests/KubectlRunnerTests.swift` — runner success/error tests.
 - Create: `MobileAdminTests/KubernetesServiceTests.swift` — decoding and command-construction tests.
 - Create: `MobileAdminTests/ViewModelKubernetesTests.swift` — observable state and forwarding tests.
 - Create: `MobileAdminTests/KubernetesNavigationTests.swift` — navigation state coverage for new Kubernetes selections.
-- Create: `MobileAdminTests/KubernetesResourceInfoTests.swift` — reveal/search helper tests for Kubernetes resource models.
+- Create: `MobileAdminTests/KubernetesResourceInfoTests.swift` — reveal/search/sort/copy helper tests for Kubernetes resource models.
 - Modify: `MobileAdmin/model/ViewModel.swift` — inject Kubernetes service and state.
 - Modify: `MobileAdmin/model/NavigationState.swift` — selected Kubernetes items.
 - Modify: `MobileAdmin/views/macos/SlidebarViewForMac.swift` — keep the existing Kubernetes sidebar item.
