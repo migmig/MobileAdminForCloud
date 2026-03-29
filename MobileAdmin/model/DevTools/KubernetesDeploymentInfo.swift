@@ -1,12 +1,16 @@
 import Foundation
 
-struct KubernetesDeploymentInfo: Equatable, Identifiable {
+struct KubernetesDeploymentInfo: Equatable, Hashable, Identifiable {
     let name: String
     let replicas: Int
     let readyReplicas: Int
     let availableReplicas: Int
 
     var id: String { name }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 struct KubernetesDeploymentListResponse: Codable {

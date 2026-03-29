@@ -1,12 +1,16 @@
 import Foundation
 
-struct KubernetesPodInfo: Equatable, Identifiable {
+struct KubernetesPodInfo: Equatable, Hashable, Identifiable {
     let name: String
     let phase: String
     let containerCount: Int
     let readyCount: Int
 
     var id: String { name }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 struct KubernetesPodListResponse: Codable {

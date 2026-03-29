@@ -1,6 +1,6 @@
 import Foundation
 
-struct KubernetesConfigMapInfo: Equatable, Identifiable {
+struct KubernetesConfigMapInfo: Equatable, Hashable, Identifiable {
     let name: String
     let immutable: Bool
     let textData: [String: String]
@@ -10,6 +10,10 @@ struct KubernetesConfigMapInfo: Equatable, Identifiable {
     var id: String { name }
     var textKeyCount: Int { textKeyNames.count }
     var binaryKeyCount: Int { binaryKeyNames.count }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 
     func matchesSearch(_ query: String) -> Bool {
         let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)

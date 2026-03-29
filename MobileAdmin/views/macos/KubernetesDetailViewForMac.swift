@@ -183,14 +183,25 @@ private struct SecretKeyRow: View {
         secret.copyableValue(for: key, isRevealed: isRevealed)
     }
 
+    @ViewBuilder
+    private var valueText: some View {
+        if isRevealed {
+            Text(displayValue)
+                .font(.system(.body, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        } else {
+            Text(displayValue)
+                .font(.system(.body, design: .monospaced))
+                .foregroundStyle(.secondary)
+        }
+    }
+
     var body: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(key)
-                Text(displayValue)
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .textSelection(isRevealed ? .enabled : .disabled)
+                valueText
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 6) {

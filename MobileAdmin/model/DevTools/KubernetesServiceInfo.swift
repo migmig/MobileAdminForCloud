@@ -1,6 +1,6 @@
 import Foundation
 
-struct KubernetesServiceInfo: Equatable, Identifiable {
+struct KubernetesServiceInfo: Equatable, Hashable, Identifiable {
     let name: String
     let type: String
     let primaryAddress: String
@@ -8,6 +8,10 @@ struct KubernetesServiceInfo: Equatable, Identifiable {
     let externalAddress: String?
 
     var id: String { name }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 
     func matchesSearch(_ query: String) -> Bool {
         let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -1,6 +1,6 @@
 import Foundation
 
-struct KubernetesSecretInfo: Equatable, Identifiable {
+struct KubernetesSecretInfo: Equatable, Hashable, Identifiable {
     let name: String
     let type: String
     let immutable: Bool
@@ -9,6 +9,10 @@ struct KubernetesSecretInfo: Equatable, Identifiable {
 
     var id: String { name }
     var keyCount: Int { keyNames.count }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 
     init(
         name: String,

@@ -28,6 +28,20 @@ struct KubernetesResourceInfoTests {
         #expect(KubernetesServiceSortOption.addressAscending.sort(items).map(\.name) == ["alpha", "zeta"])
     }
 
+    @Test func pod_info_isHashable_forListSelection() {
+        let pod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+        let values: Set<KubernetesPodInfo> = [pod]
+
+        #expect(values.contains(pod))
+    }
+
+    @Test func deployment_info_isHashable_forSelectionStorage() {
+        let deployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+        let values: Set<KubernetesDeploymentInfo> = [deployment]
+
+        #expect(values.contains(deployment))
+    }
+
     @Test func configMap_matchesSearch_onNameAndKeys() {
         let configMap = KubernetesConfigMapInfo(
             name: "app-config",
@@ -51,6 +65,13 @@ struct KubernetesResourceInfoTests {
 
         #expect(KubernetesConfigMapSortOption.nameAscending.sort(items).map(\.name) == ["alpha", "zeta"])
         #expect(KubernetesConfigMapSortOption.keyCountDescending.sort(items).map(\.name) == ["alpha", "zeta"])
+    }
+
+    @Test func configMap_info_isHashable_forSelectionStorage() {
+        let configMap = KubernetesConfigMapInfo(name: "app-config", immutable: false, textData: ["A": "1"], textKeyNames: ["A"], binaryKeyNames: [])
+        let values: Set<KubernetesConfigMapInfo> = [configMap]
+
+        #expect(values.contains(configMap))
     }
 
     @Test func secret_decodedValue_returnsUTF8StringForExplicitReveal() {
@@ -102,5 +123,12 @@ struct KubernetesResourceInfoTests {
 
         #expect(KubernetesSecretSortOption.nameAscending.sort(items).map(\.name) == ["alpha", "zeta"])
         #expect(KubernetesSecretSortOption.keyCountDescending.sort(items).map(\.name) == ["alpha", "zeta"])
+    }
+
+    @Test func secret_info_isHashable_forSelectionStorage() {
+        let secret = KubernetesSecretInfo(name: "app-secret", type: "Opaque", immutable: false, keyNames: ["A"], encodedData: [:])
+        let values: Set<KubernetesSecretInfo> = [secret]
+
+        #expect(values.contains(secret))
     }
 }
