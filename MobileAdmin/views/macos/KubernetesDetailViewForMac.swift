@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 struct KubernetesDetailViewForMac: View {
     @EnvironmentObject var viewModel: ViewModel
@@ -92,12 +95,19 @@ struct KubernetesDetailViewForMac: View {
                                     .textSelection(revealedSecretKeys.contains(key) ? .enabled : .disabled)
                             }
                             Spacer()
-                            Button(revealedSecretKeys.contains(key) ? "Hide" : "Reveal") {
-                                if revealedSecretKeys.contains(key) {
-                                    revealedSecretKeys.remove(key)
-                                } else {
-                                    revealedSecretKeys.insert(key)
+                            VStack(alignment: .trailing, spacing: 6) {
+                                Button(revealedSecretKeys.contains(key) ? "Hide" : "Reveal") {
+                                    if revealedSecretKeys.contains(key) {
+                                        revealedSecretKeys.remove(key)
+                                    } else {
+                                        revealedSecretKeys.insert(key)
+                                    }
                                 }
+
+                                Button("Copy") {
+                                    copyToPasteboard(secret.copyableValue(for: key, isRevealed: revealedSecretKeys.contains(key)) ?? "")
+                                }
+                                .disabled(secret.copyableValue(for: key, isRevealed: revealedSecretKeys.contains(key)) == nil)
                             }
                         }
                     }
@@ -148,6 +158,13 @@ struct KubernetesDetailViewForMac: View {
         .onChange(of: nav.selectedKubeSecret) { _, _ in
             revealedSecretKeys = []
         }
+    }
+
+    private func copyToPasteboard(_ value: String) {
+        #if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(value, forType: .string)
+        #endif
     }
 }
 

@@ -34,6 +34,11 @@ struct KubernetesSecretInfo: Equatable, Identifiable {
         return stringValue
     }
 
+    func copyableValue(for key: String, isRevealed: Bool) -> String? {
+        guard isRevealed else { return nil }
+        return decodedValue(for: key)
+    }
+
     func matchesSearch(_ query: String) -> Bool {
         let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else { return true }
@@ -43,6 +48,36 @@ struct KubernetesSecretInfo: Equatable, Identifiable {
         if keyNames.contains(where: { $0.localizedCaseInsensitiveContains(normalized) }) { return true }
 
         return false
+    }
+}
+
+enum KubernetesSecretSortOption: String, CaseIterable, Identifiable {
+    case nameAscending
+    case keyCountDescending
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .nameAscending:
+            return "이름순"
+        case .keyCountDescending:
+            return "키 개수순"
+        }
+    }
+
+    func sort(_ items: [KubernetesSecretInfo]) -> [KubernetesSecretInfo] {
+        switch self {
+        case .nameAscending:
+            return items.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        case .keyCountDescending:
+            return items.sorted {
+                if $0.keyCount == $1.keyCount {
+                    return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+                }
+                return $0.keyCount > $1.keyCount
+            }
+        }
     }
 }
 

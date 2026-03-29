@@ -4,6 +4,9 @@ struct KubernetesListViewForMac: View {
     @EnvironmentObject var viewModel: ViewModel
     @EnvironmentObject var nav: NavigationState
     @State private var searchText: String = ""
+    @State private var serviceSort: KubernetesServiceSortOption = .nameAscending
+    @State private var configMapSort: KubernetesConfigMapSortOption = .nameAscending
+    @State private var secretSort: KubernetesSecretSortOption = .nameAscending
 
     private var filteredPods: [KubernetesPodInfo] {
         if searchText.isEmpty { return viewModel.kubePods }
@@ -19,18 +22,18 @@ struct KubernetesListViewForMac: View {
     }
 
     private var filteredServices: [KubernetesServiceInfo] {
-        if searchText.isEmpty { return viewModel.kubeServices }
-        return viewModel.kubeServices.filter { $0.matchesSearch(searchText) }
+        let items = searchText.isEmpty ? viewModel.kubeServices : viewModel.kubeServices.filter { $0.matchesSearch(searchText) }
+        return serviceSort.sort(items)
     }
 
     private var filteredConfigMaps: [KubernetesConfigMapInfo] {
-        if searchText.isEmpty { return viewModel.kubeConfigMaps }
-        return viewModel.kubeConfigMaps.filter { $0.matchesSearch(searchText) }
+        let items = searchText.isEmpty ? viewModel.kubeConfigMaps : viewModel.kubeConfigMaps.filter { $0.matchesSearch(searchText) }
+        return configMapSort.sort(items)
     }
 
     private var filteredSecrets: [KubernetesSecretInfo] {
-        if searchText.isEmpty { return viewModel.kubeSecrets }
-        return viewModel.kubeSecrets.filter { $0.matchesSearch(searchText) }
+        let items = searchText.isEmpty ? viewModel.kubeSecrets : viewModel.kubeSecrets.filter { $0.matchesSearch(searchText) }
+        return secretSort.sort(items)
     }
 
     var body: some View {
@@ -54,6 +57,26 @@ struct KubernetesListViewForMac: View {
                 Picker("Namespace", selection: $viewModel.selectedKubeNamespace) {
                     ForEach(viewModel.kubeNamespaces) { item in
                         Text(item.name).tag(item.name)
+                    }
+                }
+            }
+
+            Section("Sort") {
+                Picker("Services", selection: $serviceSort) {
+                    ForEach(KubernetesServiceSortOption.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+
+                Picker("ConfigMaps", selection: $configMapSort) {
+                    ForEach(KubernetesConfigMapSortOption.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+
+                Picker("Secrets", selection: $secretSort) {
+                    ForEach(KubernetesSecretSortOption.allCases) { option in
+                        Text(option.title).tag(option)
                     }
                 }
             }

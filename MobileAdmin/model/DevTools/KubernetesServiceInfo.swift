@@ -17,6 +17,31 @@ struct KubernetesServiceInfo: Equatable, Identifiable {
     }
 }
 
+enum KubernetesServiceSortOption: String, CaseIterable, Identifiable {
+    case nameAscending
+    case addressAscending
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .nameAscending:
+            return "이름순"
+        case .addressAscending:
+            return "주소순"
+        }
+    }
+
+    func sort(_ items: [KubernetesServiceInfo]) -> [KubernetesServiceInfo] {
+        switch self {
+        case .nameAscending:
+            return items.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        case .addressAscending:
+            return items.sorted { $0.primaryAddress.localizedStandardCompare($1.primaryAddress) == .orderedAscending }
+        }
+    }
+}
+
 struct KubernetesServiceListResponse: Codable {
     let items: [KubernetesServiceItem]
 }
