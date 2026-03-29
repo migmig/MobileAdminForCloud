@@ -10,6 +10,18 @@ struct KubernetesConfigMapInfo: Equatable, Identifiable {
     var id: String { name }
     var textKeyCount: Int { textKeyNames.count }
     var binaryKeyCount: Int { binaryKeyNames.count }
+
+    func matchesSearch(_ query: String) -> Bool {
+        let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return true }
+
+        if name.localizedCaseInsensitiveContains(normalized) { return true }
+        if textKeyNames.contains(where: { $0.localizedCaseInsensitiveContains(normalized) }) { return true }
+        if binaryKeyNames.contains(where: { $0.localizedCaseInsensitiveContains(normalized) }) { return true }
+        if textData.values.contains(where: { $0.localizedCaseInsensitiveContains(normalized) }) { return true }
+
+        return false
+    }
 }
 
 struct KubernetesConfigMapListResponse: Codable {

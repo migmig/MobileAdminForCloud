@@ -5,6 +5,7 @@ struct KubernetesDetailViewForMac: View {
     @EnvironmentObject var nav: NavigationState
     @State private var replicaCount: Int = 1
     @State private var showDeleteConfirmation = false
+    @State private var revealedSecretKeys: Set<String> = []
 
     var body: some View {
         List {
@@ -82,9 +83,25 @@ struct KubernetesDetailViewForMac: View {
                     InfoRow(title: "타입", value: secret.type)
                     InfoRow(title: "Immutable", value: secret.immutable ? "true" : "false")
                     ForEach(secret.keyNames, id: \.self) { key in
-                        InfoRow(title: "key", value: key)
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(key)
+                                Text(revealedSecretKeys.contains(key) ? (secret.decodedValue(for: key) ?? "디코드 실패") : "••••••••")
+                                    .font(.system(.body, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(revealedSecretKeys.contains(key) ? .enabled : .disabled)
+                            }
+                            Spacer()
+                            Button(revealedSecretKeys.contains(key) ? "Hide" : "Reveal") {
+                                if revealedSecretKeys.contains(key) {
+                                    revealedSecretKeys.remove(key)
+                                } else {
+                                    revealedSecretKeys.insert(key)
+                                }
+                            }
+                        }
                     }
-                    Text("Secret 값은 기본 UI에서 자동 표시하지 않습니다.")
+                    Text("Secret 값은 기본적으로 가려져 있으며 키별로만 명시적으로 표시합니다.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -127,6 +144,9 @@ struct KubernetesDetailViewForMac: View {
         .onChange(of: nav.selectedKubeDeployment) { _, newValue in
             viewModel.selectedKubeDeployment = newValue
             replicaCount = newValue?.replicas ?? 1
+        }
+        .onChange(of: nav.selectedKubeSecret) { _, _ in
+            revealedSecretKeys = []
         }
     }
 }

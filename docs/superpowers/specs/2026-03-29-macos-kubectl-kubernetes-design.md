@@ -38,6 +38,7 @@ This repository already favors service-based feature access such as `BuildServic
 - list config maps for selected namespace
 - list secrets for selected namespace
 - fetch logs for selected pod
+- support in-screen filtering/search across Kubernetes resources
 
 ### Write/operation actions
 
@@ -95,6 +96,7 @@ For these additional resources, prefer the following safe/stable fields:
 - Secrets: `metadata.name`, `type`, `immutable`, `data` keys/count
 
 Secret values must not be shown by default. The safe default is metadata plus key names/count only.
+If the product exposes secret values at all, reveal must be explicit, per key, and off by default.
 
 ### 3. ViewModel integration
 
@@ -117,6 +119,7 @@ Expected state shape:
 - `selectedPodLogs`
 - `kubernetesError`
 - `isKubernetesLoading`
+- local UI state for search text and revealed secret keys
 
 The `ViewModel` should delegate all real work to `KubernetesService`, matching the repository's newer pattern.
 
@@ -145,6 +148,7 @@ Suggested layout:
   - service detail summary
   - config map key/value detail
   - secret metadata plus key names only by default
+  - explicit per-key secret reveal action
 
 The UI should be macOS-only and should not force new patterns onto iOS files.
 
@@ -188,6 +192,7 @@ Design rules:
 - Actions that mutate cluster state must be explicit and user-initiated.
 - The app relies on the host's existing Kubernetes credentials and does not store new credentials.
 - Secret values are not auto-decoded or auto-rendered in the default UI.
+- If secret values are revealable, the reveal interaction must be explicit and limited to the selected key.
 
 ## File Placement
 
@@ -214,6 +219,7 @@ Final file names can adapt to nearby repository naming patterns during planning.
 
 - runner result mapping from process output to typed result/error
 - service decoding of JSON fixtures for contexts, namespaces, pods, deployments, services, config maps, secrets
+- filtering and reveal-helper logic for the new resource types
 - service command construction for scale/restart/delete actions
 - view model state update behavior for success and failure paths
 

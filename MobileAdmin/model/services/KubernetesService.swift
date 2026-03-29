@@ -130,7 +130,8 @@ struct KubernetesService: KubernetesServicing {
                 name: item.metadata.name,
                 type: item.type ?? "Opaque",
                 immutable: item.immutable ?? false,
-                keyNames: (item.data?.keys.map { $0 } ?? []).sorted()
+                keyNames: (item.data?.keys.map { $0 } ?? []).sorted(),
+                encodedData: item.data ?? [:]
             )
         }
     }

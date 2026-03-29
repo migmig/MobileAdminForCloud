@@ -3,6 +3,35 @@ import SwiftUI
 struct KubernetesListViewForMac: View {
     @EnvironmentObject var viewModel: ViewModel
     @EnvironmentObject var nav: NavigationState
+    @State private var searchText: String = ""
+
+    private var filteredPods: [KubernetesPodInfo] {
+        if searchText.isEmpty { return viewModel.kubePods }
+        return viewModel.kubePods.filter {
+            $0.name.localizedCaseInsensitiveContains(searchText) ||
+            $0.phase.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    private var filteredDeployments: [KubernetesDeploymentInfo] {
+        if searchText.isEmpty { return viewModel.kubeDeployments }
+        return viewModel.kubeDeployments.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+    }
+
+    private var filteredServices: [KubernetesServiceInfo] {
+        if searchText.isEmpty { return viewModel.kubeServices }
+        return viewModel.kubeServices.filter { $0.matchesSearch(searchText) }
+    }
+
+    private var filteredConfigMaps: [KubernetesConfigMapInfo] {
+        if searchText.isEmpty { return viewModel.kubeConfigMaps }
+        return viewModel.kubeConfigMaps.filter { $0.matchesSearch(searchText) }
+    }
+
+    private var filteredSecrets: [KubernetesSecretInfo] {
+        if searchText.isEmpty { return viewModel.kubeSecrets }
+        return viewModel.kubeSecrets.filter { $0.matchesSearch(searchText) }
+    }
 
     var body: some View {
         List(selection: $nav.selectedKubePod) {
@@ -30,12 +59,12 @@ struct KubernetesListViewForMac: View {
             }
 
             Section("Pods") {
-                if viewModel.kubePods.isEmpty {
+                if filteredPods.isEmpty {
                     EmptyStateView(systemImage: "shippingbox", title: "Pod가 없습니다")
                         .listRowBackground(Color.clear)
                 }
 
-                ForEach(viewModel.kubePods) { pod in
+                ForEach(filteredPods) { pod in
                     NavigationLink(value: pod) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(pod.name)
@@ -48,12 +77,12 @@ struct KubernetesListViewForMac: View {
             }
 
             Section("Deployments") {
-                if viewModel.kubeDeployments.isEmpty {
+                if filteredDeployments.isEmpty {
                     EmptyStateView(systemImage: "shippingbox.circle", title: "Deployment가 없습니다")
                         .listRowBackground(Color.clear)
                 }
 
-                ForEach(viewModel.kubeDeployments) { deployment in
+                ForEach(filteredDeployments) { deployment in
                     Button {
                         nav.selectedKubeDeployment = deployment
                         viewModel.selectedKubeDeployment = deployment
@@ -70,12 +99,12 @@ struct KubernetesListViewForMac: View {
             }
 
             Section("Services") {
-                if viewModel.kubeServices.isEmpty {
+                if filteredServices.isEmpty {
                     EmptyStateView(systemImage: "point.3.connected.trianglepath.dotted", title: "Service가 없습니다")
                         .listRowBackground(Color.clear)
                 }
 
-                ForEach(viewModel.kubeServices) { service in
+                ForEach(filteredServices) { service in
                     Button {
                         nav.selectedKubeService = service
                         viewModel.selectedKubeService = service
@@ -92,12 +121,12 @@ struct KubernetesListViewForMac: View {
             }
 
             Section("ConfigMaps") {
-                if viewModel.kubeConfigMaps.isEmpty {
+                if filteredConfigMaps.isEmpty {
                     EmptyStateView(systemImage: "doc.text", title: "ConfigMap이 없습니다")
                         .listRowBackground(Color.clear)
                 }
 
-                ForEach(viewModel.kubeConfigMaps) { configMap in
+                ForEach(filteredConfigMaps) { configMap in
                     Button {
                         nav.selectedKubeConfigMap = configMap
                         viewModel.selectedKubeConfigMap = configMap
@@ -114,12 +143,12 @@ struct KubernetesListViewForMac: View {
             }
 
             Section("Secrets") {
-                if viewModel.kubeSecrets.isEmpty {
+                if filteredSecrets.isEmpty {
                     EmptyStateView(systemImage: "lock.doc", title: "Secret이 없습니다")
                         .listRowBackground(Color.clear)
                 }
 
-                ForEach(viewModel.kubeSecrets) { secret in
+                ForEach(filteredSecrets) { secret in
                     Button {
                         nav.selectedKubeSecret = secret
                         viewModel.selectedKubeSecret = secret
@@ -136,6 +165,7 @@ struct KubernetesListViewForMac: View {
             }
         }
         .navigationTitle("Kubernetes")
+        .searchable(text: $searchText, placement: .automatic, prompt: "리소스 이름, 타입, 키 검색")
         .task {
             await viewModel.refreshKubernetesOverview()
         }

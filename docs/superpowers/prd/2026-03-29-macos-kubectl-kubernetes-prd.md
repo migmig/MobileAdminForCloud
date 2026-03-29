@@ -29,6 +29,8 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - Read services in the selected namespace
 - Read config maps in the selected namespace
 - Read secrets in the selected namespace using a safe default view
+- Allow explicit per-key secret reveal only through deliberate user action
+- Allow searching/filtering across the Kubernetes resource lists shown in the macOS screen
 - Read pod logs
 - Run these controlled actions:
   - deployment scale
@@ -60,6 +62,7 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - The app can successfully run constrained `kubectl` commands through the host environment.
 - Inspection flows work without requiring manual Terminal use for the supported operations.
 - Secrets are displayed with safe defaults and do not expose raw values automatically.
+- Users can quickly narrow services, config maps, and secrets through in-screen search/filtering.
 - Dangerous or unsupported commands are not exposed.
 - Failure cases are understandable to the user.
 
@@ -77,6 +80,7 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - `kubectl` output can fail or change shape if JSON decoding assumptions are too strict.
 - Operational actions need confirmation and clear status reporting to avoid unsafe UX.
 - Secret display can leak sensitive data if the UI shows decoded values by default.
+- Search/filter behavior can become misleading if resource matching is inconsistent across types.
 
 ## Acceptance Criteria
 
@@ -84,5 +88,7 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - A macOS user can scale a deployment, trigger rollout restart, and delete a pod.
 - The app blocks unsupported freeform command execution.
 - Secret views show metadata and key names/count by default, not raw values.
+- Secret values are only revealed when the user explicitly requests them per key.
+- The Kubernetes resource lists support search/filtering for faster navigation.
 - Missing binary, missing kubeconfig, bad context, and non-zero exit codes are surfaced cleanly.
 - The design remains extensible for future Kubernetes resources without requiring an architectural rewrite.

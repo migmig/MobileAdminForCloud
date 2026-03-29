@@ -8,6 +8,13 @@ struct KubernetesServiceInfo: Equatable, Identifiable {
     let externalAddress: String?
 
     var id: String { name }
+
+    func matchesSearch(_ query: String) -> Bool {
+        let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return true }
+        let fields = [name, type, primaryAddress, externalAddress ?? ""]
+        return fields.contains { $0.localizedCaseInsensitiveContains(normalized) }
+    }
 }
 
 struct KubernetesServiceListResponse: Codable {
