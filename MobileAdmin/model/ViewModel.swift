@@ -15,6 +15,18 @@ class ViewModel: ObservableObject {
     @Published var sourceDeployHistoryList : [SourceDeployHistoryInfoHistoryList] = []
     @Published var selectedErrors: Set<Int> = []
     @Published var lastError: NetworkError?
+    @Published var kubeContexts: [KubernetesContextInfo] = []
+    @Published var selectedKubeContext: String = ""
+    @Published var kubeNamespaces: [KubernetesNamespaceInfo] = []
+    @Published var selectedKubeNamespace: String = ""
+    @Published var kubePods: [KubernetesPodInfo] = []
+    @Published var selectedKubePod: KubernetesPodInfo?
+    @Published var kubeDeployments: [KubernetesDeploymentInfo] = []
+    @Published var selectedKubeDeployment: KubernetesDeploymentInfo?
+    @Published var selectedPodLogs: String = ""
+    @Published var kubernetesError: String?
+    @Published var isKubernetesLoading = false
+    @Published var isKubectlAvailable = false
 
     let logger = Logger(label: "com.migmig.MobileAdmin.ViewModel")
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
@@ -43,8 +55,9 @@ class ViewModel: ObservableObject {
     private let commitService: CommitService
     private let deployService: DeployService
     private let userLogService: UserLogService
+    private let kubernetesService: any KubernetesServicing
 
-    init() {
+    init(kubernetesService: any KubernetesServicing = KubernetesService()) {
         let client = NetworkClient()
         self.networkClient = client
         self.toastService = ToastService(client: client)
@@ -58,6 +71,7 @@ class ViewModel: ObservableObject {
         self.commitService = CommitService(client: client)
         self.deployService = DeployService(client: client)
         self.userLogService = UserLogService(client: client)
+        self.kubernetesService = kubernetesService
     }
 
     func setToken(token: String?) {
@@ -186,6 +200,76 @@ class ViewModel: ObservableObject {
 
     func runSourceDeploy(_ projectId: Int, _ stageId: Int, _ scenarioId: Int) async -> SourceDeployExecResult {
         await deployService.runSourceDeploy(projectId, stageId, scenarioId)
+    }
+
+    @MainActor
+    func refreshKubernetesOverview() async {
+        isKubernetesLoading = true
+        defer { isKubernetesLoading = false }
+
+        do {
+            try await kubernetesService.checkAvailability()
+            isKubectlAvailable = true
+            kubeContexts = try await kubernetesService.fetchContexts()
+            selectedKubeContext = try await kubernetesService.fetchCurrentContext()
+            kubeNamespaces = try await kubernetesService.fetchNamespaces()
+
+            if selectedKubeNamespace.isEmpty || !kubeNamespaces.contains(where: { $0.name == selectedKubeNamespace }) {
+                selectedKubeNamespace = kubeNamespaces.first?.name ?? ""
+            }
+
+            if !selectedKubeNamespace.isEmpty {
+                kubePods = try await kubernetesService.fetchPods(namespace: selectedKubeNamespace)
+                kubeDeployments = try await kubernetesService.fetchDeployments(namespace: selectedKubeNamespace)
+            } else {
+                kubePods = []
+                kubeDeployments = []
+            }
+
+            kubernetesError = nil
+        } catch {
+            isKubectlAvailable = false
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func switchKubernetesContext(to name: String) async {
+        do {
+            try await kubernetesService.useContext(name)
+            selectedKubeContext = name
+            selectedKubeNamespace = ""
+            await refreshKubernetesOverview()
+        } catch {
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func refreshPodLogs() async {
+        guard let selectedKubePod else { return }
+
+        do {
+            selectedPodLogs = try await kubernetesService.fetchPodLogs(name: selectedKubePod.name, namespace: selectedKubeNamespace)
+            kubernetesError = nil
+        } catch {
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    func scaleSelectedDeployment(to replicas: Int) async throws {
+        guard let selectedKubeDeployment else { return }
+        try await kubernetesService.scaleDeployment(name: selectedKubeDeployment.name, namespace: selectedKubeNamespace, replicas: replicas)
+    }
+
+    func restartSelectedDeployment() async throws {
+        guard let selectedKubeDeployment else { return }
+        try await kubernetesService.rolloutRestartDeployment(name: selectedKubeDeployment.name, namespace: selectedKubeNamespace)
+    }
+
+    func deleteSelectedPod() async throws {
+        guard let selectedKubePod else { return }
+        try await kubernetesService.deletePod(name: selectedKubePod.name, namespace: selectedKubeNamespace)
     }
 
     // MARK: - 사용자 로그
