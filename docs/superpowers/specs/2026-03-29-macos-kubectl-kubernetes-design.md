@@ -34,6 +34,9 @@ This repository already favors service-based feature access such as `BuildServic
 - list namespaces
 - list pods for selected namespace
 - list deployments for selected namespace
+- list services for selected namespace
+- list config maps for selected namespace
+- list secrets for selected namespace
 - fetch logs for selected pod
 
 ### Write/operation actions
@@ -85,6 +88,14 @@ Responsibilities:
 
 Where practical, read commands should prefer `-o json` and `Codable` models. Log retrieval can remain plain text.
 
+For these additional resources, prefer the following safe/stable fields:
+
+- Services: `metadata.name`, `spec.type`, `spec.clusterIPs` or `spec.clusterIP`, `spec.externalName`, `spec.ports`, `status.loadBalancer.ingress`
+- ConfigMaps: `metadata.name`, `immutable`, `data` keys/count, `binaryData` keys/count
+- Secrets: `metadata.name`, `type`, `immutable`, `data` keys/count
+
+Secret values must not be shown by default. The safe default is metadata plus key names/count only.
+
 ### 3. ViewModel integration
 
 Extend `ViewModel` with Kubernetes-specific observable state and thin forwarding methods.
@@ -97,6 +108,12 @@ Expected state shape:
 - `selectedKubeNamespace`
 - `kubePods`
 - `kubeDeployments`
+- `kubeServices`
+- `kubeConfigMaps`
+- `kubeSecrets`
+- `selectedKubeService`
+- `selectedKubeConfigMap`
+- `selectedKubeSecret`
 - `selectedPodLogs`
 - `kubernetesError`
 - `isKubernetesLoading`
@@ -117,11 +134,17 @@ Suggested layout:
 - primary content:
   - pods list
   - deployments list
+  - services list
+  - config maps list
+  - secrets list
 - detail/actions area:
   - pod logs viewer
   - deployment scale action
   - rollout restart action
   - pod delete action with confirmation
+  - service detail summary
+  - config map key/value detail
+  - secret metadata plus key names only by default
 
 The UI should be macOS-only and should not force new patterns onto iOS files.
 
@@ -149,6 +172,7 @@ Minimum cases:
 - namespace/resource not found
 - command returns non-zero exit code
 - JSON decode failure for a supported read command
+- secret parsing/display path accidentally exposing sensitive values
 
 Design rules:
 
@@ -163,6 +187,7 @@ Design rules:
 - Only predetermined operations are exposed in the UI.
 - Actions that mutate cluster state must be explicit and user-initiated.
 - The app relies on the host's existing Kubernetes credentials and does not store new credentials.
+- Secret values are not auto-decoded or auto-rendered in the default UI.
 
 ## File Placement
 
@@ -173,7 +198,7 @@ Expected new or changed areas:
   - `KubectlRunner.swift`
   - `KubernetesCommandError.swift`
 - `MobileAdmin/model/DevTools/`
-  - Kubernetes response/resource models for contexts, namespaces, pods, deployments
+  - Kubernetes response/resource models for contexts, namespaces, pods, deployments, services, config maps, secrets
 - `MobileAdmin/model/ViewModel.swift`
   - observable state + forwarding methods
 - `MobileAdmin/views/macos/` and/or `MobileAdmin/views/common/devTools/`
@@ -188,7 +213,7 @@ Final file names can adapt to nearby repository naming patterns during planning.
 ### Unit tests
 
 - runner result mapping from process output to typed result/error
-- service decoding of JSON fixtures for contexts, namespaces, pods, deployments
+- service decoding of JSON fixtures for contexts, namespaces, pods, deployments, services, config maps, secrets
 - service command construction for scale/restart/delete actions
 - view model state update behavior for success and failure paths
 
@@ -210,7 +235,7 @@ When implemented, verify on a macOS machine with:
 Recommended implementation order:
 
 1. runner + typed errors
-2. read-only flows: availability, contexts, namespaces, pods, deployments, logs
+2. read-only flows: availability, contexts, namespaces, pods, deployments, services, config maps, secrets, logs
 3. mutating actions: scale, restart, delete with confirmation
 4. UI polish and empty/error states
 
@@ -218,7 +243,7 @@ Recommended implementation order:
 
 - Platform: macOS only
 - Execution model: use local host `kubectl`
-- Feature scope: read operations plus scale / rollout restart / pod delete
+- Feature scope: read operations for pods, deployments, services, config maps, and safe secret views, plus scale / rollout restart / pod delete
 - Safety model: fixed-function wrapper, not arbitrary shell access
 
 ## Non-Goals for This Spec

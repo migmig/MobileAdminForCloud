@@ -11,5 +11,8 @@ struct KubernetesNavigationTests {
 
         #expect(state.selectedKubePod == nil)
         #expect(state.selectedKubeDeployment == nil)
+        #expect(state.selectedKubeService == nil)
+        #expect(state.selectedKubeConfigMap == nil)
+        #expect(state.selectedKubeSecret == nil)
     }
 }

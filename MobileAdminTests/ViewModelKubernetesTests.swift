@@ -8,6 +8,9 @@ final class StubKubernetesService: KubernetesServicing {
     var namespaces: [KubernetesNamespaceInfo]
     var pods: [KubernetesPodInfo]
     var deployments: [KubernetesDeploymentInfo]
+    var services: [KubernetesServiceInfo]
+    var configMaps: [KubernetesConfigMapInfo]
+    var secrets: [KubernetesSecretInfo]
     var logs: String
     var deletedPods: [(namespace: String, name: String)] = []
     var scaledDeployments: [(namespace: String, name: String, replicas: Int)] = []
@@ -20,6 +23,9 @@ final class StubKubernetesService: KubernetesServicing {
         namespaces: [KubernetesNamespaceInfo] = [],
         pods: [KubernetesPodInfo] = [],
         deployments: [KubernetesDeploymentInfo] = [],
+        services: [KubernetesServiceInfo] = [],
+            configMaps: [KubernetesConfigMapInfo] = [],
+        secrets: [KubernetesSecretInfo] = [],
         logs: String = ""
     ) {
         self.currentContext = currentContext
@@ -27,6 +33,9 @@ final class StubKubernetesService: KubernetesServicing {
         self.namespaces = namespaces
         self.pods = pods
         self.deployments = deployments
+        self.services = services
+        self.configMaps = configMaps
+        self.secrets = secrets
         self.logs = logs
     }
 
@@ -37,6 +46,9 @@ final class StubKubernetesService: KubernetesServicing {
     func fetchNamespaces() async throws -> [KubernetesNamespaceInfo] { namespaces }
     func fetchPods(namespace: String) async throws -> [KubernetesPodInfo] { pods }
     func fetchDeployments(namespace: String) async throws -> [KubernetesDeploymentInfo] { deployments }
+    func fetchServices(namespace: String) async throws -> [KubernetesServiceInfo] { services }
+    func fetchConfigMaps(namespace: String) async throws -> [KubernetesConfigMapInfo] { configMaps }
+    func fetchSecrets(namespace: String) async throws -> [KubernetesSecretInfo] { secrets }
     func fetchPodLogs(name: String, namespace: String) async throws -> String { logs }
     func scaleDeployment(name: String, namespace: String, replicas: Int) async throws { scaledDeployments.append((namespace, name, replicas)) }
     func rolloutRestartDeployment(name: String, namespace: String) async throws { restartedDeployments.append((namespace, name)) }
@@ -50,7 +62,10 @@ struct ViewModelKubernetesTests {
             contexts: [KubernetesContextInfo(name: "prod-cluster")],
             namespaces: [KubernetesNamespaceInfo(name: "prod")],
             pods: [KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)],
-            deployments: [KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)]
+            deployments: [KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)],
+            services: [KubernetesServiceInfo(name: "api", type: "ClusterIP", primaryAddress: "10.0.0.12", portCount: 2, externalAddress: nil)],
+            configMaps: [KubernetesConfigMapInfo(name: "app-config", immutable: false, textData: ["A": "1"], textKeyNames: ["A"], binaryKeyNames: [])],
+            secrets: [KubernetesSecretInfo(name: "app-secret", type: "Opaque", immutable: false, keyNames: ["token"])]
         )
         let viewModel = ViewModel(kubernetesService: service)
 
@@ -60,6 +75,9 @@ struct ViewModelKubernetesTests {
         #expect(viewModel.selectedKubeNamespace == "prod")
         #expect(viewModel.kubePods.map(\.name) == ["api-123"])
         #expect(viewModel.kubeDeployments.map(\.name) == ["api"])
+        #expect(viewModel.kubeServices.map(\.name) == ["api"])
+        #expect(viewModel.kubeConfigMaps.map(\.name) == ["app-config"])
+        #expect(viewModel.kubeSecrets.map(\.name) == ["app-secret"])
         #expect(viewModel.isKubectlAvailable == true)
     }
 

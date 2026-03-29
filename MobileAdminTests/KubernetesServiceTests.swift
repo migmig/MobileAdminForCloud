@@ -100,4 +100,65 @@ struct KubernetesServiceTests {
             Issue.record("Expected KubernetesCommandError but got \(error)")
         }
     }
+
+    @Test func fetchServices_decodesTypeAddressAndPortCount() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "services", "-n", "prod", "-o", "json"]: .success(
+                KubectlCommandResult(
+                    stdout: #"{"items":[{"metadata":{"name":"api"},"spec":{"type":"ClusterIP","clusterIP":"10.0.0.12","ports":[{"port":80},{"port":443}]},"status":{}}]}"#,
+                    stderr: "",
+                    exitCode: 0
+                )
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let services = try await service.fetchServices(namespace: "prod")
+
+        #expect(services.map(\.name) == ["api"])
+        #expect(services.first?.type == "ClusterIP")
+        #expect(services.first?.primaryAddress == "10.0.0.12")
+        #expect(services.first?.portCount == 2)
+    }
+
+    @Test func fetchConfigMaps_decodesKeyCounts() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "configmaps", "-n", "prod", "-o", "json"]: .success(
+                KubectlCommandResult(
+                    stdout: #"{"items":[{"metadata":{"name":"app-config"},"immutable":true,"data":{"A":"1","B":"2"},"binaryData":{"blob":"AA=="}}]}"#,
+                    stderr: "",
+                    exitCode: 0
+                )
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let configMaps = try await service.fetchConfigMaps(namespace: "prod")
+
+        #expect(configMaps.map(\.name) == ["app-config"])
+        #expect(configMaps.first?.textKeyCount == 2)
+        #expect(configMaps.first?.binaryKeyCount == 1)
+        #expect(configMaps.first?.immutable == true)
+        #expect(configMaps.first?.textData["A"] == "1")
+    }
+
+    @Test func fetchSecrets_decodesMetadataAndKeysWithoutValues() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "secrets", "-n", "prod", "-o", "json"]: .success(
+                KubectlCommandResult(
+                    stdout: #"{"items":[{"metadata":{"name":"app-secret"},"type":"Opaque","immutable":false,"data":{"username":"dXNlcg==","password":"cGFzcw=="}}]}"#,
+                    stderr: "",
+                    exitCode: 0
+                )
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let secrets = try await service.fetchSecrets(namespace: "prod")
+
+        #expect(secrets.map(\.name) == ["app-secret"])
+        #expect(secrets.first?.type == "Opaque")
+        #expect(secrets.first?.keyNames == ["password", "username"])
+        #expect(secrets.first?.keyCount == 2)
+    }
 }

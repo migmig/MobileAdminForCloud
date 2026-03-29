@@ -68,6 +68,72 @@ struct KubernetesListViewForMac: View {
                     .buttonStyle(.plain)
                 }
             }
+
+            Section("Services") {
+                if viewModel.kubeServices.isEmpty {
+                    EmptyStateView(systemImage: "point.3.connected.trianglepath.dotted", title: "Service가 없습니다")
+                        .listRowBackground(Color.clear)
+                }
+
+                ForEach(viewModel.kubeServices) { service in
+                    Button {
+                        nav.selectedKubeService = service
+                        viewModel.selectedKubeService = service
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(service.name)
+                            Text("\(service.type) · \(service.primaryAddress) · ports \(service.portCount)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Section("ConfigMaps") {
+                if viewModel.kubeConfigMaps.isEmpty {
+                    EmptyStateView(systemImage: "doc.text", title: "ConfigMap이 없습니다")
+                        .listRowBackground(Color.clear)
+                }
+
+                ForEach(viewModel.kubeConfigMaps) { configMap in
+                    Button {
+                        nav.selectedKubeConfigMap = configMap
+                        viewModel.selectedKubeConfigMap = configMap
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(configMap.name)
+                            Text("text \(configMap.textKeyCount) · binary \(configMap.binaryKeyCount)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Section("Secrets") {
+                if viewModel.kubeSecrets.isEmpty {
+                    EmptyStateView(systemImage: "lock.doc", title: "Secret이 없습니다")
+                        .listRowBackground(Color.clear)
+                }
+
+                ForEach(viewModel.kubeSecrets) { secret in
+                    Button {
+                        nav.selectedKubeSecret = secret
+                        viewModel.selectedKubeSecret = secret
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(secret.name)
+                            Text("\(secret.type) · keys \(secret.keyCount)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .navigationTitle("Kubernetes")
         .task {

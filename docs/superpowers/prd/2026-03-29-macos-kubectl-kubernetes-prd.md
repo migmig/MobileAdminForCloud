@@ -26,6 +26,9 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - Read namespaces
 - Read pods in the selected namespace
 - Read deployments in the selected namespace
+- Read services in the selected namespace
+- Read config maps in the selected namespace
+- Read secrets in the selected namespace using a safe default view
 - Read pod logs
 - Run these controlled actions:
   - deployment scale
@@ -46,15 +49,17 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 
 1. As a macOS operator, I can see whether the app can use local `kubectl`.
 2. As a macOS operator, I can choose a context and namespace and inspect pods and deployments.
-3. As a macOS operator, I can open logs for a pod without switching to Terminal.
-4. As a macOS operator, I can scale a deployment, restart a rollout, or delete a pod from the app.
-5. As a macOS operator, I receive clear feedback when the command fails or Kubernetes access is unavailable.
+3. As a macOS operator, I can inspect services, config maps, and secrets for the selected namespace.
+4. As a macOS operator, I can open logs for a pod without switching to Terminal.
+5. As a macOS operator, I can scale a deployment, restart a rollout, or delete a pod from the app.
+6. As a macOS operator, I receive clear feedback when the command fails or Kubernetes access is unavailable.
 
 ## Success Criteria
 
 - The macOS app exposes a clear Kubernetes screen inside DevTools.
 - The app can successfully run constrained `kubectl` commands through the host environment.
 - Inspection flows work without requiring manual Terminal use for the supported operations.
+- Secrets are displayed with safe defaults and do not expose raw values automatically.
 - Dangerous or unsupported commands are not exposed.
 - Failure cases are understandable to the user.
 
@@ -71,11 +76,13 @@ Add a macOS-only Kubernetes feature that wraps local `kubectl` for a safe, const
 - The app process may see a different shell environment than Terminal.
 - `kubectl` output can fail or change shape if JSON decoding assumptions are too strict.
 - Operational actions need confirmation and clear status reporting to avoid unsafe UX.
+- Secret display can leak sensitive data if the UI shows decoded values by default.
 
 ## Acceptance Criteria
 
-- A macOS user with a working local `kubectl` setup can browse contexts, namespaces, pods, deployments, and logs.
+- A macOS user with a working local `kubectl` setup can browse contexts, namespaces, pods, deployments, services, config maps, secrets, and logs.
 - A macOS user can scale a deployment, trigger rollout restart, and delete a pod.
 - The app blocks unsupported freeform command execution.
+- Secret views show metadata and key names/count by default, not raw values.
 - Missing binary, missing kubeconfig, bad context, and non-zero exit codes are surfaced cleanly.
 - The design remains extensible for future Kubernetes resources without requiring an architectural rewrite.

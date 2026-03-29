@@ -23,6 +23,12 @@ class ViewModel: ObservableObject {
     @Published var selectedKubePod: KubernetesPodInfo?
     @Published var kubeDeployments: [KubernetesDeploymentInfo] = []
     @Published var selectedKubeDeployment: KubernetesDeploymentInfo?
+    @Published var kubeServices: [KubernetesServiceInfo] = []
+    @Published var selectedKubeService: KubernetesServiceInfo?
+    @Published var kubeConfigMaps: [KubernetesConfigMapInfo] = []
+    @Published var selectedKubeConfigMap: KubernetesConfigMapInfo?
+    @Published var kubeSecrets: [KubernetesSecretInfo] = []
+    @Published var selectedKubeSecret: KubernetesSecretInfo?
     @Published var selectedPodLogs: String = ""
     @Published var kubernetesError: String?
     @Published var isKubernetesLoading = false
@@ -221,9 +227,15 @@ class ViewModel: ObservableObject {
             if !selectedKubeNamespace.isEmpty {
                 kubePods = try await kubernetesService.fetchPods(namespace: selectedKubeNamespace)
                 kubeDeployments = try await kubernetesService.fetchDeployments(namespace: selectedKubeNamespace)
+                kubeServices = try await kubernetesService.fetchServices(namespace: selectedKubeNamespace)
+                kubeConfigMaps = try await kubernetesService.fetchConfigMaps(namespace: selectedKubeNamespace)
+                kubeSecrets = try await kubernetesService.fetchSecrets(namespace: selectedKubeNamespace)
             } else {
                 kubePods = []
                 kubeDeployments = []
+                kubeServices = []
+                kubeConfigMaps = []
+                kubeSecrets = []
             }
 
             kubernetesError = nil

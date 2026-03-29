@@ -51,6 +51,45 @@ struct KubernetesDetailViewForMac: View {
                 }
             }
 
+            if let service = nav.selectedKubeService {
+                Section("Service") {
+                    InfoRow(title: "이름", value: service.name)
+                    InfoRow(title: "타입", value: service.type)
+                    InfoRow(title: "주소", value: service.primaryAddress)
+                    InfoRow(title: "포트 수", value: "\(service.portCount)")
+                    if let externalAddress = service.externalAddress {
+                        InfoRow(title: "외부 주소", value: externalAddress)
+                    }
+                }
+            }
+
+            if let configMap = nav.selectedKubeConfigMap {
+                Section("ConfigMap") {
+                    InfoRow(title: "이름", value: configMap.name)
+                    InfoRow(title: "Immutable", value: configMap.immutable ? "true" : "false")
+                    ForEach(configMap.textKeyNames, id: \.self) { key in
+                        InfoRow(title: key, value: configMap.textData[key] ?? "")
+                    }
+                    ForEach(configMap.binaryKeyNames, id: \.self) { key in
+                        InfoRow(title: "binary", value: key)
+                    }
+                }
+            }
+
+            if let secret = nav.selectedKubeSecret {
+                Section("Secret") {
+                    InfoRow(title: "이름", value: secret.name)
+                    InfoRow(title: "타입", value: secret.type)
+                    InfoRow(title: "Immutable", value: secret.immutable ? "true" : "false")
+                    ForEach(secret.keyNames, id: \.self) { key in
+                        InfoRow(title: "key", value: key)
+                    }
+                    Text("Secret 값은 기본 UI에서 자동 표시하지 않습니다.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             if let pod = nav.selectedKubePod {
                 Section("Pod") {
                     InfoRow(title: "이름", value: pod.name)

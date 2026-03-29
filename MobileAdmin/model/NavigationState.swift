@@ -19,4 +19,7 @@ class NavigationState: ObservableObject {
     @Published var selectedDeploy: SourceInfoProjectInfo?
     @Published var selectedKubePod: KubernetesPodInfo?
     @Published var selectedKubeDeployment: KubernetesDeploymentInfo?
+    @Published var selectedKubeService: KubernetesServiceInfo?
+    @Published var selectedKubeConfigMap: KubernetesConfigMapInfo?
+    @Published var selectedKubeSecret: KubernetesSecretInfo?
 }
