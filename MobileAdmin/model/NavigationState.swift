@@ -22,4 +22,12 @@ class NavigationState: ObservableObject {
     @Published var selectedKubeService: KubernetesServiceInfo?
     @Published var selectedKubeConfigMap: KubernetesConfigMapInfo?
     @Published var selectedKubeSecret: KubernetesSecretInfo?
+
+    func clearKubernetesSelections() {
+        selectedKubePod = nil
+        selectedKubeDeployment = nil
+        selectedKubeService = nil
+        selectedKubeConfigMap = nil
+        selectedKubeSecret = nil
+    }
 }

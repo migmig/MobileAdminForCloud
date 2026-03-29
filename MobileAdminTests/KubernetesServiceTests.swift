@@ -161,4 +161,58 @@ struct KubernetesServiceTests {
         #expect(secrets.first?.keyNames == ["password", "username"])
         #expect(secrets.first?.keyCount == 2)
     }
+
+    @Test func fetchRolloutStatus_passesDeploymentNamespaceAndTimeout() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["rollout", "status", "deployment/api", "-n", "prod", "--timeout=10s"]: .success(
+                KubectlCommandResult(stdout: "deployment \"api\" successfully rolled out\n", stderr: "", exitCode: 0)
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let status = try await service.fetchRolloutStatus(deployment: "api", namespace: "prod")
+
+        #expect(status == "deployment \"api\" successfully rolled out")
+        #expect(runner.recordedArguments == [["rollout", "status", "deployment/api", "-n", "prod", "--timeout=10s"]])
+    }
+
+    @Test func fetchEvents_decodesAndFiltersMatchingResourceEvents() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "events", "-n", "prod", "-o", "json"]: .success(
+                KubectlCommandResult(
+                    stdout: #"{"items":[{"type":"Normal","reason":"Started","message":"Started container","lastTimestamp":"2026-03-29T10:00:00Z","involvedObject":{"kind":"Pod","name":"api-123"}},{"type":"Warning","reason":"BackOff","message":"Back-off restarting failed container","lastTimestamp":"2026-03-29T11:00:00Z","involvedObject":{"kind":"Pod","name":"api-123"}},{"type":"Normal","reason":"Scheduled","message":"Assigned to node","lastTimestamp":"2026-03-29T09:00:00Z","involvedObject":{"kind":"Pod","name":"worker-1"}}]}"#,
+                    stderr: "",
+                    exitCode: 0
+                )
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        let events = try await service.fetchEvents(namespace: "prod", resourceKind: "Pod", resourceName: "api-123")
+
+        #expect(events.map(\.reason) == ["BackOff", "Started"])
+        #expect(events.allSatisfy { $0.involvedKind == "Pod" && $0.involvedName == "api-123" })
+    }
+
+    @Test func fetchEvents_invalidJSON_wrapsDecodeFailure() async throws {
+        let runner = StubKubectlRunner(outputs: [
+            ["get", "events", "-n", "prod", "-o", "json"]: .success(
+                KubectlCommandResult(stdout: #"{"items":[{"message":"missing involved object"}]}"#, stderr: "", exitCode: 0)
+            )
+        ])
+        let service = KubernetesService(runner: runner)
+
+        do {
+            _ = try await service.fetchEvents(namespace: "prod", resourceKind: "Pod", resourceName: "api-123")
+            Issue.record("Expected decoding failure")
+        } catch let error as KubernetesCommandError {
+            if case .decodingFailed(let command, _) = error {
+                #expect(command == "kubectl get events -n prod -o json")
+            } else {
+                Issue.record("Expected .decodingFailed but got \(error)")
+            }
+        } catch {
+            Issue.record("Expected KubernetesCommandError but got \(error)")
+        }
+    }
 }

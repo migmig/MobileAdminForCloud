@@ -58,15 +58,27 @@ struct KubernetesListViewForMac: View {
         }
         .onChange(of: viewModel.selectedKubeContext) { oldValue, newValue in
             guard oldValue != newValue, !newValue.isEmpty, !oldValue.isEmpty else { return }
+            nav.clearKubernetesSelections()
+            viewModel.clearSelectedKubernetesResources()
             Task { await viewModel.switchKubernetesContext(to: newValue) }
         }
         .onChange(of: viewModel.selectedKubeNamespace) { oldValue, newValue in
             guard oldValue != newValue, !newValue.isEmpty, !oldValue.isEmpty else { return }
+            nav.clearKubernetesSelections()
+            viewModel.clearSelectedKubernetesResources()
             Task { await viewModel.refreshKubernetesOverview() }
         }
         .onChange(of: nav.selectedKubePod) { _, newValue in
+            nav.selectedKubeDeployment = nil
+            nav.selectedKubeService = nil
+            nav.selectedKubeConfigMap = nil
+            nav.selectedKubeSecret = nil
+            viewModel.clearSelectedKubernetesResources()
             viewModel.selectedKubePod = newValue
-            Task { await viewModel.refreshPodLogs() }
+            Task {
+                await viewModel.refreshPodLogs()
+                await viewModel.loadSelectedPodOperationalDetails()
+            }
         }
     }
 
@@ -143,8 +155,11 @@ struct KubernetesListViewForMac: View {
 
             ForEach(filteredDeployments) { deployment in
                 Button {
+                    nav.clearKubernetesSelections()
                     nav.selectedKubeDeployment = deployment
+                    viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeDeployment = deployment
+                    Task { await viewModel.loadSelectedDeploymentOperationalDetails() }
                 } label: {
                     KubernetesDeploymentRow(deployment: deployment)
                 }
@@ -162,8 +177,11 @@ struct KubernetesListViewForMac: View {
 
             ForEach(filteredServices) { service in
                 Button {
+                    nav.clearKubernetesSelections()
                     nav.selectedKubeService = service
+                    viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeService = service
+                    viewModel.resetKubernetesOperationalState()
                 } label: {
                     KubernetesServiceRow(service: service)
                 }
@@ -181,8 +199,11 @@ struct KubernetesListViewForMac: View {
 
             ForEach(filteredConfigMaps) { configMap in
                 Button {
+                    nav.clearKubernetesSelections()
                     nav.selectedKubeConfigMap = configMap
+                    viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeConfigMap = configMap
+                    viewModel.resetKubernetesOperationalState()
                 } label: {
                     KubernetesConfigMapRow(configMap: configMap)
                 }
@@ -200,8 +221,11 @@ struct KubernetesListViewForMac: View {
 
             ForEach(filteredSecrets) { secret in
                 Button {
+                    nav.clearKubernetesSelections()
                     nav.selectedKubeSecret = secret
+                    viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeSecret = secret
+                    viewModel.resetKubernetesOperationalState()
                 } label: {
                     KubernetesSecretRow(secret: secret)
                 }

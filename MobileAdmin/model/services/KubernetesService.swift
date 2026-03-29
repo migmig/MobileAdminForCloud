@@ -11,6 +11,8 @@ protocol KubernetesServicing {
     func fetchServices(namespace: String) async throws -> [KubernetesServiceInfo]
     func fetchConfigMaps(namespace: String) async throws -> [KubernetesConfigMapInfo]
     func fetchSecrets(namespace: String) async throws -> [KubernetesSecretInfo]
+    func fetchRolloutStatus(deployment: String, namespace: String) async throws -> String
+    func fetchEvents(namespace: String, resourceKind: String, resourceName: String) async throws -> [KubernetesEventInfo]
     func fetchPodLogs(name: String, namespace: String) async throws -> String
     func scaleDeployment(name: String, namespace: String, replicas: Int) async throws
     func rolloutRestartDeployment(name: String, namespace: String) async throws
@@ -136,9 +138,37 @@ struct KubernetesService: KubernetesServicing {
         }
     }
 
+    func fetchRolloutStatus(deployment: String, namespace: String) async throws -> String {
+        let result = try await runner.run(arguments: ["rollout", "status", "deployment/\(deployment)", "-n", namespace, "--timeout=10s"])
+        return result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func fetchEvents(namespace: String, resourceKind: String, resourceName: String) async throws -> [KubernetesEventInfo] {
+        let command = ["get", "events", "-n", namespace, "-o", "json"]
+        let result = try await runner.run(arguments: command)
+        let decoded = try decode(KubernetesEventListResponse.self, from: result.stdout, command: command)
+
+        return decoded.items
+            .filter {
+                ($0.involvedObject.kind ?? "") == resourceKind &&
+                ($0.involvedObject.name ?? "") == resourceName
+            }
+            .map {
+                KubernetesEventInfo(
+                    type: $0.type ?? "",
+                    reason: $0.reason ?? "",
+                    message: $0.message ?? "",
+                    involvedKind: $0.involvedObject.kind ?? "",
+                    involvedName: $0.involvedObject.name ?? "",
+                    timestampText: $0.eventTime ?? $0.lastTimestamp ?? $0.firstTimestamp ?? ""
+                )
+            }
+            .sorted { $0.timestampText > $1.timestampText }
+    }
+
     func fetchPodLogs(name: String, namespace: String) async throws -> String {
         let result = try await runner.run(arguments: ["logs", name, "-n", namespace, "--tail=200"])
-        return result.stdout
+        return result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func scaleDeployment(name: String, namespace: String, replicas: Int) async throws {

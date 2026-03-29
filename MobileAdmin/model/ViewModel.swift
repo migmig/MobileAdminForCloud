@@ -30,9 +30,12 @@ class ViewModel: ObservableObject {
     @Published var kubeSecrets: [KubernetesSecretInfo] = []
     @Published var selectedKubeSecret: KubernetesSecretInfo?
     @Published var selectedPodLogs: String = ""
+    @Published var kubeEvents: [KubernetesEventInfo] = []
+    @Published var selectedRolloutStatus: String = ""
     @Published var kubernetesError: String?
     @Published var isKubernetesLoading = false
     @Published var isKubectlAvailable = false
+    @Published var isKubernetesActionLoading = false
 
     let logger = Logger(label: "com.migmig.MobileAdmin.ViewModel")
     static var currentServerType: EnvironmentType = EnvironmentConfig.current
@@ -212,6 +215,7 @@ class ViewModel: ObservableObject {
     func refreshKubernetesOverview() async {
         isKubernetesLoading = true
         defer { isKubernetesLoading = false }
+        resetKubernetesOperationalState()
 
         do {
             try await kubernetesService.checkAvailability()
@@ -251,8 +255,78 @@ class ViewModel: ObservableObject {
             try await kubernetesService.useContext(name)
             selectedKubeContext = name
             selectedKubeNamespace = ""
+            clearSelectedKubernetesResources()
+            resetKubernetesOperationalState()
             await refreshKubernetesOverview()
         } catch {
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func clearSelectedKubernetesResources() {
+        selectedKubePod = nil
+        selectedKubeDeployment = nil
+        selectedKubeService = nil
+        selectedKubeConfigMap = nil
+        selectedKubeSecret = nil
+        selectedPodLogs = ""
+    }
+
+    @MainActor
+    func resetKubernetesOperationalState() {
+        kubeEvents = []
+        selectedRolloutStatus = ""
+    }
+
+    @MainActor
+    func loadSelectedDeploymentOperationalDetails() async {
+        guard let selectedKubeDeployment else {
+            resetKubernetesOperationalState()
+            return
+        }
+
+        isKubernetesActionLoading = true
+        defer { isKubernetesActionLoading = false }
+        resetKubernetesOperationalState()
+
+        do {
+            selectedRolloutStatus = try await kubernetesService.fetchRolloutStatus(
+                deployment: selectedKubeDeployment.name,
+                namespace: selectedKubeNamespace
+            )
+            kubeEvents = try await kubernetesService.fetchEvents(
+                namespace: selectedKubeNamespace,
+                resourceKind: "Deployment",
+                resourceName: selectedKubeDeployment.name
+            )
+            kubernetesError = nil
+        } catch {
+            resetKubernetesOperationalState()
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func loadSelectedPodOperationalDetails() async {
+        guard let selectedKubePod else {
+            resetKubernetesOperationalState()
+            return
+        }
+
+        isKubernetesActionLoading = true
+        defer { isKubernetesActionLoading = false }
+        resetKubernetesOperationalState()
+
+        do {
+            kubeEvents = try await kubernetesService.fetchEvents(
+                namespace: selectedKubeNamespace,
+                resourceKind: "Pod",
+                resourceName: selectedKubePod.name
+            )
+            kubernetesError = nil
+        } catch {
+            resetKubernetesOperationalState()
             kubernetesError = error.localizedDescription
         }
     }

@@ -11,11 +11,15 @@ final class StubKubernetesService: KubernetesServicing {
     var services: [KubernetesServiceInfo]
     var configMaps: [KubernetesConfigMapInfo]
     var secrets: [KubernetesSecretInfo]
+    var rolloutStatus: String
+    var events: [KubernetesEventInfo]
     var logs: String
     var deletedPods: [(namespace: String, name: String)] = []
     var scaledDeployments: [(namespace: String, name: String, replicas: Int)] = []
     var restartedDeployments: [(namespace: String, name: String)] = []
     var switchedContexts: [String] = []
+    var fetchedRolloutStatuses: [(namespace: String, name: String)] = []
+    var fetchedEventsRequests: [(namespace: String, resourceKind: String, resourceName: String)] = []
 
     init(
         currentContext: String = "",
@@ -26,6 +30,8 @@ final class StubKubernetesService: KubernetesServicing {
         services: [KubernetesServiceInfo] = [],
             configMaps: [KubernetesConfigMapInfo] = [],
         secrets: [KubernetesSecretInfo] = [],
+        rolloutStatus: String = "",
+        events: [KubernetesEventInfo] = [],
         logs: String = ""
     ) {
         self.currentContext = currentContext
@@ -36,6 +42,8 @@ final class StubKubernetesService: KubernetesServicing {
         self.services = services
         self.configMaps = configMaps
         self.secrets = secrets
+        self.rolloutStatus = rolloutStatus
+        self.events = events
         self.logs = logs
     }
 
@@ -49,6 +57,14 @@ final class StubKubernetesService: KubernetesServicing {
     func fetchServices(namespace: String) async throws -> [KubernetesServiceInfo] { services }
     func fetchConfigMaps(namespace: String) async throws -> [KubernetesConfigMapInfo] { configMaps }
     func fetchSecrets(namespace: String) async throws -> [KubernetesSecretInfo] { secrets }
+    func fetchRolloutStatus(deployment: String, namespace: String) async throws -> String {
+        fetchedRolloutStatuses.append((namespace, deployment))
+        return rolloutStatus
+    }
+    func fetchEvents(namespace: String, resourceKind: String, resourceName: String) async throws -> [KubernetesEventInfo] {
+        fetchedEventsRequests.append((namespace, resourceKind, resourceName))
+        return events
+    }
     func fetchPodLogs(name: String, namespace: String) async throws -> String { logs }
     func scaleDeployment(name: String, namespace: String, replicas: Int) async throws { scaledDeployments.append((namespace, name, replicas)) }
     func rolloutRestartDeployment(name: String, namespace: String) async throws { restartedDeployments.append((namespace, name)) }
@@ -115,5 +131,56 @@ struct ViewModelKubernetesTests {
         await viewModel.refreshPodLogs()
 
         #expect(viewModel.selectedPodLogs == "ready\nserving")
+    }
+
+    @Test func loadSelectedDeploymentOperationalDetails_setsRolloutStatusAndEvents() async {
+        let service = StubKubernetesService(
+            rolloutStatus: "deployment \"api\" successfully rolled out",
+            events: [KubernetesEventInfo(type: "Normal", reason: "Started", message: "Started container", involvedKind: "Deployment", involvedName: "api", timestampText: "2026-03-29T10:00:00Z")]
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+
+        await viewModel.loadSelectedDeploymentOperationalDetails()
+
+        #expect(viewModel.selectedRolloutStatus == "deployment \"api\" successfully rolled out")
+        #expect(viewModel.kubeEvents.map(\.reason) == ["Started"])
+        #expect(service.fetchedRolloutStatuses == [(namespace: "prod", name: "api")])
+        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Deployment", resourceName: "api")])
+    }
+
+    @Test func loadSelectedPodOperationalDetails_setsEventsAndClearsRolloutStatus() async {
+        let service = StubKubernetesService(
+            events: [KubernetesEventInfo(type: "Warning", reason: "BackOff", message: "Back-off restarting failed container", involvedKind: "Pod", involvedName: "api-123", timestampText: "2026-03-29T11:00:00Z")]
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedRolloutStatus = "old rollout"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+
+        await viewModel.loadSelectedPodOperationalDetails()
+
+        #expect(viewModel.selectedRolloutStatus.isEmpty)
+        #expect(viewModel.kubeEvents.map(\.reason) == ["BackOff"])
+        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Pod", resourceName: "api-123")])
+    }
+
+    @Test func refreshKubernetesOverview_clearsStaleRolloutAndEventsOnNamespaceChange() async {
+        let service = StubKubernetesService(
+            currentContext: "prod-cluster",
+            contexts: [KubernetesContextInfo(name: "prod-cluster")],
+            namespaces: [KubernetesNamespaceInfo(name: "prod")]
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "stale"
+        viewModel.selectedRolloutStatus = "old rollout"
+        viewModel.kubeEvents = [KubernetesEventInfo(type: "Warning", reason: "BackOff", message: "Old event", involvedKind: "Pod", involvedName: "old-pod", timestampText: "2026-03-29T09:00:00Z")]
+
+        await viewModel.refreshKubernetesOverview()
+
+        #expect(viewModel.selectedKubeNamespace == "prod")
+        #expect(viewModel.selectedRolloutStatus.isEmpty)
+        #expect(viewModel.kubeEvents.isEmpty)
     }
 }

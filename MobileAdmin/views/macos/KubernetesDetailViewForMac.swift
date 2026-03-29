@@ -57,6 +57,19 @@ struct KubernetesDetailViewForMac: View {
                         }
                     }
                 }
+
+                Section("Rollout Status") {
+                    if viewModel.isKubernetesActionLoading {
+                        ProgressView()
+                    } else if viewModel.selectedRolloutStatus.isEmpty {
+                        Text("롤아웃 상태가 없습니다")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(viewModel.selectedRolloutStatus)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                    }
+                }
             }
 
             if let service = nav.selectedKubeService {
@@ -136,6 +149,21 @@ struct KubernetesDetailViewForMac: View {
                     .frame(minHeight: 240)
                 }
             }
+
+            if nav.selectedKubeDeployment != nil || nav.selectedKubePod != nil {
+                Section("Events") {
+                    if viewModel.isKubernetesActionLoading {
+                        ProgressView()
+                    } else if viewModel.kubeEvents.isEmpty {
+                        Text("이벤트가 없습니다")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(viewModel.kubeEvents) { event in
+                            KubernetesEventRow(event: event)
+                        }
+                    }
+                }
+            }
         }
         .navigationTitle("Kubernetes Detail")
         .onChange(of: nav.selectedKubeDeployment) { _, newValue in
@@ -210,6 +238,32 @@ private struct SecretKeyRow: View {
                     .disabled(copyValue == nil)
             }
         }
+    }
+}
+
+private struct KubernetesEventRow: View {
+    let event: KubernetesEventInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(event.type)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                Text(event.reason)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(event.timestampText)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(event.message)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.caption)
+        }
+        .padding(.vertical, 2)
     }
 }
 
