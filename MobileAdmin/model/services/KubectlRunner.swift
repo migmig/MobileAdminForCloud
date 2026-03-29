@@ -61,6 +61,7 @@ struct KubectlRunner: KubectlRunning {
     }
 
     private static func runProcess(executable: String, arguments: [String]) async throws -> KubectlCommandResult {
+        #if os(macOS)
         try await withCheckedThrowingContinuation { continuation in
             let process = Process()
             let stdoutPipe = Pipe()
@@ -94,5 +95,8 @@ struct KubectlRunner: KubectlRunning {
                 continuation.resume(throwing: KubernetesCommandError.kubectlNotInstalled)
             }
         }
+        #else
+        throw KubernetesCommandError.kubectlNotInstalled
+        #endif
     }
 }

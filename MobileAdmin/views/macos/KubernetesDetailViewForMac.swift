@@ -11,6 +11,10 @@ struct KubernetesDetailViewForMac: View {
     @State private var revealedSecretKeys: Set<String> = []
 
     var body: some View {
+        content
+    }
+
+    private var content: some View {
         List {
             Section("Context") {
                 InfoRow(title: "Current Context", value: viewModel.selectedKubeContext)
@@ -86,30 +90,13 @@ struct KubernetesDetailViewForMac: View {
                     InfoRow(title: "타입", value: secret.type)
                     InfoRow(title: "Immutable", value: secret.immutable ? "true" : "false")
                     ForEach(secret.keyNames, id: \.self) { key in
-                        HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(key)
-                                Text(revealedSecretKeys.contains(key) ? (secret.decodedValue(for: key) ?? "디코드 실패") : "••••••••")
-                                    .font(.system(.body, design: .monospaced))
-                                    .foregroundStyle(.secondary)
-                                    .textSelection(revealedSecretKeys.contains(key) ? .enabled : .disabled)
-                            }
-                            Spacer()
-                            VStack(alignment: .trailing, spacing: 6) {
-                                Button(revealedSecretKeys.contains(key) ? "Hide" : "Reveal") {
-                                    if revealedSecretKeys.contains(key) {
-                                        revealedSecretKeys.remove(key)
-                                    } else {
-                                        revealedSecretKeys.insert(key)
-                                    }
-                                }
-
-                                Button("Copy") {
-                                    copyToPasteboard(secret.copyableValue(for: key, isRevealed: revealedSecretKeys.contains(key)) ?? "")
-                                }
-                                .disabled(secret.copyableValue(for: key, isRevealed: revealedSecretKeys.contains(key)) == nil)
-                            }
-                        }
+                        SecretKeyRow(
+                            key: key,
+                            secret: secret,
+                            isRevealed: revealedSecretKeys.contains(key),
+                            onToggleReveal: { toggleReveal(for: key) },
+                            onCopy: { copySecretValue(secret, key: key) }
+                        )
                     }
                     Text("Secret 값은 기본적으로 가려져 있으며 키별로만 명시적으로 표시합니다.")
                         .font(.caption)
@@ -160,11 +147,58 @@ struct KubernetesDetailViewForMac: View {
         }
     }
 
+    private func toggleReveal(for key: String) {
+        if revealedSecretKeys.contains(key) {
+            revealedSecretKeys.remove(key)
+        } else {
+            revealedSecretKeys.insert(key)
+        }
+    }
+
+    private func copySecretValue(_ secret: KubernetesSecretInfo, key: String) {
+        let value = secret.copyableValue(for: key, isRevealed: revealedSecretKeys.contains(key)) ?? ""
+        copyToPasteboard(value)
+    }
+
     private func copyToPasteboard(_ value: String) {
         #if os(macOS)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(value, forType: .string)
         #endif
+    }
+}
+
+private struct SecretKeyRow: View {
+    let key: String
+    let secret: KubernetesSecretInfo
+    let isRevealed: Bool
+    let onToggleReveal: () -> Void
+    let onCopy: () -> Void
+
+    private var displayValue: String {
+        isRevealed ? (secret.decodedValue(for: key) ?? "디코드 실패") : "••••••••"
+    }
+
+    private var copyValue: String? {
+        secret.copyableValue(for: key, isRevealed: isRevealed)
+    }
+
+    var body: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(key)
+                Text(displayValue)
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .textSelection(isRevealed ? .enabled : .disabled)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 6) {
+                Button(isRevealed ? "Hide" : "Reveal", action: onToggleReveal)
+                Button("Copy", action: onCopy)
+                    .disabled(copyValue == nil)
+            }
+        }
     }
 }
 

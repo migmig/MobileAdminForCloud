@@ -37,155 +37,19 @@ struct KubernetesListViewForMac: View {
     }
 
     var body: some View {
+        content
+    }
+
+    private var content: some View {
         List(selection: $nav.selectedKubePod) {
-            Section("Context") {
-                HStack {
-                    Circle()
-                        .fill(viewModel.isKubectlAvailable ? .green : .red)
-                        .frame(width: 8, height: 8)
-                    Text(viewModel.isKubectlAvailable ? "kubectl 사용 가능" : "kubectl 사용 불가")
-                }
-
-                Picker("Context", selection: $viewModel.selectedKubeContext) {
-                    ForEach(viewModel.kubeContexts) { item in
-                        Text(item.name).tag(item.name)
-                    }
-                }
-            }
-
-            Section("Namespace") {
-                Picker("Namespace", selection: $viewModel.selectedKubeNamespace) {
-                    ForEach(viewModel.kubeNamespaces) { item in
-                        Text(item.name).tag(item.name)
-                    }
-                }
-            }
-
-            Section("Sort") {
-                Picker("Services", selection: $serviceSort) {
-                    ForEach(KubernetesServiceSortOption.allCases) { option in
-                        Text(option.title).tag(option)
-                    }
-                }
-
-                Picker("ConfigMaps", selection: $configMapSort) {
-                    ForEach(KubernetesConfigMapSortOption.allCases) { option in
-                        Text(option.title).tag(option)
-                    }
-                }
-
-                Picker("Secrets", selection: $secretSort) {
-                    ForEach(KubernetesSecretSortOption.allCases) { option in
-                        Text(option.title).tag(option)
-                    }
-                }
-            }
-
-            Section("Pods") {
-                if filteredPods.isEmpty {
-                    EmptyStateView(systemImage: "shippingbox", title: "Pod가 없습니다")
-                        .listRowBackground(Color.clear)
-                }
-
-                ForEach(filteredPods) { pod in
-                    NavigationLink(value: pod) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(pod.name)
-                            Text("\(pod.phase) · \(pod.readyCount)/\(pod.containerCount)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
-
-            Section("Deployments") {
-                if filteredDeployments.isEmpty {
-                    EmptyStateView(systemImage: "shippingbox.circle", title: "Deployment가 없습니다")
-                        .listRowBackground(Color.clear)
-                }
-
-                ForEach(filteredDeployments) { deployment in
-                    Button {
-                        nav.selectedKubeDeployment = deployment
-                        viewModel.selectedKubeDeployment = deployment
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(deployment.name)
-                            Text("ready \(deployment.readyReplicas)/\(deployment.replicas)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            Section("Services") {
-                if filteredServices.isEmpty {
-                    EmptyStateView(systemImage: "point.3.connected.trianglepath.dotted", title: "Service가 없습니다")
-                        .listRowBackground(Color.clear)
-                }
-
-                ForEach(filteredServices) { service in
-                    Button {
-                        nav.selectedKubeService = service
-                        viewModel.selectedKubeService = service
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(service.name)
-                            Text("\(service.type) · \(service.primaryAddress) · ports \(service.portCount)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            Section("ConfigMaps") {
-                if filteredConfigMaps.isEmpty {
-                    EmptyStateView(systemImage: "doc.text", title: "ConfigMap이 없습니다")
-                        .listRowBackground(Color.clear)
-                }
-
-                ForEach(filteredConfigMaps) { configMap in
-                    Button {
-                        nav.selectedKubeConfigMap = configMap
-                        viewModel.selectedKubeConfigMap = configMap
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(configMap.name)
-                            Text("text \(configMap.textKeyCount) · binary \(configMap.binaryKeyCount)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            Section("Secrets") {
-                if filteredSecrets.isEmpty {
-                    EmptyStateView(systemImage: "lock.doc", title: "Secret이 없습니다")
-                        .listRowBackground(Color.clear)
-                }
-
-                ForEach(filteredSecrets) { secret in
-                    Button {
-                        nav.selectedKubeSecret = secret
-                        viewModel.selectedKubeSecret = secret
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(secret.name)
-                            Text("\(secret.type) · keys \(secret.keyCount)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            contextSection
+            namespaceSection
+            sortSection
+            podsSection
+            deploymentsSection
+            servicesSection
+            configMapsSection
+            secretsSection
         }
         .navigationTitle("Kubernetes")
         .searchable(text: $searchText, placement: .automatic, prompt: "리소스 이름, 타입, 키 검색")
@@ -203,6 +67,219 @@ struct KubernetesListViewForMac: View {
         .onChange(of: nav.selectedKubePod) { _, newValue in
             viewModel.selectedKubePod = newValue
             Task { await viewModel.refreshPodLogs() }
+        }
+    }
+
+    private var contextSection: some View {
+        Section("Context") {
+            HStack {
+                Circle()
+                    .fill(viewModel.isKubectlAvailable ? .green : .red)
+                    .frame(width: 8, height: 8)
+                Text(viewModel.isKubectlAvailable ? "kubectl 사용 가능" : "kubectl 사용 불가")
+            }
+
+            Picker("Context", selection: $viewModel.selectedKubeContext) {
+                ForEach(viewModel.kubeContexts) { item in
+                    Text(item.name).tag(item.name)
+                }
+            }
+        }
+    }
+
+    private var namespaceSection: some View {
+        Section("Namespace") {
+            Picker("Namespace", selection: $viewModel.selectedKubeNamespace) {
+                ForEach(viewModel.kubeNamespaces) { item in
+                    Text(item.name).tag(item.name)
+                }
+            }
+        }
+    }
+
+    private var sortSection: some View {
+        Section("Sort") {
+            Picker("Services", selection: $serviceSort) {
+                ForEach(KubernetesServiceSortOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+
+            Picker("ConfigMaps", selection: $configMapSort) {
+                ForEach(KubernetesConfigMapSortOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+
+            Picker("Secrets", selection: $secretSort) {
+                ForEach(KubernetesSecretSortOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+        }
+    }
+
+    private var podsSection: some View {
+        Section("Pods") {
+            if filteredPods.isEmpty {
+                EmptyStateView(systemImage: "shippingbox", title: "Pod가 없습니다")
+                    .listRowBackground(Color.clear)
+            }
+
+            ForEach(filteredPods) { pod in
+                NavigationLink(value: pod) {
+                    KubernetesPodRow(pod: pod)
+                }
+            }
+        }
+    }
+
+    private var deploymentsSection: some View {
+        Section("Deployments") {
+            if filteredDeployments.isEmpty {
+                EmptyStateView(systemImage: "shippingbox.circle", title: "Deployment가 없습니다")
+                    .listRowBackground(Color.clear)
+            }
+
+            ForEach(filteredDeployments) { deployment in
+                Button {
+                    nav.selectedKubeDeployment = deployment
+                    viewModel.selectedKubeDeployment = deployment
+                } label: {
+                    KubernetesDeploymentRow(deployment: deployment)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var servicesSection: some View {
+        Section("Services") {
+            if filteredServices.isEmpty {
+                EmptyStateView(systemImage: "point.3.connected.trianglepath.dotted", title: "Service가 없습니다")
+                    .listRowBackground(Color.clear)
+            }
+
+            ForEach(filteredServices) { service in
+                Button {
+                    nav.selectedKubeService = service
+                    viewModel.selectedKubeService = service
+                } label: {
+                    KubernetesServiceRow(service: service)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var configMapsSection: some View {
+        Section("ConfigMaps") {
+            if filteredConfigMaps.isEmpty {
+                EmptyStateView(systemImage: "doc.text", title: "ConfigMap이 없습니다")
+                    .listRowBackground(Color.clear)
+            }
+
+            ForEach(filteredConfigMaps) { configMap in
+                Button {
+                    nav.selectedKubeConfigMap = configMap
+                    viewModel.selectedKubeConfigMap = configMap
+                } label: {
+                    KubernetesConfigMapRow(configMap: configMap)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var secretsSection: some View {
+        Section("Secrets") {
+            if filteredSecrets.isEmpty {
+                EmptyStateView(systemImage: "lock.doc", title: "Secret이 없습니다")
+                    .listRowBackground(Color.clear)
+            }
+
+            ForEach(filteredSecrets) { secret in
+                Button {
+                    nav.selectedKubeSecret = secret
+                    viewModel.selectedKubeSecret = secret
+                } label: {
+                    KubernetesSecretRow(secret: secret)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+private struct KubernetesPodRow: View {
+    let pod: KubernetesPodInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(pod.name)
+            Text(podStatusText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var podStatusText: String {
+        "\(pod.phase) · \(pod.readyCount)/\(pod.containerCount)"
+    }
+}
+
+private struct KubernetesDeploymentRow: View {
+    let deployment: KubernetesDeploymentInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(deployment.name)
+            Text("ready \(deployment.readyReplicas)/\(deployment.replicas)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct KubernetesServiceRow: View {
+    let service: KubernetesServiceInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(service.name)
+            Text(serviceSummary)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var serviceSummary: String {
+        "\(service.type) · \(service.primaryAddress) · ports \(service.portCount)"
+    }
+}
+
+private struct KubernetesConfigMapRow: View {
+    let configMap: KubernetesConfigMapInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(configMap.name)
+            Text("text \(configMap.textKeyCount) · binary \(configMap.binaryKeyCount)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct KubernetesSecretRow: View {
+    let secret: KubernetesSecretInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(secret.name)
+            Text("\(secret.type) · keys \(secret.keyCount)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }
