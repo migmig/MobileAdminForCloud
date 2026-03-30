@@ -299,7 +299,22 @@ class ViewModel: ObservableObject {
             try await kubernetesService.checkAvailability()
             isKubectlAvailable = true
             kubeContexts = try await kubernetesService.fetchContexts()
-            selectedKubeContext = try await kubernetesService.fetchCurrentContext()
+
+            do {
+                selectedKubeContext = try await kubernetesService.fetchCurrentContext()
+            } catch {
+                selectedKubeContext = ""
+                kubeNamespaces = []
+                kubePods = []
+                kubeDeployments = []
+                kubeServices = []
+                kubeConfigMaps = []
+                kubeSecrets = []
+                clearSelectedKubernetesResources()
+                kubernetesError = error.localizedDescription
+                return
+            }
+
             kubeNamespaces = try await kubernetesService.fetchNamespaces()
 
             if selectedKubeNamespace.isEmpty || !kubeNamespaces.contains(where: { $0.name == selectedKubeNamespace }) {

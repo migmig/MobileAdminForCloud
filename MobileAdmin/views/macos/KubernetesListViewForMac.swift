@@ -57,7 +57,7 @@ struct KubernetesListViewForMac: View {
             await viewModel.refreshKubernetesOverview()
         }
         .onChange(of: viewModel.selectedKubeContext) { oldValue, newValue in
-            guard oldValue != newValue, !newValue.isEmpty, !oldValue.isEmpty else { return }
+            guard oldValue != newValue, !newValue.isEmpty else { return }
             nav.clearKubernetesSelections()
             viewModel.clearSelectedKubernetesResources()
             Task { await viewModel.switchKubernetesContext(to: newValue) }

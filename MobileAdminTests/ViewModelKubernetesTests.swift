@@ -21,6 +21,7 @@ final class StubKubernetesService: KubernetesServicing {
     var fetchedRolloutStatuses: [(namespace: String, name: String)] = []
     var fetchedEventsRequests: [(namespace: String, resourceKind: String, resourceName: String)] = []
     var useContextError: Error?
+    var currentContextError: Error?
     var rolloutStatusError: Error?
     var eventsError: Error?
     var checkAvailabilityError: Error?
@@ -66,7 +67,10 @@ final class StubKubernetesService: KubernetesServicing {
     func checkAvailability() async throws {
         if let checkAvailabilityError { throw checkAvailabilityError }
     }
-    func fetchCurrentContext() async throws -> String { currentContext }
+    func fetchCurrentContext() async throws -> String {
+        if let currentContextError { throw currentContextError }
+        return currentContext
+    }
     func fetchContexts() async throws -> [KubernetesContextInfo] { contexts }
     func useContext(_ name: String) async throws {
         if let useContextError { throw useContextError }
@@ -338,6 +342,26 @@ struct ViewModelKubernetesTests {
 
         #expect(service.switchedContexts == ["prod-cluster"])
         #expect(viewModel.selectedKubeContext == "prod-cluster")
+    }
+
+    @Test func refreshKubernetesOverview_whenCurrentContextFails_keepsContexts_andLeavesSelectionEmpty() async {
+        let service = StubKubernetesService(
+            contexts: [KubernetesContextInfo(name: "dev-cluster"), KubernetesContextInfo(name: "prod-cluster")],
+            namespaces: []
+        )
+        service.currentContextError = KubernetesCommandError.commandFailed(
+            stderr: "current-context is not set",
+            exitCode: 1,
+            command: "kubectl config current-context"
+        )
+        let viewModel = ViewModel(kubernetesService: service)
+
+        await viewModel.refreshKubernetesOverview()
+
+        #expect(viewModel.isKubectlAvailable == true)
+        #expect(viewModel.kubeContexts.map(\.name) == ["dev-cluster", "prod-cluster"])
+        #expect(viewModel.selectedKubeContext.isEmpty)
+        #expect(viewModel.kubernetesError?.contains("current-context is not set") == true)
     }
 
     @Test func refreshPodLogs_afterSelectingPod_updatesSelectedPodLogs() async {
