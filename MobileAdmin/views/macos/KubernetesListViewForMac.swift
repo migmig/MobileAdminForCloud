@@ -209,7 +209,7 @@ struct KubernetesListViewForMac: View {
                     viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeConfigMap = configMap
                     viewModel.resetKubernetesOperationalState()
-                    viewModel.resetKubernetesDocumentState()
+                    Task { await viewModel.loadSelectedConfigMapDocuments() }
                 } label: {
                     KubernetesConfigMapRow(configMap: configMap)
                 }
@@ -232,7 +232,7 @@ struct KubernetesListViewForMac: View {
                     viewModel.clearSelectedKubernetesResources()
                     viewModel.selectedKubeSecret = secret
                     viewModel.resetKubernetesOperationalState()
-                    viewModel.resetKubernetesDocumentState()
+                    Task { await viewModel.loadSelectedSecretDocuments() }
                 } label: {
                     KubernetesSecretRow(secret: secret)
                 }

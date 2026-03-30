@@ -25,6 +25,10 @@ final class StubKubernetesService: KubernetesServicing {
     var eventsError: Error?
     var checkAvailabilityError: Error?
     var podLogsError: Error?
+    var scaleDeploymentError: Error?
+    var rolloutRestartError: Error?
+    var deletePodError: Error?
+    var deletePodDelayNanoseconds: UInt64 = 0
     var podDescribeText: String = ""
     var deploymentDescribeText: String = ""
     var resourceYAMLText: String = ""
@@ -102,12 +106,188 @@ final class StubKubernetesService: KubernetesServicing {
         fetchedPodLogsRequests.append((namespace, name))
         return logs
     }
-    func scaleDeployment(name: String, namespace: String, replicas: Int) async throws { scaledDeployments.append((namespace, name, replicas)) }
-    func rolloutRestartDeployment(name: String, namespace: String) async throws { restartedDeployments.append((namespace, name)) }
-    func deletePod(name: String, namespace: String) async throws { deletedPods.append((namespace, name)) }
+    func scaleDeployment(name: String, namespace: String, replicas: Int) async throws {
+        if let scaleDeploymentError { throw scaleDeploymentError }
+        scaledDeployments.append((namespace, name, replicas))
+    }
+    func rolloutRestartDeployment(name: String, namespace: String) async throws {
+        if let rolloutRestartError { throw rolloutRestartError }
+        restartedDeployments.append((namespace, name))
+    }
+    func deletePod(name: String, namespace: String) async throws {
+        if deletePodDelayNanoseconds > 0 {
+            try await Task.sleep(nanoseconds: deletePodDelayNanoseconds)
+        }
+        if let deletePodError { throw deletePodError }
+        deletedPods.append((namespace, name))
+    }
 }
 
 struct ViewModelKubernetesTests {
+    @Test func scaleSelectedDeployment_recordsSuccessResultAndRollbackGuidance_andAudits() async throws {
+        let service = StubKubernetesService()
+        var auditEntries: [KubernetesActionAuditEntry] = []
+        let viewModel = ViewModel(
+            kubernetesService: service,
+            kubernetesActionAuditSink: { auditEntries.append($0) }
+        )
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+
+        try await viewModel.scaleSelectedDeployment(to: 5)
+
+        #expect(service.scaledDeployments.count == 1)
+        #expect(service.scaledDeployments.first?.namespace == "prod")
+        #expect(service.scaledDeployments.first?.name == "api")
+        #expect(service.scaledDeployments.first?.replicas == 5)
+        #expect(viewModel.pendingKubernetesActionSummary == nil)
+        #expect(viewModel.latestKubernetesActionGuidance?.contains("3") == true)
+        #expect(viewModel.latestKubernetesActionResult?.actionType == "scale")
+        #expect(viewModel.latestKubernetesActionResult?.status == .success)
+        #expect(auditEntries.count == 1)
+        #expect(auditEntries.first?.actionType == "scale")
+        #expect(auditEntries.first?.resourceKind == "Deployment")
+        #expect(auditEntries.first?.resourceName == "api")
+        #expect(auditEntries.first?.namespace == "prod")
+        #expect(auditEntries.first?.requestedValue == "5")
+        #expect(auditEntries.first?.previousValue == "3")
+        #expect(auditEntries.first?.result == "success")
+        #expect(auditEntries.first?.rollbackGuidance?.contains("3") == true)
+    }
+
+    @Test func restartSelectedDeployment_whenFails_recordsFailureResultAndAudit() async {
+        let service = StubKubernetesService()
+        service.rolloutRestartError = KubernetesCommandError.commandFailed(
+            stderr: "restart failed",
+            exitCode: 1,
+            command: "kubectl rollout restart deployment/api"
+        )
+        var auditEntries: [KubernetesActionAuditEntry] = []
+        let viewModel = ViewModel(
+            kubernetesService: service,
+            kubernetesActionAuditSink: { auditEntries.append($0) }
+        )
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+
+        do {
+            try await viewModel.restartSelectedDeployment()
+            Issue.record("Expected rollout restart to fail")
+        } catch {
+            #expect(error.localizedDescription.contains("restart failed") == true)
+        }
+
+        #expect(viewModel.pendingKubernetesActionSummary == nil)
+        #expect(viewModel.latestKubernetesActionResult?.actionType == "rollout-restart")
+        #expect(viewModel.latestKubernetesActionResult?.status == .failure)
+        #expect(viewModel.latestKubernetesActionGuidance?.contains("rollout status") == true)
+        #expect(auditEntries.count == 1)
+        #expect(auditEntries.first?.result == "failure")
+        #expect(auditEntries.first?.errorSummary?.contains("restart failed") == true)
+        #expect(auditEntries.first?.rollbackGuidance?.contains("rollout status") == true)
+    }
+
+    @Test func deleteSelectedPod_whenCancelled_recordsCancelledResultAndAudit() async {
+        let service = StubKubernetesService()
+        service.deletePodDelayNanoseconds = 500_000_000
+        var auditEntries: [KubernetesActionAuditEntry] = []
+        let viewModel = ViewModel(
+            kubernetesService: service,
+            kubernetesActionAuditSink: { auditEntries.append($0) }
+        )
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubePod = KubernetesPodInfo(name: "api-123", phase: "Running", containerCount: 1, readyCount: 1)
+
+        let deleteTask = Task {
+            try await viewModel.deleteSelectedPod()
+        }
+        deleteTask.cancel()
+
+        let wasCancelled: Bool
+        do {
+            try await deleteTask.value
+            Issue.record("Expected delete pod action to be cancelled")
+            wasCancelled = false
+        } catch is CancellationError {
+            wasCancelled = true
+        } catch {
+            Issue.record("Expected CancellationError, got: \(error)")
+            wasCancelled = false
+        }
+
+        #expect(wasCancelled == true)
+        #expect(service.deletedPods.isEmpty)
+        #expect(viewModel.pendingKubernetesActionSummary == nil)
+        #expect(viewModel.latestKubernetesActionResult?.actionType == "delete-pod")
+        #expect(viewModel.latestKubernetesActionResult?.status == .cancelled)
+        #expect(viewModel.latestKubernetesActionGuidance?.contains("controller") == true)
+        #expect(auditEntries.count == 1)
+        #expect(auditEntries.first?.actionType == "delete-pod")
+        #expect(auditEntries.first?.result == "cancelled")
+        #expect(auditEntries.first?.rollbackGuidance?.contains("controller") == true)
+    }
+
+    @Test func scaleSelectedDeployment_toZero_includesPreviousReplicaRollbackGuidance() async throws {
+        let service = StubKubernetesService()
+        var auditEntries: [KubernetesActionAuditEntry] = []
+        let viewModel = ViewModel(
+            kubernetesService: service,
+            kubernetesActionAuditSink: { auditEntries.append($0) }
+        )
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+
+        try await viewModel.scaleSelectedDeployment(to: 0)
+
+        #expect(viewModel.latestKubernetesActionGuidance?.contains("3") == true)
+        #expect(auditEntries.first?.requestedValue == "0")
+        #expect(auditEntries.first?.previousValue == "3")
+        #expect(auditEntries.first?.rollbackGuidance?.contains("3") == true)
+    }
+
+    @Test func failedAction_updatesLatestResultAndClearsPendingSummary() async {
+        let service = StubKubernetesService()
+        service.scaleDeploymentError = KubernetesCommandError.commandFailed(
+            stderr: "scale failed",
+            exitCode: 1,
+            command: "kubectl scale deployment api"
+        )
+        var auditEntries: [KubernetesActionAuditEntry] = []
+        let viewModel = ViewModel(
+            kubernetesService: service,
+            kubernetesActionAuditSink: { auditEntries.append($0) }
+        )
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 3, readyReplicas: 3, availableReplicas: 3)
+
+        do {
+            try await viewModel.scaleSelectedDeployment(to: 5)
+            Issue.record("Expected scale to fail")
+        } catch {
+            #expect(error.localizedDescription.contains("scale failed") == true)
+        }
+
+        #expect(viewModel.pendingKubernetesActionSummary == nil)
+        #expect(viewModel.latestKubernetesActionResult?.status == .failure)
+        #expect(viewModel.latestKubernetesActionResult?.errorSummary?.contains("scale failed") == true)
+        #expect(auditEntries.first?.result == "failure")
+    }
+
+    @Test func successfulAction_usesInjectedAuditSink() async throws {
+        let service = StubKubernetesService()
+        var sinkCalls = 0
+        let viewModel = ViewModel(
+            kubernetesService: service,
+            kubernetesActionAuditSink: { _ in sinkCalls += 1 }
+        )
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedKubeDeployment = KubernetesDeploymentInfo(name: "api", replicas: 2, readyReplicas: 2, availableReplicas: 2)
+
+        try await viewModel.scaleSelectedDeployment(to: 4)
+
+        #expect(sinkCalls == 1)
+    }
+
     @Test func refreshKubernetesOverview_updatesContextNamespacePodsAndDeployments() async {
         let service = StubKubernetesService(
             currentContext: "prod-cluster",
@@ -141,7 +321,9 @@ struct ViewModelKubernetesTests {
 
         try await viewModel.deleteSelectedPod()
 
-        #expect(service.deletedPods == [(namespace: "prod", name: "api-123")])
+        #expect(service.deletedPods.count == 1)
+        #expect(service.deletedPods.first?.namespace == "prod")
+        #expect(service.deletedPods.first?.name == "api-123")
     }
 
     @Test func switchKubernetesContext_forwardsSelectionAndRefreshesCurrentContext() async {
@@ -182,8 +364,13 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedRolloutStatus == "deployment \"api\" successfully rolled out")
         #expect(viewModel.kubeEvents.map(\.reason) == ["Started"])
-        #expect(service.fetchedRolloutStatuses == [(namespace: "prod", name: "api")])
-        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Deployment", resourceName: "api")])
+        #expect(service.fetchedRolloutStatuses.count == 1)
+        #expect(service.fetchedRolloutStatuses.first?.namespace == "prod")
+        #expect(service.fetchedRolloutStatuses.first?.name == "api")
+        #expect(service.fetchedEventsRequests.count == 1)
+        #expect(service.fetchedEventsRequests.first?.namespace == "prod")
+        #expect(service.fetchedEventsRequests.first?.resourceKind == "Deployment")
+        #expect(service.fetchedEventsRequests.first?.resourceName == "api")
     }
 
     @Test func loadSelectedPodOperationalDetails_setsEventsAndClearsRolloutStatus() async {
@@ -199,7 +386,10 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedRolloutStatus.isEmpty)
         #expect(viewModel.kubeEvents.map(\.reason) == ["BackOff"])
-        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Pod", resourceName: "api-123")])
+        #expect(service.fetchedEventsRequests.count == 1)
+        #expect(service.fetchedEventsRequests.first?.namespace == "prod")
+        #expect(service.fetchedEventsRequests.first?.resourceKind == "Pod")
+        #expect(service.fetchedEventsRequests.first?.resourceName == "api-123")
     }
 
     @Test func refreshKubernetesOverview_clearsStaleRolloutAndEventsOnNamespaceChange() async {
@@ -347,8 +537,13 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedDescribeText == "Name: api-123\nStatus: Running")
         #expect(viewModel.selectedYAMLText == "kind: Pod\nmetadata:\n  name: api-123")
-        #expect(service.fetchedPodDescribeRequests == [(namespace: "prod", name: "api-123")])
-        #expect(service.fetchedYAMLRequests == [(namespace: "prod", kind: "pod", name: "api-123")])
+        #expect(service.fetchedPodDescribeRequests.count == 1)
+        #expect(service.fetchedPodDescribeRequests.first?.namespace == "prod")
+        #expect(service.fetchedPodDescribeRequests.first?.name == "api-123")
+        #expect(service.fetchedYAMLRequests.count == 1)
+        #expect(service.fetchedYAMLRequests.first?.namespace == "prod")
+        #expect(service.fetchedYAMLRequests.first?.kind == "pod")
+        #expect(service.fetchedYAMLRequests.first?.name == "api-123")
     }
 
     @Test func loadSelectedDeploymentDocuments_setsDescribeAndYAML() async {
@@ -363,8 +558,13 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedDescribeText == "Name: api\nReplicas: 3")
         #expect(viewModel.selectedYAMLText == "kind: Deployment\nmetadata:\n  name: api")
-        #expect(service.fetchedDeploymentDescribeRequests == [(namespace: "prod", name: "api")])
-        #expect(service.fetchedYAMLRequests == [(namespace: "prod", kind: "deployment", name: "api")])
+        #expect(service.fetchedDeploymentDescribeRequests.count == 1)
+        #expect(service.fetchedDeploymentDescribeRequests.first?.namespace == "prod")
+        #expect(service.fetchedDeploymentDescribeRequests.first?.name == "api")
+        #expect(service.fetchedYAMLRequests.count == 1)
+        #expect(service.fetchedYAMLRequests.first?.namespace == "prod")
+        #expect(service.fetchedYAMLRequests.first?.kind == "deployment")
+        #expect(service.fetchedYAMLRequests.first?.name == "api")
     }
 
     @Test func loadSelectedServiceDocuments_setsYAMLAndClearsDescribe() async {
@@ -379,7 +579,46 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedDescribeText.isEmpty)
         #expect(viewModel.selectedYAMLText == "kind: Service\nmetadata:\n  name: api")
-        #expect(service.fetchedYAMLRequests == [(namespace: "prod", kind: "service", name: "api")])
+        #expect(service.fetchedYAMLRequests.count == 1)
+        #expect(service.fetchedYAMLRequests.first?.namespace == "prod")
+        #expect(service.fetchedYAMLRequests.first?.kind == "service")
+        #expect(service.fetchedYAMLRequests.first?.name == "api")
+    }
+
+    @Test func loadSelectedConfigMapDocuments_setsYAMLAndClearsDescribe() async {
+        let service = StubKubernetesService()
+        service.resourceYAMLText = "kind: ConfigMap\nmetadata:\n  name: app-config"
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedDescribeText = "stale describe"
+        viewModel.selectedKubeConfigMap = KubernetesConfigMapInfo(name: "app-config", immutable: false, textData: ["A": "1"], textKeyNames: ["A"], binaryKeyNames: [])
+
+        await viewModel.loadSelectedConfigMapDocuments()
+
+        #expect(viewModel.selectedDescribeText.isEmpty)
+        #expect(viewModel.selectedYAMLText == "kind: ConfigMap\nmetadata:\n  name: app-config")
+        #expect(service.fetchedYAMLRequests.count == 1)
+        #expect(service.fetchedYAMLRequests.first?.namespace == "prod")
+        #expect(service.fetchedYAMLRequests.first?.kind == "configmap")
+        #expect(service.fetchedYAMLRequests.first?.name == "app-config")
+    }
+
+    @Test func loadSelectedSecretDocuments_setsYAMLAndClearsDescribe() async {
+        let service = StubKubernetesService()
+        service.resourceYAMLText = "kind: Secret\nmetadata:\n  name: app-secret"
+        let viewModel = ViewModel(kubernetesService: service)
+        viewModel.selectedKubeNamespace = "prod"
+        viewModel.selectedDescribeText = "stale describe"
+        viewModel.selectedKubeSecret = KubernetesSecretInfo(name: "app-secret", type: "Opaque", immutable: false, keyNames: ["token"], encodedData: ["token": "dG9rZW4="])
+
+        await viewModel.loadSelectedSecretDocuments()
+
+        #expect(viewModel.selectedDescribeText.isEmpty)
+        #expect(viewModel.selectedYAMLText == "kind: Secret\nmetadata:\n  name: app-secret")
+        #expect(service.fetchedYAMLRequests.count == 1)
+        #expect(service.fetchedYAMLRequests.first?.namespace == "prod")
+        #expect(service.fetchedYAMLRequests.first?.kind == "secret")
+        #expect(service.fetchedYAMLRequests.first?.name == "app-secret")
     }
 
     @Test func refreshKubernetesOverview_clearsStaleDescribeAndYAML() async {
@@ -411,8 +650,13 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedRolloutStatus == "deployment \"api\" successfully rolled out")
         #expect(viewModel.kubeEvents.map(\.reason) == ["Scaled"])
-        #expect(service.fetchedRolloutStatuses == [(namespace: "prod", name: "api")])
-        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Deployment", resourceName: "api")])
+        #expect(service.fetchedRolloutStatuses.count == 1)
+        #expect(service.fetchedRolloutStatuses.first?.namespace == "prod")
+        #expect(service.fetchedRolloutStatuses.first?.name == "api")
+        #expect(service.fetchedEventsRequests.count == 1)
+        #expect(service.fetchedEventsRequests.first?.namespace == "prod")
+        #expect(service.fetchedEventsRequests.first?.resourceKind == "Deployment")
+        #expect(service.fetchedEventsRequests.first?.resourceName == "api")
     }
 
     @Test func refreshSelectedOperationsOnce_whenPodSelected_fetchesLogsAndEvents() async {
@@ -428,8 +672,13 @@ struct ViewModelKubernetesTests {
 
         #expect(viewModel.selectedPodLogs == "latest logs")
         #expect(viewModel.kubeEvents.map(\.reason) == ["BackOff"])
-        #expect(service.fetchedPodLogsRequests == [(namespace: "prod", name: "api-123")])
-        #expect(service.fetchedEventsRequests == [(namespace: "prod", resourceKind: "Pod", resourceName: "api-123")])
+        #expect(service.fetchedPodLogsRequests.count == 1)
+        #expect(service.fetchedPodLogsRequests.first?.namespace == "prod")
+        #expect(service.fetchedPodLogsRequests.first?.name == "api-123")
+        #expect(service.fetchedEventsRequests.count == 1)
+        #expect(service.fetchedEventsRequests.first?.namespace == "prod")
+        #expect(service.fetchedEventsRequests.first?.resourceKind == "Pod")
+        #expect(service.fetchedEventsRequests.first?.resourceName == "api-123")
     }
 
     @Test func startKubernetesAutoRefreshIfNeeded_whenUnsupportedSelection_doesNotRunAndTurnsOffToggle() async {

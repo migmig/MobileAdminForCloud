@@ -4,6 +4,21 @@ import Logging
 /// ViewModel facade - 뷰에서 @EnvironmentObject로 접근하는 진입점
 /// 실제 비즈니스 로직은 도메인별 서비스로 위임
 class ViewModel: ObservableObject {
+    struct KubernetesActionResultState: Equatable {
+        enum Status: Equatable {
+            case success
+            case failure
+            case cancelled
+        }
+
+        let actionType: String
+        let resourceKind: String
+        let resourceName: String
+        let namespace: String
+        let status: Status
+        let errorSummary: String?
+    }
+
     @Published var buildProjects : [SourceBuildProject] = []
     @Published var errorItems    : [ErrorCloudItem] = []
     @Published var goodsItems    : [Goodsinfo] = []
@@ -83,6 +98,9 @@ class ViewModel: ObservableObject {
     @Published var isKubernetesDocumentLoading = false
     @Published var isKubernetesAutoRefreshEnabled = false
     @Published var kubernetesAutoRefreshInterval: TimeInterval = 5
+    @Published var pendingKubernetesActionSummary: String?
+    @Published var latestKubernetesActionGuidance: String?
+    @Published var latestKubernetesActionResult: KubernetesActionResultState?
 
     var kubernetesAutoRefreshTask: Task<Void, Never>?
 
@@ -114,8 +132,12 @@ class ViewModel: ObservableObject {
     private let deployService: DeployService
     private let userLogService: UserLogService
     private let kubernetesService: any KubernetesServicing
+    private var kubernetesActionAuditSink: @MainActor (KubernetesActionAuditEntry) -> Void
 
-    init(kubernetesService: any KubernetesServicing = KubernetesService()) {
+    init(
+        kubernetesService: any KubernetesServicing = KubernetesService(),
+        kubernetesActionAuditSink: @escaping @MainActor (KubernetesActionAuditEntry) -> Void = { _ in }
+    ) {
         let client = NetworkClient()
         self.networkClient = client
         self.toastService = ToastService(client: client)
@@ -130,6 +152,12 @@ class ViewModel: ObservableObject {
         self.deployService = DeployService(client: client)
         self.userLogService = UserLogService(client: client)
         self.kubernetesService = kubernetesService
+        self.kubernetesActionAuditSink = kubernetesActionAuditSink
+    }
+
+    @MainActor
+    func configureKubernetesActionAuditSink(_ sink: @escaping @MainActor (KubernetesActionAuditEntry) -> Void) {
+        self.kubernetesActionAuditSink = sink
     }
 
     func setToken(token: String?) {
@@ -463,6 +491,46 @@ class ViewModel: ObservableObject {
     }
 
     @MainActor
+    func loadSelectedConfigMapDocuments() async {
+        guard let selectedKubeConfigMap else {
+            resetKubernetesDocumentState()
+            return
+        }
+
+        isKubernetesDocumentLoading = true
+        defer { isKubernetesDocumentLoading = false }
+        resetKubernetesDocumentState()
+
+        do {
+            selectedYAMLText = try await kubernetesService.fetchResourceYAML(kind: "configmap", name: selectedKubeConfigMap.name, namespace: selectedKubeNamespace)
+            kubernetesError = nil
+        } catch {
+            resetKubernetesDocumentState()
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func loadSelectedSecretDocuments() async {
+        guard let selectedKubeSecret else {
+            resetKubernetesDocumentState()
+            return
+        }
+
+        isKubernetesDocumentLoading = true
+        defer { isKubernetesDocumentLoading = false }
+        resetKubernetesDocumentState()
+
+        do {
+            selectedYAMLText = try await kubernetesService.fetchResourceYAML(kind: "secret", name: selectedKubeSecret.name, namespace: selectedKubeNamespace)
+            kubernetesError = nil
+        } catch {
+            resetKubernetesDocumentState()
+            kubernetesError = error.localizedDescription
+        }
+    }
+
+    @MainActor
     func refreshPodLogs() async {
         guard let selectedKubePod else { return }
 
@@ -575,19 +643,201 @@ class ViewModel: ObservableObject {
         kubernetesAutoRefreshTask = nil
     }
 
+    @MainActor
     func scaleSelectedDeployment(to replicas: Int) async throws {
         guard let selectedKubeDeployment else { return }
-        try await kubernetesService.scaleDeployment(name: selectedKubeDeployment.name, namespace: selectedKubeNamespace, replicas: replicas)
+
+        let previousReplicasText: String? = "\(selectedKubeDeployment.replicas)"
+        let rollbackGuidance = scaleRollbackGuidance(previousReplicas: previousReplicasText)
+
+        try await runKubernetesMutationAction(
+            actionType: "scale",
+            resourceKind: "Deployment",
+            resourceName: selectedKubeDeployment.name,
+            namespace: selectedKubeNamespace,
+            requestedValue: "\(replicas)",
+            previousValue: previousReplicasText,
+            rollbackGuidance: rollbackGuidance,
+            pendingSummary: "Scaling deployment \(selectedKubeDeployment.name) to \(replicas) replicas"
+        ) {
+            try await kubernetesService.scaleDeployment(
+                name: selectedKubeDeployment.name,
+                namespace: selectedKubeNamespace,
+                replicas: replicas
+            )
+        }
     }
 
+    @MainActor
     func restartSelectedDeployment() async throws {
         guard let selectedKubeDeployment else { return }
-        try await kubernetesService.rolloutRestartDeployment(name: selectedKubeDeployment.name, namespace: selectedKubeNamespace)
+
+        let rollbackGuidance = rolloutRestartRollbackGuidance
+
+        try await runKubernetesMutationAction(
+            actionType: "rollout-restart",
+            resourceKind: "Deployment",
+            resourceName: selectedKubeDeployment.name,
+            namespace: selectedKubeNamespace,
+            requestedValue: nil,
+            previousValue: nil,
+            rollbackGuidance: rollbackGuidance,
+            pendingSummary: "Restarting rollout for deployment \(selectedKubeDeployment.name)"
+        ) {
+            try await kubernetesService.rolloutRestartDeployment(
+                name: selectedKubeDeployment.name,
+                namespace: selectedKubeNamespace
+            )
+        }
     }
 
+    @MainActor
     func deleteSelectedPod() async throws {
         guard let selectedKubePod else { return }
-        try await kubernetesService.deletePod(name: selectedKubePod.name, namespace: selectedKubeNamespace)
+
+        let rollbackGuidance = deletePodRollbackGuidance
+
+        try await runKubernetesMutationAction(
+            actionType: "delete-pod",
+            resourceKind: "Pod",
+            resourceName: selectedKubePod.name,
+            namespace: selectedKubeNamespace,
+            requestedValue: nil,
+            previousValue: nil,
+            rollbackGuidance: rollbackGuidance,
+            pendingSummary: "Deleting pod \(selectedKubePod.name)"
+        ) {
+            try await kubernetesService.deletePod(name: selectedKubePod.name, namespace: selectedKubeNamespace)
+        }
+    }
+
+    @MainActor
+    private func runKubernetesMutationAction(
+        actionType: String,
+        resourceKind: String,
+        resourceName: String,
+        namespace: String,
+        requestedValue: String?,
+        previousValue: String?,
+        rollbackGuidance: String,
+        pendingSummary: String,
+        operation: () async throws -> Void
+    ) async throws {
+        pendingKubernetesActionSummary = pendingSummary
+        latestKubernetesActionGuidance = nil
+        isKubernetesActionLoading = true
+
+        defer {
+            pendingKubernetesActionSummary = nil
+            isKubernetesActionLoading = false
+        }
+
+        do {
+            try Task.checkCancellation()
+            try await operation()
+
+            latestKubernetesActionGuidance = rollbackGuidance
+            latestKubernetesActionResult = KubernetesActionResultState(
+                actionType: actionType,
+                resourceKind: resourceKind,
+                resourceName: resourceName,
+                namespace: namespace,
+                status: .success,
+                errorSummary: nil
+            )
+            kubernetesError = nil
+
+            kubernetesActionAuditSink(
+                KubernetesActionAuditEntry(
+                    actionType: actionType,
+                    resourceKind: resourceKind,
+                    resourceName: resourceName,
+                    namespace: namespace,
+                    requestedValue: requestedValue,
+                    previousValue: previousValue,
+                    result: "success",
+                    rollbackGuidance: rollbackGuidance,
+                    actorLabel: kubernetesActorLabel
+                )
+            )
+        } catch is CancellationError {
+            latestKubernetesActionGuidance = rollbackGuidance
+            latestKubernetesActionResult = KubernetesActionResultState(
+                actionType: actionType,
+                resourceKind: resourceKind,
+                resourceName: resourceName,
+                namespace: namespace,
+                status: .cancelled,
+                errorSummary: nil
+            )
+
+            kubernetesActionAuditSink(
+                KubernetesActionAuditEntry(
+                    actionType: actionType,
+                    resourceKind: resourceKind,
+                    resourceName: resourceName,
+                    namespace: namespace,
+                    requestedValue: requestedValue,
+                    previousValue: previousValue,
+                    result: "cancelled",
+                    rollbackGuidance: rollbackGuidance,
+                    actorLabel: kubernetesActorLabel
+                )
+            )
+            throw CancellationError()
+        } catch {
+            let errorSummary = error.localizedDescription
+            latestKubernetesActionGuidance = rollbackGuidance
+            latestKubernetesActionResult = KubernetesActionResultState(
+                actionType: actionType,
+                resourceKind: resourceKind,
+                resourceName: resourceName,
+                namespace: namespace,
+                status: .failure,
+                errorSummary: errorSummary
+            )
+            kubernetesError = errorSummary
+
+            kubernetesActionAuditSink(
+                KubernetesActionAuditEntry(
+                    actionType: actionType,
+                    resourceKind: resourceKind,
+                    resourceName: resourceName,
+                    namespace: namespace,
+                    requestedValue: requestedValue,
+                    previousValue: previousValue,
+                    result: "failure",
+                    errorSummary: errorSummary,
+                    rollbackGuidance: rollbackGuidance,
+                    actorLabel: kubernetesActorLabel
+                )
+            )
+            throw error
+        }
+    }
+
+    @MainActor
+    private var rolloutRestartRollbackGuidance: String {
+        "No direct undo is available for rollout restart. Check rollout status/events and perform a known image/config rollout if recovery is needed."
+    }
+
+    @MainActor
+    private var deletePodRollbackGuidance: String {
+        "No direct undo is available for pod deletion. If this pod is controller-managed, the controller should recreate it; otherwise recreate it manually from workload configuration."
+    }
+
+    @MainActor
+    private var kubernetesActorLabel: String {
+        selectedKubeContext.isEmpty ? "local-user" : "local-user@\(selectedKubeContext)"
+    }
+
+    @MainActor
+    private func scaleRollbackGuidance(previousReplicas: String?) -> String {
+        if let previousReplicas {
+            return "To rollback, scale the deployment back to \(previousReplicas) replicas."
+        }
+
+        return "To rollback, scale the deployment back to the previously known replica count."
     }
 
     // MARK: - 사용자 로그

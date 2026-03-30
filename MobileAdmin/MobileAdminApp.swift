@@ -25,6 +25,7 @@ struct MobileAdminApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             EnvironmentModel.self,
+            KubernetesActionAuditEntry.self,
         ])
 
         let configuration = ModelConfiguration(

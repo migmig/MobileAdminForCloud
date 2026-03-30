@@ -112,7 +112,7 @@ struct KubernetesResourceInfoTests {
         #expect(secret.matchesSearch("app-secret"))
         #expect(secret.matchesSearch("opaque"))
         #expect(secret.matchesSearch("password"))
-        #expect(secret.matchesSearch("pass") == false)
+        #expect(secret.matchesSearch("decoded-secret-value") == false)
     }
 
     @Test func secret_sorting_supportsNameAndKeyCountOptions() {

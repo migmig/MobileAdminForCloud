@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 #if os(macOS)
 import AppKit
 #endif
@@ -6,8 +7,13 @@ import AppKit
 struct KubernetesDetailViewForMac: View {
     @EnvironmentObject var viewModel: ViewModel
     @EnvironmentObject var nav: NavigationState
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: [SortDescriptor(\KubernetesActionAuditEntry.timestamp, order: .reverse)])
+    private var kubernetesAuditEntries: [KubernetesActionAuditEntry]
+
     @State private var replicaCount: Int = 1
-    @State private var showDeleteConfirmation = false
+    @State private var pendingKubernetesActionConfirmation: KubernetesMutationActionConfirmation?
+    @State private var deletePodConfirmationInput: String = ""
     @State private var revealedSecretKeys: Set<String> = []
     @State private var inspectorMode: KubernetesInspectorMode = .overview
 
@@ -35,35 +41,25 @@ struct KubernetesDetailViewForMac: View {
                     Stepper("Replica: \(replicaCount)", value: $replicaCount, in: 0...50)
 
                     Button("Scale") {
-                        Task {
-                            do {
-                                try await viewModel.scaleSelectedDeployment(to: replicaCount)
-                                await viewModel.refreshKubernetesOverview()
-                            } catch {
-                                await MainActor.run {
-                                    viewModel.kubernetesError = error.localizedDescription
-                                }
-                            }
-                        }
+                        pendingKubernetesActionConfirmation = .scale(
+                            deploymentName: deployment.name,
+                            namespace: viewModel.selectedKubeNamespace,
+                            fromReplicas: deployment.replicas,
+                            toReplicas: replicaCount
+                        )
                     }
 
                     Button("Rollout Restart") {
-                        Task {
-                            do {
-                                try await viewModel.restartSelectedDeployment()
-                                await viewModel.refreshKubernetesOverview()
-                            } catch {
-                                await MainActor.run {
-                                    viewModel.kubernetesError = error.localizedDescription
-                                }
-                            }
-                        }
+                        pendingKubernetesActionConfirmation = .rolloutRestart(
+                            deploymentName: deployment.name,
+                            namespace: viewModel.selectedKubeNamespace
+                        )
                     }
                 }
 
             }
 
-            if inspectorMode == .ops, let deployment = nav.selectedKubeDeployment {
+            if inspectorMode == .ops, nav.selectedKubeDeployment != nil {
                 Section("Live Refresh") {
                     Toggle("Auto Refresh", isOn: $viewModel.isKubernetesAutoRefreshEnabled)
                     Text("\(Int(viewModel.kubernetesAutoRefreshInterval))초 간격으로 현재 선택 리소스를 갱신합니다")
@@ -139,27 +135,23 @@ struct KubernetesDetailViewForMac: View {
                     InfoRow(title: "이름", value: pod.name)
                     InfoRow(title: "상태", value: pod.phase)
                     Button("Delete Pod", role: .destructive) {
-                        showDeleteConfirmation = true
-                    }
-                    .confirmationDialog("선택한 Pod를 삭제하시겠습니까?", isPresented: $showDeleteConfirmation) {
-                        Button("삭제", role: .destructive) {
-                            Task {
-                                do {
-                                    try await viewModel.deleteSelectedPod()
-                                    await viewModel.refreshKubernetesOverview()
-                                } catch {
-                                    await MainActor.run {
-                                        viewModel.kubernetesError = error.localizedDescription
-                                    }
-                                }
-                            }
-                        }
+                        pendingKubernetesActionConfirmation = .deletePod(
+                            podName: pod.name,
+                            namespace: viewModel.selectedKubeNamespace
+                        )
+                        deletePodConfirmationInput = ""
                     }
                 }
 
             }
 
-            if inspectorMode == .ops, let pod = nav.selectedKubePod {
+            if selectedResourceSupportsMutationActions {
+                actionConfirmationSection
+                actionResultAndGuidanceSection
+                localAuditHistorySection
+            }
+
+            if inspectorMode == .ops, nav.selectedKubePod != nil {
                 Section("Live Refresh") {
                     Toggle("Auto Refresh", isOn: $viewModel.isKubernetesAutoRefreshEnabled)
                     Text("\(Int(viewModel.kubernetesAutoRefreshInterval))초 간격으로 현재 선택 리소스를 갱신합니다")
@@ -225,6 +217,11 @@ struct KubernetesDetailViewForMac: View {
                             text: viewModel.selectedYAMLText,
                             emptyText: "YAML 내용이 없습니다"
                         )
+
+                        if nav.selectedKubeSecret != nil {
+                            secretYAMLWarningSection
+                            secretYAMLRevealSection
+                        }
                     } else {
                         Text("이 리소스는 YAML 보기를 지원하지 않습니다")
                             .foregroundStyle(.secondary)
@@ -236,10 +233,14 @@ struct KubernetesDetailViewForMac: View {
         .onChange(of: nav.selectedKubeDeployment) { _, newValue in
             viewModel.selectedKubeDeployment = newValue
             replicaCount = newValue?.replicas ?? 1
+            pendingKubernetesActionConfirmation = nil
+            deletePodConfirmationInput = ""
             resetInspectorModeForCurrentSelection()
         }
         .onChange(of: nav.selectedKubePod) { _, newValue in
             viewModel.selectedKubePod = newValue
+            pendingKubernetesActionConfirmation = nil
+            deletePodConfirmationInput = ""
             resetInspectorModeForCurrentSelection()
         }
         .onChange(of: nav.selectedKubeService) { _, newValue in
@@ -256,21 +257,25 @@ struct KubernetesDetailViewForMac: View {
             resetInspectorModeForCurrentSelection()
         }
         .onChange(of: viewModel.isKubernetesAutoRefreshEnabled) { _, isEnabled in
-            Task {
-                if isEnabled {
-                    await viewModel.startKubernetesAutoRefreshIfNeeded()
-                } else {
-                    await viewModel.stopKubernetesAutoRefresh()
-                }
+            if isEnabled {
+                Task { await viewModel.startKubernetesAutoRefreshIfNeeded() }
+            } else {
+                viewModel.stopKubernetesAutoRefresh()
             }
         }
         .onChange(of: inspectorMode) { _, newValue in
             if newValue != .ops {
-                Task { await viewModel.stopKubernetesAutoRefresh() }
+                viewModel.stopKubernetesAutoRefresh()
             }
         }
         .onDisappear {
-            Task { await viewModel.stopKubernetesAutoRefresh() }
+            viewModel.stopKubernetesAutoRefresh()
+        }
+        .task {
+            viewModel.configureKubernetesActionAuditSink { entry in
+                modelContext.insert(entry)
+                try? modelContext.save()
+            }
         }
     }
 
@@ -299,8 +304,16 @@ struct KubernetesDetailViewForMac: View {
         nav.selectedKubePod != nil || nav.selectedKubeDeployment != nil
     }
 
+    private var selectedResourceSupportsMutationActions: Bool {
+        nav.selectedKubePod != nil || nav.selectedKubeDeployment != nil
+    }
+
     private var selectedResourceSupportsYAML: Bool {
-        nav.selectedKubePod != nil || nav.selectedKubeDeployment != nil || nav.selectedKubeService != nil
+        nav.selectedKubePod != nil ||
+        nav.selectedKubeDeployment != nil ||
+        nav.selectedKubeService != nil ||
+        nav.selectedKubeConfigMap != nil ||
+        nav.selectedKubeSecret != nil
     }
 
     private func resetInspectorModeForCurrentSelection() {
@@ -310,6 +323,40 @@ struct KubernetesDetailViewForMac: View {
             inspectorMode = .overview
         } else if inspectorMode == .yaml, !selectedResourceSupportsYAML {
             inspectorMode = .overview
+        }
+    }
+
+    private var secretYAMLWarningSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("경고")
+                .font(.caption)
+                .fontWeight(.semibold)
+            Text("Secret YAML은 base64 인코딩 값을 raw 그대로 포함할 수 있습니다. decoded 값은 아래에서 key별로만 명시적으로 표시/복사하세요.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 8)
+    }
+
+    @ViewBuilder
+    private var secretYAMLRevealSection: some View {
+        if let secret = nav.selectedKubeSecret {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Secret Keys")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+
+                ForEach(secret.keyNames, id: \.self) { key in
+                    SecretKeyRow(
+                        key: key,
+                        secret: secret,
+                        isRevealed: revealedSecretKeys.contains(key),
+                        onToggleReveal: { toggleReveal(for: key) },
+                        onCopy: { copySecretValue(secret, key: key) }
+                    )
+                }
+            }
+            .padding(.top, 8)
         }
     }
 
@@ -332,6 +379,208 @@ struct KubernetesDetailViewForMac: View {
         NSPasteboard.general.setString(value, forType: .string)
         #endif
     }
+
+    private var actionConfirmationSection: some View {
+        Section("Action Confirmation") {
+            if let confirmation = pendingKubernetesActionConfirmation {
+                Text(confirmation.title)
+                    .font(.headline)
+
+                ForEach(Array(confirmation.summaryLines.enumerated()), id: \.offset) { _, summary in
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if case let .deletePod(podName, _) = confirmation {
+                    TextField("Pod 이름 입력 (\(podName))", text: $deletePodConfirmationInput)
+                    Text("삭제를 진행하려면 Pod 이름을 정확히 입력하세요.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                HStack {
+                    Button("Cancel") {
+                        pendingKubernetesActionConfirmation = nil
+                        deletePodConfirmationInput = ""
+                    }
+
+                    Spacer()
+
+                    Button(confirmation.confirmButtonTitle, role: confirmation.buttonRole) {
+                        Task {
+                            await executeConfirmedAction(confirmation)
+                        }
+                    }
+                    .disabled(!canExecutePendingConfirmation(confirmation) || viewModel.isKubernetesActionLoading)
+                }
+            } else {
+                Text("Scale / Rollout Restart / Delete Pod 작업은 먼저 요약을 확인한 뒤 실행됩니다.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var actionResultAndGuidanceSection: some View {
+        Section("Action Result") {
+            if let pendingSummary = viewModel.pendingKubernetesActionSummary, viewModel.isKubernetesActionLoading {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text(pendingSummary)
+                        .font(.caption)
+                }
+            }
+
+            if let latestResult = viewModel.latestKubernetesActionResult {
+                InfoRow(title: "Action", value: latestResult.actionType)
+                InfoRow(title: "Resource", value: "\(latestResult.resourceKind)/\(latestResult.resourceName)")
+                InfoRow(title: "Namespace", value: latestResult.namespace)
+
+                HStack {
+                    Text("Result")
+                    Spacer()
+                    Text(latestResult.status.displayText)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(latestResult.status.displayColor)
+                }
+
+                if let errorSummary = latestResult.errorSummary, !errorSummary.isEmpty {
+                    Text(errorSummary)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            if let guidance = viewModel.latestKubernetesActionGuidance, !guidance.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Rollback Guidance")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                    Text(guidance)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if viewModel.latestKubernetesActionResult == nil,
+               (viewModel.latestKubernetesActionGuidance ?? "").isEmpty,
+               !viewModel.isKubernetesActionLoading {
+                Text("최근 실행된 변경 작업 결과가 없습니다.")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var localAuditHistorySection: some View {
+        Section("Local Audit History") {
+            if relevantAuditEntries.isEmpty {
+                Text("로컬 감사 이력이 없습니다")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(relevantAuditEntries, id: \.persistentModelID) { entry in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(Self.auditDateFormatter.string(from: entry.timestamp))
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(entry.result.localizedAuditResult)
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(entry.result.auditResultColor)
+                        }
+
+                        Text("\(entry.actionType) · \(entry.resourceKind)/\(entry.resourceName)")
+                            .font(.caption)
+
+                        Text("Namespace: \(entry.namespace)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+
+                        if let guidance = entry.rollbackGuidance, !guidance.isEmpty {
+                            Text("Guidance: \(guidance)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+
+    private var relevantAuditEntries: [KubernetesActionAuditEntry] {
+        let filteredByNamespace = kubernetesAuditEntries.filter { entry in
+            entry.namespace == viewModel.selectedKubeNamespace
+        }
+
+        let filteredByResource = filteredByNamespace.filter { entry in
+            switch selectedAuditResource {
+            case let .deployment(name):
+                return entry.resourceKind == "Deployment" && entry.resourceName == name
+            case let .pod(name):
+                return entry.resourceKind == "Pod" && entry.resourceName == name
+            case .none:
+                return true
+            }
+        }
+
+        return Array(filteredByResource.prefix(20))
+    }
+
+    private var selectedAuditResource: KubernetesAuditResource? {
+        if let deployment = nav.selectedKubeDeployment {
+            return .deployment(deployment.name)
+        }
+
+        if let pod = nav.selectedKubePod {
+            return .pod(pod.name)
+        }
+
+        return nil
+    }
+
+    @MainActor
+    private func executeConfirmedAction(_ confirmation: KubernetesMutationActionConfirmation) async {
+        do {
+            switch confirmation {
+            case let .scale(_, _, _, targetReplicas):
+                try await viewModel.scaleSelectedDeployment(to: targetReplicas)
+            case .rolloutRestart:
+                try await viewModel.restartSelectedDeployment()
+            case .deletePod:
+                try await viewModel.deleteSelectedPod()
+            }
+
+            await viewModel.refreshKubernetesOverview()
+        } catch {
+            await MainActor.run {
+                if viewModel.kubernetesError?.isEmpty ?? true {
+                    viewModel.kubernetesError = error.localizedDescription
+                }
+            }
+        }
+
+        pendingKubernetesActionConfirmation = nil
+        deletePodConfirmationInput = ""
+    }
+
+    private func canExecutePendingConfirmation(_ confirmation: KubernetesMutationActionConfirmation) -> Bool {
+        switch confirmation {
+        case .deletePod(let podName, _):
+            return deletePodConfirmationInput == podName
+        case .scale, .rolloutRestart:
+            return true
+        }
+    }
+
+    private static let auditDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter
+    }()
 }
 
 private enum KubernetesInspectorMode: String, CaseIterable, Identifiable {
@@ -341,6 +590,140 @@ private enum KubernetesInspectorMode: String, CaseIterable, Identifiable {
     case yaml
 
     var id: String { rawValue }
+}
+
+private enum KubernetesAuditResource {
+    case deployment(String)
+    case pod(String)
+}
+
+private enum KubernetesMutationActionConfirmation: Identifiable {
+    case scale(deploymentName: String, namespace: String, fromReplicas: Int, toReplicas: Int)
+    case rolloutRestart(deploymentName: String, namespace: String)
+    case deletePod(podName: String, namespace: String)
+
+    var id: String {
+        switch self {
+        case let .scale(deploymentName, namespace, _, toReplicas):
+            return "scale:\(namespace):\(deploymentName):\(toReplicas)"
+        case let .rolloutRestart(deploymentName, namespace):
+            return "rollout-restart:\(namespace):\(deploymentName)"
+        case let .deletePod(podName, namespace):
+            return "delete-pod:\(namespace):\(podName)"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .scale:
+            return "Scale 실행 전 확인"
+        case .rolloutRestart:
+            return "Rollout Restart 실행 전 확인"
+        case .deletePod:
+            return "Delete Pod 실행 전 확인"
+        }
+    }
+
+    var summaryLines: [String] {
+        switch self {
+        case let .scale(deploymentName, namespace, fromReplicas, toReplicas):
+            return [
+                "Action: scale",
+                "Resource: Deployment/\(deploymentName)",
+                "Namespace: \(namespace)",
+                "Requested replicas: \(toReplicas)",
+                "Current replicas: \(fromReplicas)",
+                "Rollback guidance: scale back to \(fromReplicas) replicas"
+            ]
+        case let .rolloutRestart(deploymentName, namespace):
+            return [
+                "Action: rollout-restart",
+                "Resource: Deployment/\(deploymentName)",
+                "Namespace: \(namespace)",
+                "Rollback guidance: no direct undo, verify rollout status/events and apply known good rollout if needed"
+            ]
+        case let .deletePod(podName, namespace):
+            return [
+                "Action: delete-pod",
+                "Resource: Pod/\(podName)",
+                "Namespace: \(namespace)",
+                "Impact: selected pod is deleted immediately",
+                "Rollback guidance: controller-managed pods are recreated automatically; otherwise recreate manually"
+            ]
+        }
+    }
+
+    var confirmButtonTitle: String {
+        switch self {
+        case .scale:
+            return "Scale 실행"
+        case .rolloutRestart:
+            return "Restart 실행"
+        case .deletePod:
+            return "Delete 실행"
+        }
+    }
+
+    var buttonRole: ButtonRole? {
+        switch self {
+        case .deletePod:
+            return .destructive
+        case .scale, .rolloutRestart:
+            return nil
+        }
+    }
+}
+
+private extension ViewModel.KubernetesActionResultState.Status {
+    var displayText: String {
+        switch self {
+        case .success:
+            return "Success"
+        case .failure:
+            return "Failure"
+        case .cancelled:
+            return "Cancelled"
+        }
+    }
+
+    var displayColor: Color {
+        switch self {
+        case .success:
+            return .green
+        case .failure:
+            return .red
+        case .cancelled:
+            return .orange
+        }
+    }
+}
+
+private extension String {
+    var localizedAuditResult: String {
+        switch self {
+        case "success":
+            return "Success"
+        case "failure":
+            return "Failure"
+        case "cancelled":
+            return "Cancelled"
+        default:
+            return self
+        }
+    }
+
+    var auditResultColor: Color {
+        switch self {
+        case "success":
+            return .green
+        case "failure":
+            return .red
+        case "cancelled":
+            return .orange
+        default:
+            return .secondary
+        }
+    }
 }
 
 private struct SecretKeyRow: View {
@@ -433,4 +816,5 @@ private struct RawKubernetesTextView: View {
     KubernetesDetailViewForMac()
         .environmentObject(ViewModel())
         .environmentObject(NavigationState())
+        .modelContainer(for: [KubernetesActionAuditEntry.self], inMemory: true)
 }

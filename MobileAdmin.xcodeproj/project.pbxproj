@@ -8,11 +8,31 @@
 
 /* Begin PBXBuildFile section */
 		9FA5A8AA2CC87E6100BC91C8 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9FA5A8A92CC87E6100BC91C8 /* Logging */; };
+		9FA5A8B12CC87E6100BC91C8 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9FA5A8B02CC87E6100BC91C8 /* Logging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9FE922CD2CB4B7A8007A64AF /* MobileAdmin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MobileAdmin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9FE922DE2CB4B7AA007A64AF /* MobileAdminTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobileAdminTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9FE922E92CB4B7AA007A64AF /* MobileAdminUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MobileAdminUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXContainerItemProxy section */
+		9FE922E42CB4B7AA007A64AF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9FE922C52CB4B7A8007A64AF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9FE922CC2CB4B7A8007A64AF;
+			remoteInfo = MobileAdmin;
+		};
+		9FE922EF2CB4B7AA007A64AF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9FE922C52CB4B7A8007A64AF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9FE922CC2CB4B7A8007A64AF;
+			remoteInfo = MobileAdmin;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		9FA5A8AF2CC8801A00BC91C8 /* Exceptions for "MobileAdmin" folder in "MobileAdmin" target */ = {
@@ -54,6 +74,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9FE922DF2CB4B7AA007A64AF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9FA5A8B12CC87E6100BC91C8 /* Logging in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FE922EA2CB4B7AA007A64AF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -71,6 +106,8 @@
 			isa = PBXGroup;
 			children = (
 				9FE922CD2CB4B7A8007A64AF /* MobileAdmin.app */,
+				9FE922DE2CB4B7AA007A64AF /* MobileAdminTests.xctest */,
+				9FE922E92CB4B7AA007A64AF /* MobileAdminUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -101,7 +138,115 @@
 			productReference = 9FE922CD2CB4B7A8007A64AF /* MobileAdmin.app */;
 			productType = "com.apple.product-type.application";
 		};
+		9FE922DD2CB4B7AA007A64AF /* MobileAdminTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9FE922E52CB4B7AA007A64AF /* Build configuration list for PBXNativeTarget "MobileAdminTests" */;
+			buildPhases = (
+				9FE922E02CB4B7AA007A64AF /* Sources */,
+				9FE922DF2CB4B7AA007A64AF /* Frameworks */,
+				9FE922E22CB4B7AA007A64AF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9FE922E32CB4B7AA007A64AF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9FE922E12CB4B7AA007A64AF /* MobileAdminTests */,
+			);
+			name = MobileAdminTests;
+			packageProductDependencies = (
+				9FA5A8B02CC87E6100BC91C8 /* Logging */,
+			);
+			productName = MobileAdminTests;
+			productReference = 9FE922DE2CB4B7AA007A64AF /* MobileAdminTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9FE922E82CB4B7AA007A64AF /* MobileAdminUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9FE922F52CB4B7AA007A64AF /* Build configuration list for PBXNativeTarget "MobileAdminUITests" */;
+			buildPhases = (
+				9FE922EC2CB4B7AA007A64AF /* Sources */,
+				9FE922EA2CB4B7AA007A64AF /* Frameworks */,
+				9FE922ED2CB4B7AA007A64AF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9FE922EE2CB4B7AA007A64AF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9FE922EB2CB4B7AA007A64AF /* MobileAdminUITests */,
+			);
+			name = MobileAdminUITests;
+			packageProductDependencies = (
+			);
+			productName = MobileAdminUITests;
+			productReference = 9FE922E92CB4B7AA007A64AF /* MobileAdminUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9FE922CB2CB4B7A8007A64AF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FE922E22CB4B7AA007A64AF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FE922ED2CB4B7AA007A64AF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9FE922C92CB4B7A8007A64AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FE922E02CB4B7AA007A64AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FE922EC2CB4B7AA007A64AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9FE922E32CB4B7AA007A64AF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9FE922CC2CB4B7A8007A64AF /* MobileAdmin */;
+			targetProxy = 9FE922E42CB4B7AA007A64AF /* PBXContainerItemProxy */;
+		};
+		9FE922EE2CB4B7AA007A64AF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9FE922CC2CB4B7A8007A64AF /* MobileAdmin */;
+			targetProxy = 9FE922EF2CB4B7AA007A64AF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		9FE922C52CB4B7A8007A64AF /* Project object */ = {
@@ -134,29 +279,11 @@
 			projectRoot = "";
 			targets = (
 				9FE922CC2CB4B7A8007A64AF /* MobileAdmin */,
+				9FE922DD2CB4B7AA007A64AF /* MobileAdminTests */,
+				9FE922E82CB4B7AA007A64AF /* MobileAdminUITests */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		9FE922CB2CB4B7A8007A64AF /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		9FE922C92CB4B7A8007A64AF /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
 		9FE922F02CB4B7AA007A64AF /* Debug */ = {
@@ -389,6 +516,102 @@
 			};
 			name = Release;
 		};
+		9FE922E62CB4B7AA007A64AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F26758624V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				PRODUCT_BUNDLE_IDENTIFIER = com.migmig.mobile.adminTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MobileAdmin.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MobileAdmin";
+			};
+			name = Debug;
+		};
+		9FE922E72CB4B7AA007A64AF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F26758624V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				PRODUCT_BUNDLE_IDENTIFIER = com.migmig.mobile.adminTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MobileAdmin.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MobileAdmin";
+			};
+			name = Release;
+		};
+		9FE922F62CB4B7AA007A64AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F26758624V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.migmig.mobile.adminUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MobileAdmin;
+			};
+			name = Debug;
+		};
+		9FE922F72CB4B7AA007A64AF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F26758624V;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.migmig.mobile.adminUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MobileAdmin;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -410,6 +633,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		9FE922E52CB4B7AA007A64AF /* Build configuration list for PBXNativeTarget "MobileAdminTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9FE922E62CB4B7AA007A64AF /* Debug */,
+				9FE922E72CB4B7AA007A64AF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9FE922F52CB4B7AA007A64AF /* Build configuration list for PBXNativeTarget "MobileAdminUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9FE922F62CB4B7AA007A64AF /* Debug */,
+				9FE922F72CB4B7AA007A64AF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -425,6 +666,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		9FA5A8A92CC87E6100BC91C8 /* Logging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FA5A8A82CC87E6100BC91C8 /* XCRemoteSwiftPackageReference "swift-log" */;
+			productName = Logging;
+		};
+		9FA5A8B02CC87E6100BC91C8 /* Logging */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9FA5A8A82CC87E6100BC91C8 /* XCRemoteSwiftPackageReference "swift-log" */;
 			productName = Logging;
