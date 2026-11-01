@@ -144,7 +144,18 @@ Services use `NetworkClient`'s three generic methods:
 
 ### Build System
 
-This is a native Xcode project (SPM only for swift-log; no CocoaPods or Carthage). New files under `MobileAdmin/` are auto-included (file-system synchronized groups). Build using:
+This is a native Xcode project (SPM only for swift-log; no CocoaPods or Carthage). New files under `MobileAdmin/` are auto-included (file-system synchronized groups).
+
+Prefer the `Makefile` (run `make` for the list). It uses `/Applications/Xcode.app` automatically when `xcode-select` points to Command Line Tools, and writes to `build/` (git-ignored):
+
+```bash
+make build        # macOS + generic iOS compile check (no signing)
+make run-macos    # ad-hoc signed macOS app, then open
+make run-sim      # iOS simulator (needs runtime: make sim-runtime)
+make test         # requires MobileAdminTests target (currently missing)
+```
+
+Raw xcodebuild:
 
 ```bash
 # Build (requires Xcode and macOS)
