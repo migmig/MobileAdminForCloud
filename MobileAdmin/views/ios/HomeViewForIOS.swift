@@ -14,6 +14,9 @@ struct HomeViewForIOS: View {
         (.errerlist,    "서비스 오류 로그를 조회합니다",   .red),
         (.goodsInfo,    "상품 정보 이력을 조회합니다",     .orange),
         (.codeList,     "공통코드 목록을 조회합니다",      .blue),
+        (.userLogTail,  "사용자 로그를 실시간으로 확인합니다", .green),
+        (.serverLog,    "서버 로그 파일을 탐색합니다",     .indigo),
+        (.uploadBrowser, "업로드된 파일을 확인합니다",     .teal),
     ]
 
     var body: some View {
@@ -45,6 +48,9 @@ struct HomeViewForIOS: View {
         case .errerlist: ErrorListViewForIOS(viewModel: viewModel)
         case .goodsInfo: GoodsListViewIOS(viewModel: viewModel)
         case .codeList:  CodeListViewIOS(viewModel: viewModel)
+        case .userLogTail:   UserLogViewForIOS()
+        case .serverLog:     ServerLogKindListViewIOS()
+        case .uploadBrowser: UploadBrowserViewIOS(path: .root)
         default: EmptyView()
         }
     }

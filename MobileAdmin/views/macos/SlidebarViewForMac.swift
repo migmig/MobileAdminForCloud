@@ -16,7 +16,10 @@ enum SlidebarItem: Hashable,CaseIterable{
                 .gcpClsList,
                 .codeList,
                 .closeDeptList,
-                .sourceBuild
+                .sourceBuild,
+                .userLogTail,
+                .serverLog,
+                .uploadBrowser
         ]
     }
     static var CloudTools: [SlidebarItem]{
@@ -54,7 +57,10 @@ enum SlidebarItem: Hashable,CaseIterable{
          sourceCommit,
          sourceBuild,
          sourceDeploy,
-         sourcePipeline
+         sourcePipeline,
+         userLogTail,
+         serverLog,
+         uploadBrowser
          
     
     case collection(String)
@@ -81,6 +87,12 @@ enum SlidebarItem: Hashable,CaseIterable{
             return "Src Deploy"
         case .sourcePipeline:
             return "Src Pipeline"
+        case .userLogTail:
+            return "사용자 로그"
+        case .serverLog:
+            return "서버 로그"
+        case .uploadBrowser:
+            return "업로드 파일"
         case .collection(let title):
             return title
         }
@@ -107,6 +119,12 @@ enum SlidebarItem: Hashable,CaseIterable{
             return "rectangle.connected.to.line.below"
         case .sourceBuild:
             return "gearshape.2"
+        case .userLogTail:
+            return "person.text.rectangle"
+        case .serverLog:
+            return "doc.text.magnifyingglass"
+        case .uploadBrowser:
+            return "folder"
         case .collection(let title):
             return title
         }
@@ -114,7 +132,8 @@ enum SlidebarItem: Hashable,CaseIterable{
     static let groups: [(String, [SlidebarItem])] = [
            ("클라우드", [.errerlist, .codeList]),
            ("내부시스템", [.goodsInfo, .closeDeptList]),
-           ("개발도구", [.sourceBuild, .sourceDeploy, .sourcePipeline])
+           ("개발도구", [.sourceBuild, .sourceDeploy, .sourcePipeline]),
+           ("운영", [.userLogTail, .serverLog, .uploadBrowser])
        ]
 }
 
@@ -125,7 +144,8 @@ struct SlidebarViewForMac: View {
     private let groupIcons: [String: String] = [
         "클라우드": "cloud.fill",
         "내부시스템": "building.2.fill",
-        "개발도구": "hammer.fill"
+        "개발도구": "hammer.fill",
+        "운영": "server.rack"
     ]
 
     var body: some View {

@@ -1,59 +1,79 @@
 import Foundation
 import Logging
 
+/// 사용자 로그 서비스 (/admin/getUserLog, /admin/getUserLogTail)
+/// 화면에 원인을 표시해야 하므로 기존 서비스와 달리 오류를 삼키지 않고 throw한다.
 struct UserLogService {
     let client: NetworkClient
     private let logger = Logger(label: "com.migmig.MobileAdmin.UserLogService")
 
-    private func normalizeUserLogNo(_ sno: String) -> String {
-        if sno.hasPrefix("UT") {
-            let index = sno.index(sno.startIndex, offsetBy: 2)
-            return String(sno[index...])
-        } else {
-            return sno
+    /// tail 스트림 유휴 타임아웃 — 서버가 heartbeat를 보내지 않으므로 길게 잡는다
+    static let tailIdleTimeout: TimeInterval = 3_600
+
+    typealias TailStream = (fileName: String?, lines: AsyncThrowingStream<String, Error>)
+
+    /// 사용자 로그 파일 전체 다운로드 — macOS는 ~/Downloads, iOS는 앱 Caches에 저장
+    func downloadUserLog(_ sno: String, base: NasLogBase? = nil) async throws -> URL {
+        guard let number = UserLogNumber(sno) else {
+            throw OpsError.invalidUserNumber(sno)
+        }
+        do {
+            let destination = try DownloadStore.downloadURL(category: .userLog, fileName: number.fileName)
+            try await client.download(path: "/admin/getUserLog/\(number.value)",
+                                      query: [URLQueryItem(name: "base", value: base?.rawValue)],
+                                      to: destination)
+            logger.info("User log downloaded: \(destination.lastPathComponent)")
+            return destination
+        } catch {
+            logger.error("downloadUserLog 실패: \(error)")
+            throw error
         }
     }
 
-    private func makeUserLogFileName(no: String) -> String {
-        let digits = no.filter { $0.isNumber }
-        let padded = String(repeating: "0", count: max(0, 11 - digits.count)) + digits
-        return "UT\(padded).log"
-    }
-
-    func downloadUserLog(_ sno: String) async throws -> URL {
-        try await client.ensureValidToken()
-
-        let no = normalizeUserLogNo(sno)
-        let urlString = "\(client.baseUrl)/admin/getUserLog/\(no)"
-
-        var request = try client.makeAuthenticatedRequest(url: urlString)
-        request.httpMethod = "POST"
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-            throw NetworkError.httpError(statusCode: statusCode, url: urlString)
+    /// 실시간 tail — 최근 N줄 이후 추가되는 줄을 계속 받는다. 스트림 종료(취소) 시 연결도 끊는다.
+    func openTail(number: UserLogNumber, lines: Int, base: NasLogBase?) async throws -> TailStream {
+        let bytes: URLSession.AsyncBytes
+        let response: HTTPURLResponse
+        do {
+            (bytes, response) = try await client.openStream(
+                path: "/admin/getUserLogTail/\(number.value)",
+                query: [
+                    URLQueryItem(name: "lines", value: String(lines)),
+                    URLQueryItem(name: "base", value: base?.rawValue),
+                ],
+                timeout: Self.tailIdleTimeout
+            )
+        } catch {
+            if !OpsError.isCancellation(error) {
+                logger.error("openTail 실패: \(error)")
+            }
+            throw error
         }
 
-        #if os(macOS)
-        let directory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
-        #else
-        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-        #endif
-
-        guard let saveDir = directory else {
-            throw NetworkError.noData
+        let fileName = response.value(forHTTPHeaderField: "X-User-Log-File")
+        let stream = AsyncThrowingStream<String, Error> { continuation in
+            // 바이트 순회는 메인 스레드 밖에서 수행
+            let producer = Task.detached(priority: .userInitiated) {
+                var splitter = LineSplitter()
+                do {
+                    for try await byte in bytes {
+                        if let line = splitter.append(byte) {
+                            continuation.yield(line)
+                        }
+                    }
+                    if let rest = splitter.flush() {
+                        continuation.yield(rest)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in
+                producer.cancel()
+                bytes.task.cancel()
+            }
         }
-
-        let fileName = makeUserLogFileName(no: no)
-        let fileURL = saveDir.appendingPathComponent(fileName)
-
-        try data.write(to: fileURL, options: .atomic)
-
-        logger.info("User log downloaded: \(fileURL.path)")
-
-        return fileURL
+        return (fileName, stream)
     }
 }

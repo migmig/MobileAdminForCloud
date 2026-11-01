@@ -8,6 +8,8 @@ import Foundation
 @testable import MobileAdmin
 
 // Serialized because tests read/write shared static state on NetworkClient
+// (SharedTokenStateTests 하위에 두어 OpsNetworkTests와도 동시에 실행되지 않게 함)
+extension SharedTokenStateTests {
 @Suite(.serialized)
 struct NetworkClientTests {
 
@@ -281,4 +283,5 @@ struct NetworkClientTests {
             #expect(!part.contains("="))
         }
     }
+}
 }

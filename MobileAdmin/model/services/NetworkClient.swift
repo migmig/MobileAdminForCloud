@@ -20,6 +20,13 @@ class NetworkClient {
         return EnvironmentConfig.baseUrl
     }
 
+    /// 요청에 사용할 세션 (테스트에서 URLProtocol 스텁 세션 주입용)
+    let session: URLSession
+
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+
     func setToken(token: String?) {
         NetworkClient.token = token
     }
@@ -122,7 +129,7 @@ class NetworkClient {
         request.setValue("*/*", forHTTPHeaderField: "Accept")
         request.httpBody = try JSONEncoder().encode(tokenRequestData)
 
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
@@ -150,7 +157,7 @@ class NetworkClient {
             request.httpBody = try encoder.encode(requestData)
         }
 
-        _ = try await URLSession.shared.data(for: request)
+        _ = try await session.data(for: request)
     }
 
     func makeRequestNoRequestData<T: Codable>(
@@ -159,7 +166,7 @@ class NetworkClient {
         try await ensureValidToken()
         let request = try makeAuthenticatedRequest(url: url)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
@@ -184,7 +191,7 @@ class NetworkClient {
             request.httpBody = try encoder.encode(requestData)
         }
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
@@ -194,5 +201,172 @@ class NetworkClient {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(Self.apiDateFormatter)
         return try decoder.decode(T.self, from: data)
+    }
+
+    // MARK: - 운영 기능용 요청 (서버 로그 / 사용자 로그 / 업로드)
+    // admin_golang 규약: 모든 요청은 POST + query string, 오류는 {"error"} 또는 {"message"} JSON,
+    // 존재하지 않는 경로는 200 + SPA HTML로 응답한다.
+
+    /// 응답에서 기대하는 Content-Type
+    enum AcceptKind {
+        case json
+        case text
+        case any
+    }
+
+    /// query 값 인코딩 허용 문자 — Go url.ParseQuery가 '+'를 공백으로 해석하므로 '+'도 인코딩한다
+    private static let queryValueAllowed: CharacterSet = {
+        var set = CharacterSet.urlQueryAllowed
+        set.remove(charactersIn: "&=+#?")
+        return set
+    }()
+
+    /// baseUrl + path + query → URL 문자열. 값이 nil인 query 항목은 제외한다.
+    func makeURL(path: String, query: [URLQueryItem] = []) throws -> String {
+        let raw = baseUrl + path
+        guard var components = URLComponents(string: raw) else {
+            throw NetworkError.invalidURL(raw)
+        }
+        let encoded = query.compactMap { item -> String? in
+            guard let value = item.value else { return nil }
+            let name = item.name.addingPercentEncoding(withAllowedCharacters: Self.queryValueAllowed) ?? item.name
+            let encodedValue = value.addingPercentEncoding(withAllowedCharacters: Self.queryValueAllowed) ?? value
+            return "\(name)=\(encodedValue)"
+        }
+        if !encoded.isEmpty {
+            components.percentEncodedQuery = encoded.joined(separator: "&")
+        }
+        guard let url = components.url else {
+            throw NetworkError.invalidURL(raw)
+        }
+        return url.absoluteString
+    }
+
+    /// 인증 요청 후 (Data, HTTPURLResponse) 반환. 상태 코드와 Content-Type을 검증한다.
+    func fetchData(
+        path: String,
+        query: [URLQueryItem] = [],
+        accept: AcceptKind,
+        timeout: TimeInterval? = nil
+    ) async throws -> (Data, HTTPURLResponse) {
+        let url = try makeURL(path: path, query: query)
+        return try await withAuthRetry {
+            var request = try makeAuthenticatedRequest(url: url)
+            if let timeout { request.timeoutInterval = timeout }
+            let (data, response) = try await session.data(for: request)
+            let http = try validate(response, body: data, accept: accept, url: url)
+            return (data, http)
+        }
+    }
+
+    /// JSON 응답을 디코딩해서 반환
+    func fetchJSON<T: Decodable>(path: String, query: [URLQueryItem] = []) async throws -> T {
+        let (data, _) = try await fetchData(path: path, query: query, accept: .json)
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// 응답 바디를 메모리에 올리지 않고 디스크로 받은 뒤 destination으로 옮긴다 (기존 파일은 교체)
+    @discardableResult
+    func download(
+        path: String,
+        query: [URLQueryItem] = [],
+        to destination: URL
+    ) async throws -> HTTPURLResponse {
+        let url = try makeURL(path: path, query: query)
+        return try await withAuthRetry {
+            let request = try makeAuthenticatedRequest(url: url)
+            let (tempURL, response) = try await session.download(for: request)
+            defer { try? FileManager.default.removeItem(at: tempURL) }
+
+            let isSuccess = (response as? HTTPURLResponse).map { (200..<300).contains($0.statusCode) } ?? false
+            // 실패 응답이면 임시 파일에 오류 JSON이 들어 있다
+            let body = isSuccess ? Data() : ((try? Data(contentsOf: tempURL)) ?? Data())
+            let http = try validate(response, body: body, accept: .any, url: url)
+
+            let fileManager = FileManager.default
+            try fileManager.createDirectory(at: destination.deletingLastPathComponent(),
+                                            withIntermediateDirectories: true)
+            if fileManager.fileExists(atPath: destination.path) {
+                try fileManager.removeItem(at: destination)
+            }
+            try fileManager.moveItem(at: tempURL, to: destination)
+            return http
+        }
+    }
+
+    /// 스트리밍 요청. timeout은 유휴 타임아웃(URLRequest.timeoutInterval)으로 적용된다.
+    /// 실패 상태 코드면 바디를 최대 64KB까지 읽어 오류로 변환한다.
+    func openStream(
+        path: String,
+        query: [URLQueryItem] = [],
+        timeout: TimeInterval
+    ) async throws -> (URLSession.AsyncBytes, HTTPURLResponse) {
+        let url = try makeURL(path: path, query: query)
+        return try await withAuthRetry {
+            var request = try makeAuthenticatedRequest(url: url)
+            request.timeoutInterval = timeout
+            let (bytes, response) = try await session.bytes(for: request)
+            do {
+                var body = Data()
+                if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                    for try await byte in bytes {
+                        body.append(byte)
+                        if body.count >= 65_536 { break }
+                    }
+                }
+                let http = try validate(response, body: body, accept: .text, url: url)
+                return (bytes, http)
+            } catch {
+                bytes.task.cancel()
+                throw error
+            }
+        }
+    }
+
+    // MARK: - 응답 검증 / 인증 재시도
+
+    /// Content-Type 헤더에서 파라미터를 제외한 MIME 타입(소문자)
+    static func mimeType(of response: HTTPURLResponse) -> String? {
+        guard let raw = response.value(forHTTPHeaderField: "Content-Type") else { return nil }
+        return raw.split(separator: ";").first?
+            .trimmingCharacters(in: .whitespaces)
+            .lowercased()
+    }
+
+    /// 상태 코드 / Content-Type 검증. 실패 시 NetworkError를 던진다.
+    @discardableResult
+    func validate(_ response: URLResponse, body: Data, accept: AcceptKind, url: String) throws -> HTTPURLResponse {
+        guard let http = response as? HTTPURLResponse else {
+            throw NetworkError.httpError(statusCode: -1, url: url)
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let message = (try? JSONDecoder().decode(ServerErrorBody.self, from: body))?.text
+            throw NetworkError.server(statusCode: http.statusCode, message: message, url: url)
+        }
+        let mime = Self.mimeType(of: http)
+        if mime == "text/html" {
+            throw NetworkError.unsupportedEndpoint(url: url)
+        }
+        switch accept {
+        case .json where mime != "application/json":
+            throw NetworkError.unexpectedContentType(mime, url: url)
+        case .text where !(mime?.hasPrefix("text/") ?? false):
+            throw NetworkError.unexpectedContentType(mime, url: url)
+        default:
+            return http
+        }
+    }
+
+    /// 토큰 확보 후 실행하고, 401이면 토큰을 재발급받아 1회 재시도한다.
+    private func withAuthRetry<T>(_ operation: () async throws -> T) async throws -> T {
+        try await ensureValidToken()
+        do {
+            return try await operation()
+        } catch NetworkError.server(statusCode: 401, _, _) {
+            logger.warning("401 응답 - 토큰 재발급 후 재시도")
+            NetworkClient.resetTokenState()
+            try await ensureValidToken()
+            return try await operation()
+        }
     }
 }

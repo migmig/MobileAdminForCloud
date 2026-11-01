@@ -75,6 +75,15 @@ struct ContentListViewForMac: View {
                 selectedPipeline: $nav.selectedPipeline
             )
 
+        case .userLogTail:
+            UserLogSidebar(target: $nav.userLogTarget)
+
+        case .serverLog:
+            ServerLogSidebar(selection: $nav.selectedServerLogFile)
+
+        case .uploadBrowser:
+            UploadBrowserSidebar(selection: $nav.selectedUploadEntry)
+
         default:
             Text("알 수 없는 항목입니다.")
         }

@@ -190,8 +190,8 @@ class ViewModel: ObservableObject {
 
     // MARK: - 사용자 로그
 
-    func downloadUserLog(_ sno: String) async throws -> URL {
-        try await userLogService.downloadUserLog(sno)
+    func downloadUserLog(_ sno: String, base: NasLogBase? = nil) async throws -> URL {
+        try await userLogService.downloadUserLog(sno, base: base)
     }
 
     /// 선택 토글

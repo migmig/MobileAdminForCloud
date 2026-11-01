@@ -17,4 +17,8 @@ class NavigationState: ObservableObject {
     @Published var selectedBuild: SourceBuildProject?
     @Published var selectedCommit: SourceCommitInfoRepository?
     @Published var selectedDeploy: SourceInfoProjectInfo?
+    // 운영 (사용자 로그 / 서버 로그 / 업로드)
+    @Published var userLogTarget: UserLogTarget?
+    @Published var selectedServerLogFile: ServerLogFileRef?
+    @Published var selectedUploadEntry: UploadEntryRef?
 }

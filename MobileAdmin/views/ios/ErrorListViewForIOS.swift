@@ -10,6 +10,7 @@ struct ErrorListViewForIOS: View {
     @State private var userIdForLog: String = ""
     @State private var isDownloadingLog: Bool = false
     @State private var downloadedFileURL: URL? = nil
+    @State private var userLogError: Error? = nil
 
     private var criticalCount: Int {
         viewModel.errorItems.filter { isCriticalError(code: $0.code) }.count
@@ -162,6 +163,19 @@ struct ErrorListViewForIOS: View {
                 .controlSize(.small)
                 .disabled(userIdForLog.isEmpty || isDownloadingLog)
             }
+
+            if let userLogError {
+                OpsBanner.error(userLogError)
+            }
+
+            if let number = UserLogNumber(userIdForLog) {
+                NavigationLink {
+                    UserLogViewForIOS(initialNumber: String(number.value))
+                } label: {
+                    Label("실시간 로그 보기", systemImage: "dot.radiowaves.left.and.right")
+                        .font(AppFont.caption)
+                }
+            }
         }
         .padding(AppSpacing.md)
         .cardBackground()
@@ -220,12 +234,14 @@ struct ErrorListViewForIOS: View {
         guard !userIdForLog.isEmpty else { return }
         isDownloadingLog = true
         downloadedFileURL = nil
+        userLogError = nil
         Task {
             do {
                 let fileURL = try await viewModel.downloadUserLog(userIdForLog)
                 downloadedFileURL = fileURL
             } catch {
                 downloadedFileURL = nil
+                userLogError = error
             }
             isDownloadingLog = false
         }

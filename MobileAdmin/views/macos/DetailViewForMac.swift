@@ -96,6 +96,35 @@ struct DetailViewForMac: View {
                 Text("Select a row to view details.")
             }
 
+        case .userLogTail:
+            if let target = nav.userLogTarget {
+                UserLogTailScreen(target: target)
+            } else {
+                EmptyStateView(systemImage: "person.text.rectangle",
+                               title: "사용자 로그",
+                               description: "사용자 번호를 입력하고 시작하면 실시간 로그가 표시됩니다.")
+            }
+
+        case .serverLog:
+            if let ref = nav.selectedServerLogFile {
+                ServerLogContentView(ref: ref)
+                    .id(ref)
+            } else {
+                EmptyStateView(systemImage: "doc.text.magnifyingglass",
+                               title: "서버 로그",
+                               description: "목록에서 로그 파일을 선택하세요.")
+            }
+
+        case .uploadBrowser:
+            if let ref = nav.selectedUploadEntry {
+                UploadFileDetailView(ref: ref)
+                    .id(ref)
+            } else {
+                EmptyStateView(systemImage: "folder",
+                               title: "업로드 파일",
+                               description: "목록에서 파일을 선택하세요.")
+            }
+
         default:
             Text(" ")
         }

@@ -8,7 +8,7 @@ MobileAdminForCloud is a **cross-platform iOS/macOS admin dashboard application*
 - **UI Framework:** SwiftUI with platform-conditional compilation (`#if os(iOS)` / `#if os(macOS)`)
 - **Data Persistence:** SwiftData (Apple's modern persistence framework)
 - **Authentication:** JWT tokens + biometric auth (Face ID / Touch ID via LocalAuthentication)
-- **No external dependencies** - uses only Apple frameworks (Foundation, SwiftUI, SwiftData, LocalAuthentication, AVKit, Combine, Logging, UIKit/AppKit)
+- **Dependencies:** swift-log (SPM, `Logging` module) + Apple frameworks (Foundation, SwiftUI, SwiftData, LocalAuthentication, AVKit, QuickLook, Combine, UIKit/AppKit)
 
 ## Repository Structure
 
@@ -21,15 +21,17 @@ MobileAdminForCloud/
 │   │   └── MySceneForMacOS.swift         # macOS root: NavigationSplitView (3-column)
 │   ├── views/                            # All UI views
 │   │   ├── common/                       # Shared cross-platform views
+│   │   │   ├── Ops/                      # Log viewer, user log tail, server log, upload views + state models
 │   │   │   ├── ErrorCloud/               # Error monitoring views
 │   │   │   ├── Goods/                    # Product/goods views
 │   │   │   ├── devTools/                 # Build, deploy, pipeline, commit detail views
 │   │   │   ├── EnvSetView.swift          # Environment configuration (first-run setup)
 │   │   │   ├── SettingsView.swift        # App settings
-│   │   │   ├── InfoRow.swift/2/3         # Reusable key-value row components
+│   │   │   ├── InfoRow.swift             # Reusable key-value row components (InfoRow, InfoRowCustom)
 │   │   │   └── ToastView.swift           # Toast CRUD management
 │   │   ├── ios/                          # iOS-specific views (suffix: *IOS or *ForIOS)
 │   │   │   ├── HomeViewForIOS.swift      # iOS home tab with navigation links
+│   │   │   ├── ops/                      # User log / server log / upload screens
 │   │   │   ├── devTools/                 # iOS DevTools tab views
 │   │   │   └── *ListViewIOS.swift        # iOS list screens
 │   │   └── macos/                        # macOS-specific views (suffix: *ForMac)
@@ -38,7 +40,14 @@ MobileAdminForCloud/
 │   │       ├── *Sidebar.swift            # Category-specific sidebar filters
 │   │       └── DetailViewForMac.swift    # Right detail pane
 │   ├── model/                            # Data models and API layer
-│   │   ├── ViewModel.swift               # Central API client (~612 lines), ObservableObject
+│   │   ├── ViewModel.swift               # Facade over services, ObservableObject (shared state)
+│   │   ├── services/                     # API services (NetworkClient + *Service.swift per domain)
+│   │   │   ├── NetworkClient.swift       # Token mgmt, makeRequest*, ops helpers (makeURL/fetchData/download/openStream)
+│   │   │   ├── UserLogService.swift      # User log download + live tail stream
+│   │   │   ├── ServerLogService.swift    # Server logs (backend/oauth/mobileid)
+│   │   │   ├── UploadService.swift       # Upload directory browser
+│   │   │   └── OpsServices.swift         # Shared instances for ops features
+│   │   ├── Ops/                          # Ops feature models (log/upload, admin_golang API)
 │   │   ├── TokenRequest.swift            # Auth token request model
 │   │   ├── Cloud/                        # Cloud service models (Codable structs)
 │   │   │   ├── EnvironmentModel.swift    # SwiftData @Model for server URLs
@@ -63,6 +72,8 @@ MobileAdminForCloud/
 │   │   ├── Util.swift                     # Date formatting, clipboard, JSON formatting
 │   │   ├── EnvironmentType.swift          # Environment enum (development/production/local)
 │   │   ├── Effect.swift                   # SwiftUI transition animations
+│   │   ├── LineSplitter.swift             # Byte stream → lines (log tail)
+│   │   ├── DownloadStore.swift            # Download/cache locations (Downloads on macOS, Caches on iOS)
 │   │   ├── ToastManager.swift             # Toast notification state (ObservableObject)
 │   │   └── ToastModifier.swift            # Toast ViewModifier
 │   ├── commands/                          # macOS menu commands
@@ -72,7 +83,9 @@ MobileAdminForCloud/
 │   ├── Assets.xcassets/                   # Image and color assets
 │   └── Preview Content/                   # SwiftUI preview assets
 ├── MobileAdminTests/                      # Unit tests (Apple Testing framework)
-│   └── MobileAdminTests.swift             # Token validation, API fetch tests
+│   ├── MobileAdminTests.swift             # Live API fetch tests (needs server)
+│   └── *Tests.swift                       # Unit tests (NOTE: test target currently missing in pbxproj — re-add in Xcode)
+├── docs/specs/                            # Feature PRD / spec / tasks documents
 ├── MobileAdminUITests/                    # UI tests
 │   ├── MobileAdminUITests.swift
 │   └── MobileAdminUITestsLaunchTests.swift
@@ -112,7 +125,8 @@ Both platforms show `EnvSetView` on first launch if no environment is configured
 
 ### API Communication
 
-All network calls go through `ViewModel.swift` using three generic methods:
+Views call `ViewModel` (facade) which forwards to per-domain services in `model/services/`.
+Services use `NetworkClient`'s three generic methods:
 
 | Method | Description |
 |---|---|
@@ -122,14 +136,15 @@ All network calls go through `ViewModel.swift` using three generic methods:
 
 - **Auth:** JWT Bearer token obtained via `/simpleLoginForAdmin`
 - **Token refresh:** Automatic check before each request; refreshes if expired
-- **Base URL:** Configured via `EnvironmentConfig` (stored in SwiftData)
+- **Base URL:** Configured via `EnvironmentConfig` (stored in SwiftData); server is `admin_golang`
+- **Ops features (logs/uploads):** use `NetworkClient.fetchData/fetchJSON/download/openStream` — query params (POST), `+` encoded as `%2B`, 200 + `text/html` treated as unsupported endpoint, 401 → token refresh + 1 retry. These services throw (unlike older services that return empty defaults). See `docs/specs/log-and-upload-viewer/`.
 - **Headers:** `Content-Type: application/json`, `Accept: */*`, `Authorization: Bearer {token}`
 
 ## Build & Development
 
 ### Build System
 
-This is a native Xcode project (no SPM, CocoaPods, or Carthage). Build using:
+This is a native Xcode project (SPM only for swift-log; no CocoaPods or Carthage). New files under `MobileAdmin/` are auto-included (file-system synchronized groups). Build using:
 
 ```bash
 # Build (requires Xcode and macOS)
@@ -196,7 +211,8 @@ Color coding: each environment has distinct icon colors in the UI for visual dif
 | File | Purpose |
 |---|---|
 | `MobileAdminApp.swift` | App entry, ModelContainer, AppDelegate (push notifications, screen sleep prevention) |
-| `ViewModel.swift` | All API calls, token management, central state (~612 lines) |
+| `ViewModel.swift` | Facade over `model/services/*Service.swift`, central state |
+| `model/services/NetworkClient.swift` | Token management, request helpers |
 | `EnvironmentType.swift` | Server URL configuration, environment switching |
 | `MySceneForIOS.swift` | iOS root scene with biometric auth and TabView |
 | `MySceneForMacOS.swift` | macOS root scene with 3-column NavigationSplitView |

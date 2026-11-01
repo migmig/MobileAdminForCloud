@@ -45,6 +45,11 @@ struct MobileAdminApp: App {
     @NSApplicationDelegateAdaptor(MacAppDelegate.self) var appDelegate
     #endif
 
+    init() {
+        // 운영 기능(로그/업로드) 미리보기 캐시 중 24시간 지난 파일 정리
+        DownloadStore.purgeExpiredInBackground()
+    }
+
     var body: some Scene {
 
 #if os(iOS)

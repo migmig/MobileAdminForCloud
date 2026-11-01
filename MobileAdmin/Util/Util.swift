@@ -205,4 +205,30 @@ class Util{
     static func getDevTypeColor(_ type:String) -> Color{
         return AppColor.envType(type)
     }
+
+    // MARK: - 파일 크기 / Unix 시각 포맷 (운영 기능 목록용)
+
+    private static let fileSizeFormatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter
+    }()
+
+    private static let unixTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter
+    }()
+
+    /// 바이트 → "12.3 MB"
+    static func formatFileSize(_ bytes: Int64) -> String {
+        fileSizeFormatter.string(fromByteCount: bytes)
+    }
+
+    /// Unix 초 → "yyyy-MM-dd HH:mm" (기기 시간대)
+    static func formatUnixTime(_ seconds: Int64, timeZone: TimeZone = .current) -> String {
+        unixTimeFormatter.timeZone = timeZone
+        return unixTimeFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(seconds)))
+    }
 }

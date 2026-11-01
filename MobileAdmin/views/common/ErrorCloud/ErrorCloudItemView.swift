@@ -276,6 +276,17 @@ struct InfoRowIcon: View {
 struct UserRow: View {
     var userId: String?
     @ObservedObject var viewModel: ViewModel
+    #if os(macOS)
+    @EnvironmentObject private var nav: NavigationState
+    #endif
+    @AppStorage("userLog.base") private var userLogBaseRaw = ""
+    @AppStorage("userLog.lines") private var userLogLines = UserLogTarget.defaultLines
+    @State private var downloadError: Error?
+
+    /// 사용자 로그 번호로 해석 가능한 경우에만 실시간 로그 진입을 노출
+    private var logNumber: UserLogNumber? {
+        userId.flatMap { UserLogNumber($0) }
+    }
 
     var body: some View {
         HStack {
@@ -289,16 +300,15 @@ struct UserRow: View {
                 .foregroundColor(.secondary)
                 .textSelection(.enabled) // ID 선택 가능하게
 
+            if let logNumber {
+                liveLogButton(logNumber)
+            }
+
             #if os(macOS)
             // Log Download 버튼 (macOS에서 강조)
 
             Button {
-                if userId != "" {
-                    Task {
-                        let fileURL = try await viewModel.downloadUserLog(userId ?? "")
-                        NSWorkspace.shared.open(fileURL)
-                    }
-                }
+                downloadAndOpen()
             } label: {
                 Image(systemName: "square.and.arrow.down.fill")
                 Text("Log Download")
@@ -314,14 +324,56 @@ struct UserRow: View {
             }
             #if os(macOS)
             Button("Log Download & Open") {
-                Task {
-                    let fileURL = try await viewModel.downloadUserLog(userId ?? "")
-                    NSWorkspace.shared.open(fileURL)
-                }
+                downloadAndOpen()
             }
             #endif
         }
+        .alert("로그 다운로드 실패",
+               isPresented: Binding(get: { downloadError != nil },
+                                    set: { if !$0 { downloadError = nil } })) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(downloadError.map { OpsErrorPresentation(error: $0).message } ?? "")
+        }
     }
+
+    /// 실시간 로그 화면으로 이동 (iOS: push, macOS: 사이드바 '사용자 로그'로 전환)
+    @ViewBuilder
+    private func liveLogButton(_ number: UserLogNumber) -> some View {
+        #if os(iOS)
+        NavigationLink {
+            UserLogViewForIOS(initialNumber: String(number.value))
+        } label: {
+            Label("실시간", systemImage: "dot.radiowaves.left.and.right")
+                .font(AppFont.caption)
+        }
+        #else
+        Button {
+            nav.userLogTarget = UserLogTarget(number: number,
+                                              base: NasLogBase(rawValue: userLogBaseRaw),
+                                              initialLines: userLogLines)
+            nav.selectedSidebarItem = .userLogTail
+        } label: {
+            Label("실시간", systemImage: "dot.radiowaves.left.and.right")
+        }
+        .controlSize(.small)
+        .help("사용자 로그 실시간 보기")
+        #endif
+    }
+
+    #if os(macOS)
+    private func downloadAndOpen() {
+        guard let userId, !userId.isEmpty else { return }
+        Task {
+            do {
+                let fileURL = try await viewModel.downloadUserLog(userId)
+                NSWorkspace.shared.open(fileURL)
+            } catch {
+                downloadError = error
+            }
+        }
+    }
+    #endif
 }
 
 
