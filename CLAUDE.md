@@ -21,7 +21,7 @@ MobileAdminForCloud/
 │   │   └── MySceneForMacOS.swift         # macOS root: NavigationSplitView (3-column)
 │   ├── views/                            # All UI views
 │   │   ├── common/                       # Shared cross-platform views
-│   │   │   ├── Ops/                      # Log viewer, user log tail, server log, upload views + state models
+│   │   │   ├── Ops/                      # Log viewer, user log tail + interface flow timeline, server log, upload views + state models
 │   │   │   ├── ErrorCloud/               # Error monitoring views
 │   │   │   ├── Goods/                    # Product/goods views
 │   │   │   ├── devTools/                 # Build, deploy, pipeline, commit detail views
@@ -43,11 +43,11 @@ MobileAdminForCloud/
 │   │   ├── ViewModel.swift               # Facade over services, ObservableObject (shared state)
 │   │   ├── services/                     # API services (NetworkClient + *Service.swift per domain)
 │   │   │   ├── NetworkClient.swift       # Token mgmt, makeRequest*, ops helpers (makeURL/fetchData/download/openStream)
-│   │   │   ├── UserLogService.swift      # User log download + live tail stream
+│   │   │   ├── UserLogService.swift      # User log download + live tail stream + interface flow timeline
 │   │   │   ├── ServerLogService.swift    # Server logs (backend/oauth/mobileid)
 │   │   │   ├── UploadService.swift       # Upload directory browser
 │   │   │   └── OpsServices.swift         # Shared instances for ops features
-│   │   ├── Ops/                          # Ops feature models (log/upload, admin_golang API)
+│   │   ├── Ops/                          # Ops feature models (log/upload, user log timeline, admin_golang API)
 │   │   ├── TokenRequest.swift            # Auth token request model
 │   │   ├── Cloud/                        # Cloud service models (Codable structs)
 │   │   │   ├── EnvironmentModel.swift    # SwiftData @Model for server URLs
@@ -137,7 +137,7 @@ Services use `NetworkClient`'s three generic methods:
 - **Auth:** JWT Bearer token obtained via `/simpleLoginForAdmin`
 - **Token refresh:** Automatic check before each request; refreshes if expired
 - **Base URL:** Configured via `EnvironmentConfig` (stored in SwiftData); server is `admin_golang`
-- **Ops features (logs/uploads):** use `NetworkClient.fetchData/fetchJSON/download/openStream` — query params (POST), `+` encoded as `%2B`, 200 + `text/html` treated as unsupported endpoint, 401 → token refresh + 1 retry. These services throw (unlike older services that return empty defaults). See `docs/specs/log-and-upload-viewer/`.
+- **Ops features (logs/uploads):** use `NetworkClient.fetchData/fetchJSON/download/openStream` — query params (POST), `+` encoded as `%2B`, 200 + `text/html` treated as unsupported endpoint, 401 → token refresh + 1 retry. These services throw (unlike older services that return empty defaults). See `docs/specs/log-and-upload-viewer/` and `docs/specs/user-log-timeline/` (timeline: server parses the log, app only groups/filters/aggregates).
 - **Headers:** `Content-Type: application/json`, `Accept: */*`, `Authorization: Bearer {token}`
 
 ## Build & Development

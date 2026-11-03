@@ -16,7 +16,7 @@ struct ErrorCloudItemView: View {
 
                 // MARK: - 사용자 정보
                 CardView(title: "사용자", systemImage: "person.crop.circle") {
-                    UserRow(userId: errorCloudItem.userId, viewModel: viewModel)
+                    UserRow(userId: errorCloudItem.userId, registerDt: errorCloudItem.registerDt, viewModel: viewModel)
                 }
 
                 // MARK: - 핵심 정보
@@ -275,12 +275,15 @@ struct InfoRowIcon: View {
  */
 struct UserRow: View {
     var userId: String?
+    /// 흐름 분석을 오류가 난 날짜로 열기 위함
+    var registerDt: String? = nil
     @ObservedObject var viewModel: ViewModel
     #if os(macOS)
     @EnvironmentObject private var nav: NavigationState
     #endif
     @AppStorage("userLog.base") private var userLogBaseRaw = ""
     @AppStorage("userLog.lines") private var userLogLines = UserLogTarget.defaultLines
+    @AppStorage(UserLogViewMode.storageKey) private var userLogViewMode: UserLogViewMode = .timeline
     @State private var downloadError: Error?
 
     /// 사용자 로그 번호로 해석 가능한 경우에만 실시간 로그 진입을 노출
@@ -301,6 +304,7 @@ struct UserRow: View {
                 .textSelection(.enabled) // ID 선택 가능하게
 
             if let logNumber {
+                timelineButton(logNumber)
                 liveLogButton(logNumber)
             }
 
@@ -337,6 +341,32 @@ struct UserRow: View {
         }
     }
 
+    /// 인터페이스 흐름 분석으로 이동 — 오류 등록일의 로그를 연다 (iOS: push, macOS: 사이드바 '사용자 로그'로 전환)
+    @ViewBuilder
+    private func timelineButton(_ number: UserLogNumber) -> some View {
+        let date = UserLogTimelineRequest.logDate(fromRegisterDt: registerDt)
+        #if os(iOS)
+        NavigationLink {
+            UserLogViewForIOS(initialNumber: String(number.value), initialMode: .timeline, initialDate: date)
+        } label: {
+            Label("흐름", systemImage: "point.3.connected.trianglepath.dotted")
+                .font(AppFont.caption)
+        }
+        #else
+        Button {
+            nav.userLogTimelineRequest = UserLogTimelineRequest(number: number,
+                                                                base: NasLogBase(rawValue: userLogBaseRaw),
+                                                                date: date)
+            userLogViewMode = .timeline
+            nav.selectedSidebarItem = .userLogTail
+        } label: {
+            Label("흐름", systemImage: "point.3.connected.trianglepath.dotted")
+        }
+        .controlSize(.small)
+        .help("사용자 로그 인터페이스 흐름 분석 (오류 발생일)")
+        #endif
+    }
+
     /// 실시간 로그 화면으로 이동 (iOS: push, macOS: 사이드바 '사용자 로그'로 전환)
     @ViewBuilder
     private func liveLogButton(_ number: UserLogNumber) -> some View {
@@ -352,6 +382,7 @@ struct UserRow: View {
             nav.userLogTarget = UserLogTarget(number: number,
                                               base: NasLogBase(rawValue: userLogBaseRaw),
                                               initialLines: userLogLines)
+            userLogViewMode = .stream
             nav.selectedSidebarItem = .userLogTail
         } label: {
             Label("실시간", systemImage: "dot.radiowaves.left.and.right")

@@ -168,7 +168,7 @@ struct LogSnapshot: Transferable {
     }
 }
 
-// MARK: - macOS 상세 컬럼용 (대상이 바뀌면 재시작, 화면 이탈 시 중지)
+// MARK: - macOS 상세 컬럼용 (대상이 바뀌면 재시작, 화면 이탈 시 중지, 제목은 UserLogDetailForMac이 정한다)
 
 struct UserLogTailScreen: View {
     let target: UserLogTarget
@@ -177,7 +177,6 @@ struct UserLogTailScreen: View {
 
     var body: some View {
         UserLogTailView(model: model)
-            .navigationTitle("\(SlidebarItem.userLogTail.title) · \(target.number.value)")
             .task(id: target) {
                 model.start(target)
             }

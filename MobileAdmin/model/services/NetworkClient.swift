@@ -260,8 +260,8 @@ class NetworkClient {
     }
 
     /// JSON 응답을 디코딩해서 반환
-    func fetchJSON<T: Decodable>(path: String, query: [URLQueryItem] = []) async throws -> T {
-        let (data, _) = try await fetchData(path: path, query: query, accept: .json)
+    func fetchJSON<T: Decodable>(path: String, query: [URLQueryItem] = [], timeout: TimeInterval? = nil) async throws -> T {
+        let (data, _) = try await fetchData(path: path, query: query, accept: .json, timeout: timeout)
         return try JSONDecoder().decode(T.self, from: data)
     }
 

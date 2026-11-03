@@ -250,6 +250,47 @@ struct OpsNetworkTests {
         }
     }
 
+    @Test func userLogTimeline_sendsQueryAndDecodes() async throws {
+        OpsStubURLProtocol.handler = { _ in
+            .init(status: 200,
+                  headers: ["Content-Type": "application/json; charset=utf-8"],
+                  chunks: [Data(#"""
+                  {"file":"UT00000109114.log","date":"2026-11-02",
+                   "dates":[{"date":"2026-11-02","count":1,"failCount":0,"incompleteCount":0}],
+                   "events":[{"seq":1,"kind":"esb","status":"ok","start":"2026-11-02 09:00:00.000",
+                              "startMs":1,"elapsedMs":120,"thread":"http-nio-58080-exec-1"}],
+                   "truncated":false}
+                  """#.utf8)])
+        }
+        let service = UserLogService(client: client)
+        let timeline = try await service.fetchTimeline(number: UserLogNumber("UT109114")!, base: .svrWasTest, date: "2026-11-02")
+
+        #expect(timeline.date == "2026-11-02")
+        #expect(timeline.events.first?.elapsedMs == 120)
+        let request = try #require(OpsStubURLProtocol.requests.last)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.path == "/admin/getUserLogTimeline/109114")
+        #expect(request.timeoutInterval == UserLogService.timelineTimeout)
+        let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        #expect(items.contains(URLQueryItem(name: "base", value: "svr-was-test")))
+        #expect(items.contains(URLQueryItem(name: "date", value: "2026-11-02")))
+    }
+
+    @Test func userLogTimeline_omitsNilQueryAndMapsNotFound() async throws {
+        OpsStubURLProtocol.handler = { _ in
+            .init(status: 404, headers: ["Content-Type": "application/json"], chunks: [Data(#"{"error":"Log file not found"}"#.utf8)])
+        }
+        let service = UserLogService(client: client)
+        await #expect {
+            _ = try await service.fetchTimeline(number: UserLogNumber("1")!, base: nil, date: nil)
+        } throws: { error in
+            if case NetworkError.server(404, "Log file not found", _) = error { return true }
+            return false
+        }
+        let request = try #require(OpsStubURLProtocol.requests.last)
+        #expect(request.url?.query == nil)
+    }
+
     // MARK: query 구성
 
     @Test func serverLogQuery_baseOnlyForBackend() {

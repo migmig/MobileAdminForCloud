@@ -1,7 +1,7 @@
 import Foundation
 import Logging
 
-/// 사용자 로그 서비스 (/admin/getUserLog, /admin/getUserLogTail)
+/// 사용자 로그 서비스 (/admin/getUserLog, /admin/getUserLogTail, /admin/getUserLogTimeline)
 /// 화면에 원인을 표시해야 하므로 기존 서비스와 달리 오류를 삼키지 않고 throw한다.
 struct UserLogService {
     let client: NetworkClient
@@ -9,6 +9,9 @@ struct UserLogService {
 
     /// tail 스트림 유휴 타임아웃 — 서버가 heartbeat를 보내지 않으므로 길게 잡는다
     static let tailIdleTimeout: TimeInterval = 3_600
+
+    /// 인터페이스 흐름 — 서버가 로그 파일 전체를 파싱하므로 타임아웃을 길게 잡는다
+    static let timelineTimeout: TimeInterval = 120
 
     typealias TailStream = (fileName: String?, lines: AsyncThrowingStream<String, Error>)
 
@@ -26,6 +29,23 @@ struct UserLogService {
             return destination
         } catch {
             logger.error("downloadUserLog 실패: \(error)")
+            throw error
+        }
+    }
+
+    /// 인터페이스 흐름 — 로그에서 ESB/MIDAS 연계, API 진입, WARN/ERROR를 뽑은 하루치 이벤트 (date nil = 최근 날짜)
+    func fetchTimeline(number: UserLogNumber, base: NasLogBase?, date: String?) async throws -> UserLogTimeline {
+        do {
+            return try await client.fetchJSON(path: "/admin/getUserLogTimeline/\(number.value)",
+                                              query: [
+                                                  URLQueryItem(name: "base", value: base?.rawValue),
+                                                  URLQueryItem(name: "date", value: date),
+                                              ],
+                                              timeout: Self.timelineTimeout)
+        } catch {
+            if !OpsError.isCancellation(error) {
+                logger.error("fetchTimeline 실패: \(error)")
+            }
             throw error
         }
     }

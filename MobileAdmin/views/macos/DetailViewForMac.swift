@@ -97,13 +97,7 @@ struct DetailViewForMac: View {
             }
 
         case .userLogTail:
-            if let target = nav.userLogTarget {
-                UserLogTailScreen(target: target)
-            } else {
-                EmptyStateView(systemImage: "person.text.rectangle",
-                               title: "사용자 로그",
-                               description: "사용자 번호를 입력하고 시작하면 실시간 로그가 표시됩니다.")
-            }
+            UserLogDetailForMac()
 
         case .serverLog:
             if let ref = nav.selectedServerLogFile {

@@ -19,6 +19,7 @@ class NavigationState: ObservableObject {
     @Published var selectedDeploy: SourceInfoProjectInfo?
     // 운영 (사용자 로그 / 서버 로그 / 업로드)
     @Published var userLogTarget: UserLogTarget?
+    @Published var userLogTimelineRequest: UserLogTimelineRequest?
     @Published var selectedServerLogFile: ServerLogFileRef?
     @Published var selectedUploadEntry: UploadEntryRef?
 }

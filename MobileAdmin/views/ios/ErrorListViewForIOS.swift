@@ -169,11 +169,19 @@ struct ErrorListViewForIOS: View {
             }
 
             if let number = UserLogNumber(userIdForLog) {
-                NavigationLink {
-                    UserLogViewForIOS(initialNumber: String(number.value))
-                } label: {
-                    Label("실시간 로그 보기", systemImage: "dot.radiowaves.left.and.right")
-                        .font(AppFont.caption)
+                HStack(spacing: AppSpacing.lg) {
+                    NavigationLink {
+                        UserLogViewForIOS(initialNumber: String(number.value), initialMode: .timeline)
+                    } label: {
+                        Label("흐름 분석", systemImage: "point.3.connected.trianglepath.dotted")
+                            .font(AppFont.caption)
+                    }
+                    NavigationLink {
+                        UserLogViewForIOS(initialNumber: String(number.value))
+                    } label: {
+                        Label("실시간 로그 보기", systemImage: "dot.radiowaves.left.and.right")
+                            .font(AppFont.caption)
+                    }
                 }
             }
         }

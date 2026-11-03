@@ -76,7 +76,7 @@ struct ContentListViewForMac: View {
             )
 
         case .userLogTail:
-            UserLogSidebar(target: $nav.userLogTarget)
+            UserLogSidebar(target: $nav.userLogTarget, timelineRequest: $nav.userLogTimelineRequest)
 
         case .serverLog:
             ServerLogSidebar(selection: $nav.selectedServerLogFile)

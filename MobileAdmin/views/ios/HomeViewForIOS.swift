@@ -14,7 +14,7 @@ struct HomeViewForIOS: View {
         (.errerlist,    "서비스 오류 로그를 조회합니다",   .red),
         (.goodsInfo,    "상품 정보 이력을 조회합니다",     .orange),
         (.codeList,     "공통코드 목록을 조회합니다",      .blue),
-        (.userLogTail,  "사용자 로그를 실시간으로 확인합니다", .green),
+        (.userLogTail,  "사용자 로그 흐름 분석 · 실시간 확인", .green),
         (.serverLog,    "서버 로그 파일을 탐색합니다",     .indigo),
         (.uploadBrowser, "업로드된 파일을 확인합니다",     .teal),
     ]
