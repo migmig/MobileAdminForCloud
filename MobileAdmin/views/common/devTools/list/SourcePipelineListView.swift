@@ -9,17 +9,13 @@ import SwiftUI
 
 struct SourcePipelineListView: View {
     @ObservedObject var viewModel:ViewModel
+    @State private var searchText:String = ""
     @Binding var selectedPipeline:SourceInfoProjectInfo?
-    var prodList:[SourceInfoProjectInfo] {
-        viewModel.sourcePipelineList.filter{
-            return $0.name.localizedStandardContains("prod")
-        }
-        .sorted(by: {$0.name < $1.name})
-    }
-    
-    var devList:[SourceInfoProjectInfo] {
-        viewModel.sourcePipelineList.filter{
-            return !$0.name.localizedStandardContains("prod")
+    /// 검색어 적용 후 환경별로 분류된 목록
+    func list(for env: SourceEnvType) -> [SourceInfoProjectInfo] {
+        viewModel.sourcePipelineList.filter {
+            SourceEnvType.of($0.name) == env
+                && SourceEnvType.matches(name: $0.name, searchText: searchText)
         }
         .sorted(by: {$0.name < $1.name})
     }
@@ -32,49 +28,34 @@ struct SourcePipelineListView: View {
                 )
                 .listRowBackground(Color.clear)
             }
-            Section("운영"){
-                ForEach(prodList, id:\.id){ item in
-                    #if os(iOS)
-                    NavigationLink(destination:{
-                        SourcePipelineDetail(viewModel:viewModel,
-                                             selectedPipeline: item)
-                    }){
-                        SourcelineListSubView(itemNm:item.name)
+            ForEach(SourceEnvType.allCases) { env in
+                let items = list(for: env)
+                if !items.isEmpty {
+                    Section(env.title){
+                        ForEach(items, id:\.id){ item in
+                            #if os(iOS)
+                            NavigationLink(destination:{
+                                SourcePipelineDetail(viewModel:viewModel,
+                                                     selectedPipeline: item)
+                            }){
+                                SourcelineListSubView(itemNm:item.name)
+                            }
+                            #endif
+                            #if os(macOS)
+                            NavigationLink(value:item)
+                            {
+                                SourcelineListSubView(itemNm:item.name)
+                            }
+                            #endif
+                        }
                     }
-                    #endif
                     #if os(macOS)
-                    NavigationLink(value:item)
-                    {
-                        SourcelineListSubView(itemNm:item.name)
-                    }
+                    .font(AppFont.sidebarItem)
                     #endif
                 }
             }
-#if os(macOS)
-.font(AppFont.sidebarItem)
-#endif
-            Section("개발"){
-                ForEach(devList, id:\.id){ item in
-                    #if os(iOS)
-                    NavigationLink(destination:{
-                        SourcePipelineDetail(viewModel:viewModel,
-                                             selectedPipeline: item)
-                    }){
-                        SourcelineListSubView(itemNm:item.name)
-                    }
-                    #endif
-                    #if os(macOS)
-                    NavigationLink(value:item)
-                    {
-                        SourcelineListSubView(itemNm:item.name)
-                    }
-                    #endif
-                }
-            }
-#if os(macOS)
-.font(AppFont.sidebarItem)
-#endif
         }
+        .searchable(text: $searchText, placement: .automatic, prompt: "이름, 운영/스테이징/DR/개발 검색")
         .navigationTitle("파이프라인")
         .onAppear{
             Task{

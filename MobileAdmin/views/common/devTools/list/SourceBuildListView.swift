@@ -12,16 +12,11 @@ struct SourceBuildListView: View {
     @State var selectedSourceBuildProject:SourceBuildProject?
     @State var searchText:String = ""
     @Binding var selected:SourceBuildProject?
-    var prodList:[SourceBuildProject] {
-        viewModel.buildProjects.filter{
-            return $0.name.localizedStandardContains("prod")
-        }
-        .sorted(by: {$0.name < $1.name})
-    }
-    
-    var devList:[SourceBuildProject] {
-        viewModel.buildProjects.filter{
-            return !$0.name.localizedStandardContains("prod")
+    /// 검색어 적용 후 환경별로 분류된 목록
+    func list(for env: SourceEnvType) -> [SourceBuildProject] {
+        viewModel.buildProjects.filter {
+            SourceEnvType.of($0.name) == env
+                && SourceEnvType.matches(name: $0.name, searchText: searchText)
         }
         .sorted(by: {$0.name < $1.name})
     }
@@ -34,47 +29,33 @@ struct SourceBuildListView: View {
                 )
                 .listRowBackground(Color.clear)
             }
-            Section("운영"){
-                ForEach(prodList, id:\.id){ item in
-                    #if os(iOS)
-                    NavigationLink(destination:{
-                        SourceBuildDetail(viewModel:viewModel,
-                                          selectedProject: item)
-                    }){
-                        SourcelineListSubView(itemNm:item.name)
+            ForEach(SourceEnvType.allCases) { env in
+                let items = list(for: env)
+                if !items.isEmpty {
+                    Section(env.title){
+                        ForEach(items, id:\.id){ item in
+                            #if os(iOS)
+                            NavigationLink(destination:{
+                                SourceBuildDetail(viewModel:viewModel,
+                                                  selectedProject: item)
+                            }){
+                                SourcelineListSubView(itemNm:item.name)
+                            }
+                            #endif
+                            #if os(macOS)
+                            NavigationLink(value:item){
+                                SourcelineListSubView(itemNm:item.name)
+                            }
+                            #endif
+                        }
                     }
-                    #endif
                     #if os(macOS)
-                    NavigationLink(value:item){
-                        SourcelineListSubView(itemNm:item.name)
-                    }
+                    .font(AppFont.sidebarItem)
                     #endif
                 }
             }
-#if os(macOS)
-.font(AppFont.sidebarItem)
-#endif
-            Section("개발"){
-                ForEach(devList, id:\.id){ item in
-                    #if os(iOS)
-                    NavigationLink(destination:{
-                        SourceBuildDetail(viewModel:viewModel,
-                                          selectedProject: item)
-                    }){
-                        SourcelineListSubView(itemNm:item.name)
-                    }
-                    #endif
-                    #if os(macOS)
-                    NavigationLink(value:item){
-                        SourcelineListSubView(itemNm:item.name)
-                    }
-                    #endif
-                }
-            }
-#if os(macOS)
-.font(AppFont.sidebarItem)
-#endif
         }
+        .searchable(text: $searchText, placement: .automatic, prompt: "이름, 운영/스테이징/DR/개발 검색")
         .navigationTitle("소스빌드목록")
                   
         .onAppear(){

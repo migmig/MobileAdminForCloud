@@ -9,22 +9,21 @@ import SwiftUI
 struct SourcelineListSubView: View {
     var itemNm:String
 
-    private var isProd: Bool { itemNm.contains("prod") }
-    private var envColor: Color { isProd ? AppColor.envType("prod") : AppColor.envType("dev") }
+    private var env: SourceEnvType { SourceEnvType.of(itemNm) }
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            Image(systemName: isProd ? Util.getDevTypeImg("prod") : Util.getDevTypeImg("dev"))
+            Image(systemName: env.iconName)
                 .foregroundColor(.white)
                 .font(.caption)
                 .frame(width: AppIconSize.sm, height: AppIconSize.sm)
-                .background(envColor.gradient)
+                .background(env.color.gradient)
                 .cornerRadius(AppRadius.xs)
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 Text(itemNm)
                     .font(AppFont.listTitle)
-                Text(isProd ? "운영" : "개발")
+                Text(env.title)
                     .font(AppFont.captionSmall)
                     .foregroundColor(.secondary)
             }
