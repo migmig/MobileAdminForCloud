@@ -82,6 +82,7 @@ MobileAdminForCloud/
 │   │   └── Info.plist                     # App config (NSAppTransportSecurity, adminCI token)
 │   ├── Assets.xcassets/                   # Image and color assets
 │   └── Preview Content/                   # SwiftUI preview assets
+├── MobileAdminRust/                       # Rust + Slint desktop port (errors, build, pipeline, env settings) — see its README
 ├── MobileAdminTests/                      # Unit tests (Apple Testing framework)
 │   ├── MobileAdminTests.swift             # Live API fetch tests (needs server)
 │   └── *Tests.swift                       # Unit tests (NOTE: test target currently missing in pbxproj — re-add in Xcode)

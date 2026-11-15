@@ -1,0 +1,539 @@
+// MobileAdmin — Slint UI (3단 구성: 메뉴 | 목록 | 상세)
+import { Button, LineEdit, ListView, ComboBox, Spinner, Palette } from "std-widgets.slint";
+
+export enum Page { errors, builds, pipelines, settings }
+
+// 목록 한 줄. header 가 true 면 섹션 제목(운영/스테이징/DR/개발)
+export struct ListRow {
+    id: int,
+    header: bool,
+    title: string,
+    subtitle: string,
+    badge: string,
+    badge-color: color,
+}
+
+// 상세 한 줄. kind: 0 섹션 제목, 1 정보(제목+값), 2 실행 이력, 3 긴 텍스트 블록
+export struct DetailRow {
+    kind: int,
+    title: string,
+    value: string,
+    color: color,
+    begin: string,
+    end: string,
+    id: int,
+    cancellable: bool,
+}
+
+component NavItem inherits Rectangle {
+    in property <string> text;
+    in property <bool> active;
+    in property <color> dot;
+    callback clicked;
+    height: 36px;
+    border-radius: 6px;
+    background: active ? Palette.selection-background : ta.has-hover ? Palette.alternate-background : transparent;
+    ta := TouchArea {
+        clicked => { root.clicked(); }
+    }
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 10px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 10px;
+                height: 10px;
+                border-radius: 5px;
+                background: root.dot;
+            }
+        }
+        Text {
+            text: root.text;
+            vertical-alignment: center;
+            color: root.active ? Palette.selection-foreground : Palette.foreground;
+            font-size: 14px;
+        }
+    }
+}
+
+component Badge inherits Rectangle {
+    in property <string> text;
+    in property <color> tint;
+    border-radius: 5px;
+    background: tint.with-alpha(0.16);
+    height: 20px;
+    width: label.preferred-width + 14px;
+    label := Text {
+        text: root.text;
+        color: root.tint;
+        font-size: 11px;
+        font-weight: 600;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+component FieldLabel inherits Text {
+    color: Palette.foreground.transparentize(0.45);
+    font-size: 12px;
+}
+
+export component AppWindow inherits Window {
+    title: "MobileAdmin";
+    preferred-width: 1200px;
+    preferred-height: 760px;
+    min-width: 900px;
+    min-height: 520px;
+
+    // 공통 상태
+    in-out property <Page> page: Page.errors;
+    in property <string> env-name;
+    in property <color> env-color;
+    in property <bool> busy;
+    in property <string> status-text;
+    in property <bool> status-is-error;
+
+    // 목록
+    in property <[ListRow]> rows;
+    in property <string> list-empty-text;
+    in-out property <int> selected-id: -1;
+    in-out property <string> search;
+    in-out property <string> date-from;
+    in-out property <string> date-to;
+
+    // 상세
+    in property <string> detail-title;
+    in property <[DetailRow]> detail-rows;
+    in property <string> run-label;
+    in property <string> run-confirm-text;
+    in property <bool> can-delete;
+
+    // 환경 설정
+    in-out property <int> env-index;
+    in-out property <string> url-development;
+    in-out property <string> url-production;
+    in-out property <string> url-local;
+    in-out property <string> admin-ci;
+    in property <string> config-path;
+
+    callback page-changed(Page);
+    callback search-edited(string);
+    callback row-selected(int);
+    callback reload-list();
+    callback date-preset(int);
+    callback reload-detail();
+    callback run-confirmed();
+    callback cancel-history(int);
+    callback delete-error();
+    callback save-settings();
+
+    property <bool> confirm-visible: false;
+
+    VerticalLayout {
+        HorizontalLayout {
+            // ── 1단: 메뉴 ─────────────────────────────
+            Rectangle {
+                width: 190px;
+                background: Palette.alternate-background;
+                VerticalLayout {
+                    padding: 12px;
+                    spacing: 4px;
+                    Text {
+                        text: "MobileAdmin";
+                        font-size: 18px;
+                        font-weight: 700;
+                    }
+                    HorizontalLayout {
+                        alignment: start;
+                        padding-bottom: 12px;
+                        padding-top: 4px;
+                        Badge {
+                            text: root.env-name;
+                            tint: root.env-color;
+                        }
+                    }
+                    FieldLabel { text: "모니터링"; }
+                    NavItem {
+                        text: "오류 조회";
+                        dot: #E5484D;
+                        active: root.page == Page.errors;
+                        clicked => { root.page-changed(Page.errors); }
+                    }
+                    Rectangle { height: 8px; }
+                    FieldLabel { text: "개발도구"; }
+                    NavItem {
+                        text: "소스빌드";
+                        dot: #3B82F6;
+                        active: root.page == Page.builds;
+                        clicked => { root.page-changed(Page.builds); }
+                    }
+                    NavItem {
+                        text: "파이프라인";
+                        dot: #8B5CF6;
+                        active: root.page == Page.pipelines;
+                        clicked => { root.page-changed(Page.pipelines); }
+                    }
+                    Rectangle { vertical-stretch: 1; }
+                    NavItem {
+                        text: "환경 설정";
+                        dot: #6B7280;
+                        active: root.page == Page.settings;
+                        clicked => { root.page-changed(Page.settings); }
+                    }
+                }
+            }
+            Rectangle { width: 1px; background: Palette.border; }
+
+            // ── 2단: 목록 ─────────────────────────────
+            if root.page != Page.settings: Rectangle {
+                width: 340px;
+                VerticalLayout {
+                    padding: 10px;
+                    spacing: 8px;
+                    HorizontalLayout {
+                        spacing: 6px;
+                        LineEdit {
+                            placeholder-text: root.page == Page.errors ? "설명, 코드, 사용자, URL 검색" : "이름, 운영/스테이징/DR/개발 검색";
+                            text <=> root.search;
+                            edited(text) => { root.search-edited(text); }
+                        }
+                        Button {
+                            text: "조회";
+                            enabled: !root.busy;
+                            clicked => { root.reload-list(); }
+                        }
+                    }
+                    if root.page == Page.errors: VerticalLayout {
+                        spacing: 6px;
+                        HorizontalLayout {
+                            spacing: 6px;
+                            LineEdit {
+                                placeholder-text: "시작 yyyy-MM-dd";
+                                min-width: 0px;
+                                horizontal-stretch: 1;
+                                text <=> root.date-from;
+                                accepted => { root.reload-list(); }
+                            }
+                            Text { text: "~"; vertical-alignment: center; }
+                            LineEdit {
+                                placeholder-text: "종료 yyyy-MM-dd";
+                                min-width: 0px;
+                                horizontal-stretch: 1;
+                                text <=> root.date-to;
+                                accepted => { root.reload-list(); }
+                            }
+                        }
+                        HorizontalLayout {
+                            spacing: 6px;
+                            Button { text: "오늘"; clicked => { root.date-preset(0); } }
+                            Button { text: "3일"; clicked => { root.date-preset(3); } }
+                            Button { text: "7일"; clicked => { root.date-preset(7); } }
+                            Button { text: "30일"; clicked => { root.date-preset(30); } }
+                        }
+                    }
+                    if root.rows.length == 0: Text {
+                        text: root.list-empty-text;
+                        color: Palette.foreground.transparentize(0.5);
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        vertical-stretch: 1;
+                    }
+                    if root.rows.length > 0: ListView {
+                        vertical-stretch: 1;
+                        for row in root.rows: Rectangle {
+                            height: row.header ? 30px : 54px;
+                            border-radius: 6px;
+                            background: !row.header && row.id == root.selected-id ? Palette.selection-background
+                                : !row.header && row-ta.has-hover ? Palette.alternate-background : transparent;
+                            row-ta := TouchArea {
+                                enabled: !row.header;
+                                clicked => {
+                                    root.selected-id = row.id;
+                                    root.row-selected(row.id);
+                                }
+                            }
+                            if row.header: Text {
+                                x: 8px;
+                                text: row.title;
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: Palette.foreground.transparentize(0.45);
+                                vertical-alignment: bottom;
+                                height: parent.height - 4px;
+                            }
+                            if !row.header: HorizontalLayout {
+                                padding-left: 8px;
+                                padding-right: 8px;
+                                spacing: 10px;
+                                VerticalLayout {
+                                    alignment: center;
+                                    Badge {
+                                        text: row.badge;
+                                        tint: row.id == root.selected-id ? Palette.selection-foreground : row.badge-color;
+                                    }
+                                }
+                                VerticalLayout {
+                                    alignment: center;
+                                    spacing: 2px;
+                                    horizontal-stretch: 1;
+                                    Text {
+                                        text: row.title;
+                                        font-size: 14px;
+                                        font-weight: 600;
+                                        overflow: elide;
+                                        color: row.id == root.selected-id ? Palette.selection-foreground : Palette.foreground;
+                                    }
+                                    Text {
+                                        text: row.subtitle;
+                                        font-size: 11px;
+                                        overflow: elide;
+                                        color: (row.id == root.selected-id ? Palette.selection-foreground : Palette.foreground).transparentize(0.4);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if root.page != Page.settings: Rectangle { width: 1px; background: Palette.border; }
+
+            // ── 3단: 상세 ─────────────────────────────
+            if root.page != Page.settings: Rectangle {
+                horizontal-stretch: 1;
+                if root.selected-id < 0: Text {
+                    text: "왼쪽 목록에서 항목을 선택하세요";
+                    color: Palette.foreground.transparentize(0.5);
+                }
+                if root.selected-id >= 0: VerticalLayout {
+                    padding: 14px;
+                    spacing: 10px;
+                    HorizontalLayout {
+                        spacing: 8px;
+                        Text {
+                            text: root.detail-title;
+                            font-size: 18px;
+                            font-weight: 700;
+                            overflow: elide;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        if root.page != Page.errors: Button {
+                            text: "재조회";
+                            enabled: !root.busy;
+                            clicked => { root.reload-detail(); }
+                        }
+                        if root.run-label != "": Button {
+                            text: root.run-label;
+                            primary: true;
+                            enabled: !root.busy;
+                            clicked => { root.confirm-visible = true; }
+                        }
+                        if root.can-delete: Button {
+                            text: "삭제";
+                            enabled: !root.busy;
+                            clicked => { root.delete-error(); }
+                        }
+                    }
+                    ListView {
+                        vertical-stretch: 1;
+                        for row in root.detail-rows: Rectangle {
+                            VerticalLayout {
+                                padding-top: row.kind == 0 ? 14px : 5px;
+                                padding-bottom: 5px;
+                                padding-right: 12px;
+                                if row.kind == 0: Text {
+                                    text: row.title;
+                                    font-size: 13px;
+                                    font-weight: 700;
+                                    color: Palette.foreground.transparentize(0.4);
+                                }
+                                if row.kind == 1: HorizontalLayout {
+                                    spacing: 12px;
+                                    Text {
+                                        width: 110px;
+                                        text: row.title;
+                                        color: Palette.foreground.transparentize(0.45);
+                                        vertical-alignment: top;
+                                    }
+                                    TextInput {
+                                        text: row.value;
+                                        read-only: true;
+                                        single-line: false;
+                                        wrap: word-wrap;
+                                        color: Palette.foreground;
+                                        horizontal-stretch: 1;
+                                    }
+                                }
+                                if row.kind == 2: Rectangle {
+                                    border-radius: 8px;
+                                    background: Palette.alternate-background;
+                                    HorizontalLayout {
+                                        padding: 10px;
+                                        spacing: 12px;
+                                        VerticalLayout {
+                                            alignment: center;
+                                            Badge {
+                                                text: row.title;
+                                                tint: row.color;
+                                            }
+                                        }
+                                        VerticalLayout {
+                                            spacing: 3px;
+                                            horizontal-stretch: 1;
+                                            Text {
+                                                text: row.begin + "  →  " + (row.end == "" ? "진행 중" : row.end);
+                                                font-size: 13px;
+                                            }
+                                            Text {
+                                                text: row.value;
+                                                font-size: 11px;
+                                                color: Palette.foreground.transparentize(0.45);
+                                            }
+                                        }
+                                        if row.cancellable: VerticalLayout {
+                                            alignment: center;
+                                            Button {
+                                                text: "취소";
+                                                enabled: !root.busy;
+                                                clicked => { root.cancel-history(row.id); }
+                                            }
+                                        }
+                                    }
+                                }
+                                if row.kind == 3: Rectangle {
+                                    border-radius: 8px;
+                                    background: Palette.alternate-background;
+                                    VerticalLayout {
+                                        padding: 10px;
+                                        TextInput {
+                                            text: row.value;
+                                            read-only: true;
+                                            single-line: false;
+                                            wrap: word-wrap;
+                                            font-size: 12px;
+                                            color: Palette.foreground;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── 환경 설정 ─────────────────────────────
+            if root.page == Page.settings: Rectangle {
+                horizontal-stretch: 1;
+                VerticalLayout {
+                    padding: 24px;
+                    spacing: 10px;
+                    alignment: start;
+                    max-width: 720px;
+                    Text {
+                        text: "환경 설정";
+                        font-size: 20px;
+                        font-weight: 700;
+                    }
+                    Text {
+                        text: "서버 주소와 관리자 CI 를 입력한 뒤 저장하세요. 현재 환경의 주소와 CI 가 있어야 조회할 수 있습니다.";
+                        wrap: word-wrap;
+                        color: Palette.foreground.transparentize(0.4);
+                    }
+                    FieldLabel { text: "현재 환경"; }
+                    ComboBox {
+                        model: ["개발 (development)", "운영 (production)", "로컬 (local)"];
+                        current-index <=> root.env-index;
+                    }
+                    FieldLabel { text: "개발 서버 URL"; }
+                    LineEdit { text <=> root.url-development; placeholder-text: "http://dev.example.com:8080"; }
+                    FieldLabel { text: "운영 서버 URL"; }
+                    LineEdit { text <=> root.url-production; placeholder-text: "https://admin.example.com"; }
+                    FieldLabel { text: "로컬 서버 URL"; }
+                    LineEdit { text <=> root.url-local; placeholder-text: "http://localhost:8080"; }
+                    FieldLabel { text: "관리자 CI (환경변수 MOBILEADMIN_ADMIN_CI 로도 지정 가능)"; }
+                    LineEdit { text <=> root.admin-ci; input-type: password; }
+                    HorizontalLayout {
+                        alignment: start;
+                        padding-top: 8px;
+                        Button {
+                            text: "저장";
+                            primary: true;
+                            clicked => { root.save-settings(); }
+                        }
+                    }
+                    FieldLabel { text: "설정 파일: " + root.config-path; wrap: word-wrap; }
+                }
+            }
+        }
+
+        // ── 상태 표시줄 ─────────────────────────────
+        Rectangle { height: 1px; background: Palette.border; }
+        Rectangle {
+            height: 28px;
+            background: Palette.alternate-background;
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: 8px;
+                if root.busy: VerticalLayout {
+                    alignment: center;
+                    Spinner { width: 16px; height: 16px; indeterminate: true; }
+                }
+                Text {
+                    text: root.busy && root.status-text == "" ? "불러오는 중…" : root.status-text;
+                    color: root.status-is-error ? #E5484D : Palette.foreground.transparentize(0.3);
+                    font-size: 12px;
+                    vertical-alignment: center;
+                    overflow: elide;
+                    horizontal-stretch: 1;
+                }
+            }
+        }
+    }
+
+    // ── 실행 확인 ─────────────────────────────
+    if root.confirm-visible: Rectangle {
+        background: #00000080;
+        TouchArea { }
+        Rectangle {
+            width: 380px;
+            height: 150px;
+            border-radius: 12px;
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            VerticalLayout {
+                padding: 20px;
+                spacing: 12px;
+                Text {
+                    text: "실행확인";
+                    font-size: 16px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: root.run-confirm-text;
+                    wrap: word-wrap;
+                    vertical-stretch: 1;
+                }
+                HorizontalLayout {
+                    alignment: end;
+                    spacing: 8px;
+                    Button {
+                        text: "취소";
+                        clicked => { root.confirm-visible = false; }
+                    }
+                    Button {
+                        text: "실행";
+                        primary: true;
+                        clicked => {
+                            root.confirm-visible = false;
+                            root.run-confirmed();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
