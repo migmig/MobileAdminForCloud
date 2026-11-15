@@ -1,65 +1,34 @@
+// 앱 아이콘 생성 스크립트 (서버 랙 디자인). 실행: node gen.js  → ios-*.png, mac.png, *.svg
 const { chromium } = require('playwright');
-// variant: light | dark | tinted ; mac: rounded squircle w/ padding
 function svg(variant, mac){
-  const bg = variant==='light' ? ['#3B82F6','#4F46E5','#7C3AED']
-           : variant==='dark' ? ['#1E293B','#0F172A','#020617'] : ['#000','#000','#000'];
-  const cloudFill = variant==='light' ? '#FFFFFF' : variant==='dark' ? 'url(#cg)' : 'url(#tg)';
-  const lineCol = variant==='light' ? 'url(#lg)' : variant==='dark' ? '#0F172A' : '#000';
-  const barCol = variant==='light' ? 'url(#lg)' : variant==='dark' ? '#0F172A' : '#000';
-  // 1024 viewBox; mac: content 824 rect at 100
+  const V = {
+    light:  { bg:['#0F766E','#0B1F3A'], bar:'#FFFFFF', dots:['#10B981','#10B981','#F59E0B'], ink:'#0F766E', shadow:.3 },
+    dark:   { bg:['#0B2A2A','#020617'], bar:'url(#bar)', dots:['#065F46','#065F46','#B45309'], ink:'#042F2E', shadow:.4 },
+    tinted: { bg:['#000000','#000000'], bar:'url(#tg)', dots:['#1F1F1F','#1F1F1F','#6B6B6B'], ink:'#000000', shadow:0 },
+  }[variant];
+  const rows = [262,432,602].map((y,i)=>`
+    <rect x="212" y="${y}" width="600" height="140" rx="40" fill="${V.bar}"/>
+    <circle cx="292" cy="${y+70}" r="24" fill="${V.dots[i]}"/>
+    <rect x="350" y="${y+52}" width="${[300,220,260][i]}" height="36" rx="18" fill="${V.ink}" opacity=".25"/>
+    <rect x="700" y="${y+52}" width="56" height="36" rx="18" fill="${V.ink}" opacity=".55"/>`).join('');
   const body = `
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${bg[0]}"/><stop offset=".55" stop-color="${bg[1]}"/><stop offset="1" stop-color="${bg[2]}"/>
-    </linearGradient>
-    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#7C3AED"/>
-    </linearGradient>
-    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#60A5FA"/><stop offset="1" stop-color="#A78BFA"/>
-    </linearGradient>
-    <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BDBDBD"/>
-    </linearGradient>
-    <radialGradient id="glow" cx=".3" cy=".2" r=".9">
-      <stop offset="0" stop-color="#fff" stop-opacity="${variant==='light'?.28:variant==='dark'?.10:0}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="sh" x="-20%" y="-20%" width="140%" height="160%">
-      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#000" flood-opacity="${variant==='tinted'?0:.28}"/>
-    </filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${V.bg[0]}"/><stop offset="1" stop-color="${V.bg[1]}"/></linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5EEAD4"/><stop offset="1" stop-color="#38BDF8"/></linearGradient>
+    <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C4C4C4"/></linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#000" flood-opacity="${V.shadow}"/></filter>
   </defs>
   <rect width="1024" height="1024" fill="url(#bg)"/>
-  <rect width="1024" height="1024" fill="url(#glow)"/>
-  <!-- cloud -->
-  <g filter="url(#sh)">
-    <path fill="${cloudFill}" d="
-      M 300 720
-      C 210 720 150 652 150 572
-      C 150 494 208 432 284 424
-      C 300 330 382 262 482 262
-      C 570 262 644 314 676 392
-      C 694 386 712 384 732 384
-      C 820 384 884 452 884 552
-      C 884 646 814 720 724 720 Z"/>
-  </g>
-  <!-- bars -->
-  <rect x="318" y="560" width="64" height="100" rx="18" fill="${barCol}" opacity=".9"/>
-  <rect x="414" y="500" width="64" height="160" rx="18" fill="${barCol}" opacity=".9"/>
-  <!-- pulse line -->
-  <polyline points="510,600 560,600 600,470 650,650 690,540 720,600 760,600"
-    fill="none" stroke="${lineCol}" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
-  `;
+  <g filter="url(#sh)">${rows}</g>`;
   if(!mac) return `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">${body}</svg>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-    <defs><clipPath id="sq"><rect x="0" y="0" width="1024" height="1024" rx="230"/></clipPath>
+    <defs><clipPath id="sq"><rect width="1024" height="1024" rx="230"/></clipPath>
     <filter id="ms" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".3"/></filter></defs>
     <g transform="translate(100,100) scale(0.8047)" filter="url(#ms)"><g clip-path="url(#sq)">${body}</g></g></svg>`;
 }
 (async()=>{
-  const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1024,height:1024}});
-  const jobs = [['ios-light','light',false],['ios-dark','dark',false],['ios-tinted','tinted',false],['mac','light',true]];
-  const fs=require('fs');
-  for (const [n,v,m] of jobs){
+  const fs=require('fs'); const b = await chromium.launch(); const p = await b.newPage({viewport:{width:1024,height:1024}});
+  for (const [n,v,m] of [['ios-light','light',false],['ios-dark','dark',false],['ios-tinted','tinted',false],['mac','light',true]]){
     const s=svg(v,m); fs.writeFileSync(n+'.svg',s);
     await p.setContent(`<html><body style="margin:0;background:transparent">${s}</body></html>`);
     await p.locator('svg').screenshot({path:n+'.png', omitBackground:m});
