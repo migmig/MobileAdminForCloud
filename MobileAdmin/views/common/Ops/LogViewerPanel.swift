@@ -2,7 +2,7 @@
 //  LogViewerPanel.swift
 //  MobileAdmin
 //
-//  로그 뷰어 패널 — 컨트롤 바(검색/줄바꿈/따라가기/복사 + 화면별 추가 버튼) + 검색 바 + 본문
+//  로그 뷰어 패널 — 컨트롤 바(검색/줄바꿈/따라가기/테마/복사 + 화면별 추가 버튼) + 검색 바 + 본문
 //
 
 import SwiftUI
@@ -19,6 +19,8 @@ struct LogViewerPanel<Accessory: View>: View {
     @State private var isSearching = false
     @State private var search = LogSearchState()
     @State private var copied = false
+    /// 서버 로그 / 사용자 로그 공용 설정
+    @AppStorage(LogTheme.storageKey) private var theme: LogTheme = .system
 
     var body: some View {
         VStack(spacing: 0) {
@@ -39,6 +41,7 @@ struct LogViewerPanel<Accessory: View>: View {
                              searchQuery: isSearching ? search.query : "",
                              currentMatchID: isSearching ? search.currentID : nil,
                              wrap: wrap,
+                             theme: theme,
                              follow: follow ?? .constant(false))
             }
         }
@@ -88,6 +91,21 @@ struct LogViewerPanel<Accessory: View>: View {
             .toggleStyle(.button)
             .help("줄바꿈")
             .accessibilityLabel("줄바꿈")
+
+            Menu {
+                Picker("테마", selection: $theme) {
+                    ForEach(LogTheme.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+                .pickerStyle(.inline)
+            } label: {
+                Image(systemName: "paintpalette")
+            }
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("테마: \(theme.title)")
+            .accessibilityLabel("테마")
 
             Button {
                 Util.copyToClipboard(lines.map(\.text).joined(separator: "\n"))
