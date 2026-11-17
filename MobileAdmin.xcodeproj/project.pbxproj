@@ -12,6 +12,7 @@
 
 /* Begin PBXFileReference section */
 		9FE922CD2CB4B7A8007A64AF /* MobileAdmin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MobileAdmin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9FC0F1A02EEB000100C0F1A0 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -60,11 +61,20 @@
 		9FE922C42CB4B7A8007A64AF = {
 			isa = PBXGroup;
 			children = (
+				9FC0F1A12EEB000100C0F1A0 /* Config */,
 				9FE922CF2CB4B7A8007A64AF /* MobileAdmin */,
 				9FE922E12CB4B7AA007A64AF /* MobileAdminTests */,
 				9FE922EB2CB4B7AA007A64AF /* MobileAdminUITests */,
 				9FE922CE2CB4B7A8007A64AF /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		9FC0F1A12EEB000100C0F1A0 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				9FC0F1A02EEB000100C0F1A0 /* Base.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		9FE922CE2CB4B7A8007A64AF /* Products */ = {
@@ -161,6 +171,7 @@
 /* Begin XCBuildConfiguration section */
 		9FE922F02CB4B7AA007A64AF /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9FC0F1A02EEB000100C0F1A0 /* Base.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -228,6 +239,7 @@
 		};
 		9FE922F12CB4B7AA007A64AF /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9FC0F1A02EEB000100C0F1A0 /* Base.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

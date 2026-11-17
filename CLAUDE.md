@@ -233,7 +233,7 @@ Color coding: each environment has distinct icon colors in the UI for visual dif
 
 ## Security Considerations
 
-- **adminCI** credential is embedded in `Info.plist` (Base64 encoded) - do not expose
+- **adminCI** credential is injected at build time: `Info.plist` references `$(ADMIN_CI)`, defined in git-ignored `Config/Secrets.xcconfig` (included by `Config/Base.xcconfig`; Xcode Cloud generates it from the `ADMIN_CI` env var via `ci_scripts/ci_post_clone.sh`) - do not expose or commit
 - JWT tokens are held in static memory (not persisted to disk)
 - `NSAllowsArbitraryLoads = true` in ATS config (allows plain HTTP - needed for local/dev environments)
 - Biometric authentication gates app access on iOS

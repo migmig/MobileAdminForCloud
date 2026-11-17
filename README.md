@@ -206,7 +206,7 @@ xcodebuild test -project MobileAdmin.xcodeproj -scheme MobileAdmin -testPlan Mob
 
 ## 보안 고려사항
 
-- **adminCI** 자격 증명은 `Info.plist`에 포함되어 있음 (Base64 인코딩) - 노출하지 말 것
+- **adminCI** 자격 증명은 빌드 시 주입됨: `Info.plist`는 `$(ADMIN_CI)`를 참조하고, 값은 git에서 제외된 `Config/Secrets.xcconfig`에 둠 (Xcode Cloud에서는 `ADMIN_CI` 환경변수로 `ci_scripts/ci_post_clone.sh`가 생성) - 노출·커밋하지 말 것
 - JWT 토큰은 정적 메모리에 유지됨 (디스크에 영구 저장되지 않음)
 - ATS 설정에 `NSAllowsArbitraryLoads = true` 포함 (일반 HTTP 허용 - 로컬/개발 환경에 필요)
 - iOS에서는 생체 인증을 통해 앱 접근 제어
