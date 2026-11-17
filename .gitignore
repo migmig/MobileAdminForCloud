@@ -1,2 +1,5 @@
 # Makefile 빌드 산출물
 /build/
+
+# 비밀 값 (ADMIN_CI) — Config/Base.xcconfig가 선택적으로 include
+/Config/Secrets.xcconfig
